@@ -1,10 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 import           Data.Monoid ((<>))
 import           Hakyll
+import           Text.Pandoc.Options
 
 
 main :: IO ()
 main = hakyll $ do
+    match "js/**" $ do
+        route   idRoute
+        compile copyFileCompiler
+
     match "images/*" $ do
         route   idRoute
         compile copyFileCompiler
@@ -25,7 +30,7 @@ main = hakyll $ do
     -- Render posts
     match "posts/*" $ do
         route $ setExtension "html"
-        compile $ pandocCompiler
+        compile $ customPandocCompiler
             >>= loadAndApplyTemplate "templates/post.html"
                     (postCtx tags <> defaultContext)
             >>= loadAndApplyTemplate "templates/default.html"
@@ -95,3 +100,11 @@ finish context item =
     loadAndApplyTemplate "templates/default.html"
         (context <> defaultContext) item
     >>= relativizeUrls
+
+customPandocCompiler :: Compiler (Item String)
+customPandocCompiler =
+    let customReaderOptions = defaultHakyllReaderOptions
+        customWriterOptions = defaultHakyllWriterOptions
+            { writerHighlight = False
+            }
+    in pandocCompilerWith customReaderOptions customWriterOptions
