@@ -5,7 +5,7 @@ import           Text.Pandoc.Options
 
 
 main :: IO ()
-main = hakyll $ do
+main = hakyllWith customSiteConfig $ do
     match "js/**" $ do
         route   idRoute
         compile copyFileCompiler
@@ -100,6 +100,14 @@ finish context item =
     loadAndApplyTemplate "templates/default.html"
         (context <> defaultContext) item
     >>= relativizeUrls
+
+
+-- Custom config
+
+customSiteConfig :: Configuration
+customSiteConfig = defaultConfiguration
+    { destinationDirectory = "_site"
+    }
 
 customPandocCompiler :: Compiler (Item String)
 customPandocCompiler =
