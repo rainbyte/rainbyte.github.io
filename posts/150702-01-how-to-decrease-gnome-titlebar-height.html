@@ -5,6 +5,7 @@
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
         <title>(λblog.rainbyte) - How-to decrease gnome title-bar height</title>
         <link rel="stylesheet" type="text/css" href="../css/default.css" />
+        <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
     </head>
     <body>
         <div id="header">
@@ -33,23 +34,23 @@
     
 </div>
 
-<p>I’ve started using <a href="https://www.mozilla.org/firefox">Firefox</a> again, and after some time, I noticed that the gnome window title-bar was eating a lot of screen space.</p>
+<p>I’ve started using <a href="https://www.mozilla.org/firefox">Firefox</a> again, and after some time I noticed that Gnome window title-bars were eating a lot of screen space.</p>
 <!-- more -->
 <p>To solve the issue, I’ve tried installing <a href="https://addons.mozilla.org/en-US/firefox/addon/hide-caption-titlebar-plus-sma/">a plugin</a>, but I was not too happy with the result (even after some custom tweaks).<br />
 Later, I gave up with the plugin, and started searching for other solution, reading various sources (like forums).</p>
 <p>Finally, a <a href="https://wiki.archlinux.org/index.php/GNOME#Titlebar_height">good hint</a> appeared inside <a href="https://wiki.archlinux.org">the ArchWiki</a> (a wonderful source of reliable information).<br />
 After tweaking the snippet a bit, I added it to <code>~/.config/gtk-3.0/gtk.css</code>, like this:</p>
-<pre class="css"><code>.header-bar.default-decoration {
-    padding-top: 1px;
-    padding-bottom: 1px;
-    font-size: 0.5em;
-}
+<div class="sourceCode"><pre class="sourceCode css"><code class="sourceCode css"><span class="fl">.header-bar.default-decoration</span> <span class="kw">{</span>
+    <span class="kw">padding-top:</span> <span class="dt">1px</span><span class="kw">;</span>
+    <span class="kw">padding-bottom:</span> <span class="dt">1px</span><span class="kw">;</span>
+    <span class="kw">font-size:</span> <span class="dt">0.5em</span><span class="kw">;</span>
+<span class="kw">}</span>
 
-.header-bar.default-decoration .button.titlebutton {
-    padding-top: 1px;
-    padding-bottom: 1px
-    border-width: 0;
-}</code></pre>
+<span class="fl">.header-bar.default-decoration</span> <span class="fl">.button.titlebutton</span> <span class="kw">{</span>
+    <span class="kw">padding-top:</span> <span class="dt">1px</span><span class="kw">;</span>
+    <span class="kw">padding-bottom:</span> <span class="dt">1px</span><span class="kw">;</span>
+    <span class="kw">border-width:</span> <span class="dt">0</span><span class="kw">;</span>
+<span class="kw">}</span></code></pre></div>
 <p>An that’s all, no plugin needed and it is useful system wide (at least for apps which don’t support client side decorations).</p>
 
         </div>
@@ -58,7 +59,4 @@ After tweaking the snippet a bit, I added it to <code>~/.config/gtk-3.0/gtk.css<
             <a href="http://jaspervdj.be/hakyll">Hakyll</a>
         </div>
     </body>
-    <link href="../js/highlight/styles/monokai_sublime.css" rel="stylesheet">
-    <script src="../js/highlight/highlight.pack.js"></script>
-    <script>hljs.initHighlightingOnLoad();</script>
 </html>
