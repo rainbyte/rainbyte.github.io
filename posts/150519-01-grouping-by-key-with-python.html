@@ -47,10 +47,10 @@
 <p>First I’ve loaded the required module:</p>
 <div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="im">from</span> itertools <span class="im">import</span> groupby</code></pre></div>
 <p>Then, the final solution was much like this:</p>
-<div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="cf">for</span> key, group <span class="op">in</span> groupby(<span class="bu">sorted</span>(items), <span class="kw">lambda</span> x: x[<span class="dv">0</span>]):
+<div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="cf">for</span> key, group <span class="kw">in</span> groupby(<span class="bu">sorted</span>(items), <span class="kw">lambda</span> x: x[<span class="dv">0</span>]):
     <span class="co"># Do something with the key</span>
     <span class="bu">print</span>(key)
-    <span class="cf">for</span> <span class="bu">tuple</span> <span class="op">in</span> group:
+    <span class="cf">for</span> <span class="bu">tuple</span> <span class="kw">in</span> group:
         <span class="co"># Process each tuple with same key</span>
         <span class="bu">print</span>(<span class="bu">tuple</span>)
     <span class="co"># Other statements</span>
