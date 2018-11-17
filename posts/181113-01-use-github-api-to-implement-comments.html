@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" /> 
+        <title>(λblog.rainbyte) - Use GitHub API to implement comments feature</title>
+        <link rel="stylesheet" type="text/css" href="../css/default.css" />
+        <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
+    </head>
+    <body>
+        <div id="header">
+            <div id="logo">
+                <a href="../">(λblog.rainbyte)</a>
+            </div>
+            <div id="navigation">
+                <a href="../">Home</a>
+                <a href="../about.html">About</a>
+                <a href="../cheatsheet.html">Cheatsheet</a>
+                <a href="../posts.html">Archive</a>
+                <a href="../atom.xml">Feed</a>
+            </div>
+        </div>
+
+        <div id="content">
+            <h1>Use GitHub API to implement comments feature</h1>
+            <div class="info">
+    Posted on November 16, 2018
+    
+        by rainbyte
+    
+</div>
+
+<div class="info">
+    
+        Tags: <a href="../tags/blog.html">blog</a>
+    
+</div>
+
+<p>The comments section of this blog is implemented via standard GitHub issues and given that GitHub provides an API to access the public information of a repository, we can use it. If we have a repository with issues already created, we can access the comments of a certain issue using an URL like this one:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode default"><code class="sourceCode default"><a class="sourceLine" id="cb1-1" title="1">https://api.github.com/repos/${username}/${repository}/issues/${issueId}/comments</a></code></pre></div>
+<p>Using that endpoint the API provides us the comments as a list of Javascript objects, each one being similar to this:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode javascript"><code class="sourceCode javascript"><a class="sourceLine" id="cb2-1" title="1"><span class="op">{</span></a>
+<a class="sourceLine" id="cb2-2" title="2">    <span class="st">&quot;body&quot;</span><span class="op">:</span> <span class="st">&quot;comment text&quot;</span><span class="op">,</span></a>
+<a class="sourceLine" id="cb2-3" title="3">    <span class="st">&quot;created_at&quot;</span><span class="op">:</span> <span class="st">&quot;when was the comment published&quot;</span><span class="op">,</span></a>
+<a class="sourceLine" id="cb2-4" title="4">    <span class="st">&quot;user: {</span></a>
+<a class="sourceLine" id="cb2-5" title="5">        <span class="st">&quot;avatar_url&quot;</span><span class="op">:</span> <span class="st">&quot;user image location&quot;</span><span class="op">,</span></a>
+<a class="sourceLine" id="cb2-6" title="6">        <span class="st">&quot;html_url&quot;</span><span class="op">:</span> <span class="st">&quot;user profile location&quot;</span><span class="op">,</span></a>
+<a class="sourceLine" id="cb2-7" title="7">        <span class="st">&quot;login&quot;</span><span class="op">:</span> <span class="st">&quot;user nickname&quot;</span></a>
+<a class="sourceLine" id="cb2-8" title="8">    <span class="op">}</span></a>
+<a class="sourceLine" id="cb2-9" title="9">}</a></code></pre></div>
+<p>Of course there are much more fields available, but these ones are representative enough and using them we can write some Javascript code to render the comments HTML view. This is the code used in this blog to render comments below:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode javascript"><code class="sourceCode javascript"><a class="sourceLine" id="cb3-1" title="1"><span class="kw">var</span> issueId <span class="op">=</span> $commentsIssue$<span class="op">;</span></a>
+<a class="sourceLine" id="cb3-2" title="2"><span class="kw">var</span> url <span class="op">=</span> <span class="st">&quot;https://github.com/rainbyte/rainbyte.github.io/issues/&quot;</span> <span class="op">+</span> issueId<span class="op">;</span></a>
+<a class="sourceLine" id="cb3-3" title="3"><span class="kw">var</span> api_url <span class="op">=</span> <span class="st">&quot;https://api.github.com/repos/rainbyte/rainbyte.github.io/issues/&quot;</span> <span class="op">+</span> issueId <span class="op">+</span> <span class="st">&quot;/comments&quot;</span><span class="op">;</span></a>
+<a class="sourceLine" id="cb3-4" title="4">(<span class="kw">function</span>() <span class="op">{</span></a>
+<a class="sourceLine" id="cb3-5" title="5">    <span class="co">// DOM is already available, now we can handle page elements</span></a>
+<a class="sourceLine" id="cb3-6" title="6">    <span class="kw">var</span> ghCommentsList <span class="op">=</span> <span class="va">document</span>.<span class="at">getElementById</span>(<span class="st">&quot;gh-comments-list&quot;</span>)<span class="op">;</span></a>
+<a class="sourceLine" id="cb3-7" title="7"></a>
+<a class="sourceLine" id="cb3-8" title="8">    <span class="kw">var</span> request <span class="op">=</span> <span class="kw">new</span> <span class="at">XMLHttpRequest</span>()<span class="op">;</span></a>
+<a class="sourceLine" id="cb3-9" title="9">    <span class="va">request</span>.<span class="at">open</span>(<span class="st">'GET'</span><span class="op">,</span> api_url<span class="op">,</span> <span class="kw">true</span>)<span class="op">;</span></a>
+<a class="sourceLine" id="cb3-10" title="10">    <span class="va">request</span>.<span class="at">onload</span> <span class="op">=</span> <span class="kw">function</span>() <span class="op">{</span></a>
+<a class="sourceLine" id="cb3-11" title="11">        <span class="cf">if</span> (<span class="va">request</span>.<span class="at">status</span> <span class="op">&gt;=</span> <span class="dv">200</span> <span class="op">&amp;&amp;</span> <span class="va">request</span>.<span class="at">status</span> <span class="op">&lt;</span> <span class="dv">400</span>) <span class="op">{</span></a>
+<a class="sourceLine" id="cb3-12" title="12">            <span class="co">// Request was successful, we can process the raw comments</span></a>
+<a class="sourceLine" id="cb3-13" title="13">            <span class="kw">var</span> comments <span class="op">=</span> <span class="va">JSON</span>.<span class="at">parse</span>(<span class="va">request</span>.<span class="at">responseText</span>)<span class="op">;</span></a>
+<a class="sourceLine" id="cb3-14" title="14">            <span class="kw">var</span> fragment <span class="op">=</span> <span class="va">document</span>.<span class="at">createDocumentFragment</span>()<span class="op">;</span></a>
+<a class="sourceLine" id="cb3-15" title="15">            <span class="kw">var</span> range <span class="op">=</span> <span class="kw">new</span> <span class="at">Range</span>()<span class="op">;</span></a>
+<a class="sourceLine" id="cb3-16" title="16"></a>
+<a class="sourceLine" id="cb3-17" title="17">            <span class="co">// Render comments section header</span></a>
+<a class="sourceLine" id="cb3-18" title="18">            <span class="va">fragment</span>.<span class="at">appendChild</span>(<span class="va">range</span>.<span class="at">createContextualFragment</span>(<span class="vs">`</span></a>
+<a class="sourceLine" id="cb3-19" title="19"><span class="vs">                &lt;div&gt;</span></a>
+<a class="sourceLine" id="cb3-20" title="20"><span class="vs">                    &lt;b&gt;Comments section&lt;/b&gt; (visit the &lt;b&gt;&lt;a href='</span><span class="sc">${</span>url<span class="sc">}</span><span class="vs">'&gt;issue&lt;/a&gt;&lt;/b&gt; of this post to add one)</span></a>
+<a class="sourceLine" id="cb3-21" title="21"><span class="vs">                &lt;/div&gt;</span></a>
+<a class="sourceLine" id="cb3-22" title="22"><span class="vs">            `</span>))<span class="op">;</span></a>
+<a class="sourceLine" id="cb3-23" title="23"></a>
+<a class="sourceLine" id="cb3-24" title="24">            <span class="co">// Render view of each comment</span></a>
+<a class="sourceLine" id="cb3-25" title="25">            <span class="va">comments</span>.<span class="at">forEach</span>(comment <span class="op">=&gt;</span> <span class="op">{</span></a>
+<a class="sourceLine" id="cb3-26" title="26">                <span class="kw">var</span> date <span class="op">=</span> <span class="kw">new</span> <span class="at">Date</span>(<span class="va">comment</span>.<span class="at">created_at</span>)<span class="op">;</span></a>
+<a class="sourceLine" id="cb3-27" title="27">                <span class="kw">var</span> renderedComment <span class="op">=</span> <span class="va">range</span>.<span class="at">createContextualFragment</span>(<span class="vs">`</span></a>
+<a class="sourceLine" id="cb3-28" title="28"><span class="vs">                    &lt;div class='gh-comment'&gt;</span></a>
+<a class="sourceLine" id="cb3-29" title="29"><span class="vs">                        &lt;div class='gh-comment-header'&gt;</span></a>
+<a class="sourceLine" id="cb3-30" title="30"><span class="vs">                            &lt;img src='$</span><span class="sc">${</span><span class="va">comment</span>.<span class="va">user</span>.<span class="at">avatar_url</span><span class="sc">}</span><span class="vs">'&gt;</span></a>
+<a class="sourceLine" id="cb3-31" title="31"><span class="vs">                            &lt;div&gt;</span></a>
+<a class="sourceLine" id="cb3-32" title="32"><span class="vs">                                &lt;b&gt;&lt;a href='</span><span class="sc">${</span><span class="va">comment</span>.<span class="va">user</span>.<span class="at">html_url</span><span class="sc">}</span><span class="vs">'&gt;</span><span class="sc">${</span><span class="va">comment</span>.<span class="va">user</span>.<span class="at">login</span><span class="sc">}</span><span class="vs">&lt;/a&gt;&lt;/b&gt; posted at &lt;em&gt;</span><span class="sc">${</span><span class="va">date</span>.<span class="at">toDateString</span>()<span class="sc">}</span><span class="vs">&lt;/em&gt;</span></a>
+<a class="sourceLine" id="cb3-33" title="33"><span class="vs">                            &lt;/div&gt;</span></a>
+<a class="sourceLine" id="cb3-34" title="34"><span class="vs">                        &lt;/div&gt;</span></a>
+<a class="sourceLine" id="cb3-35" title="35"><span class="vs">                        &lt;div class='gh-comment-body'&gt;</span></a>
+<a class="sourceLine" id="cb3-36" title="36"><span class="vs">                            $</span><span class="sc">${</span><span class="va">comment</span>.<span class="at">body</span><span class="sc">}</span></a>
+<a class="sourceLine" id="cb3-37" title="37"><span class="vs">                        &lt;/div&gt;</span></a>
+<a class="sourceLine" id="cb3-38" title="38"><span class="vs">                    &lt;/div&gt;</span></a>
+<a class="sourceLine" id="cb3-39" title="39"><span class="vs">                `</span>)<span class="op">;</span></a>
+<a class="sourceLine" id="cb3-40" title="40">                <span class="va">fragment</span>.<span class="at">appendChild</span>(renderedComment)<span class="op">;</span></a>
+<a class="sourceLine" id="cb3-41" title="41">            <span class="op">}</span>)<span class="op">;</span></a>
+<a class="sourceLine" id="cb3-42" title="42"></a>
+<a class="sourceLine" id="cb3-43" title="43">            <span class="co">// Make changes visible by adding rendered nodes</span></a>
+<a class="sourceLine" id="cb3-44" title="44">            <span class="va">ghCommentsList</span>.<span class="at">append</span>(fragment)<span class="op">;</span></a>
+<a class="sourceLine" id="cb3-45" title="45">        <span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></a>
+<a class="sourceLine" id="cb3-46" title="46">            <span class="co">// Request reached the target server, but it returned an error</span></a>
+<a class="sourceLine" id="cb3-47" title="47">            <span class="va">ghCommentsList</span>.<span class="at">append</span>(<span class="st">&quot;Comments are not available now.&quot;</span>)<span class="op">;</span></a>
+<a class="sourceLine" id="cb3-48" title="48">        <span class="op">}</span></a>
+<a class="sourceLine" id="cb3-49" title="49">    <span class="op">};</span></a>
+<a class="sourceLine" id="cb3-50" title="50">    <span class="va">request</span>.<span class="at">onerror</span> <span class="op">=</span> <span class="kw">function</span>() <span class="op">{</span></a>
+<a class="sourceLine" id="cb3-51" title="51">        <span class="co">// There was a connection error of some sort</span></a>
+<a class="sourceLine" id="cb3-52" title="52">        <span class="va">ghCommentsList</span>.<span class="at">append</span>(<span class="st">&quot;Comments are not available now.&quot;</span>)<span class="op">;</span></a>
+<a class="sourceLine" id="cb3-53" title="53">    <span class="op">};</span></a>
+<a class="sourceLine" id="cb3-54" title="54">    <span class="va">request</span>.<span class="at">send</span>()<span class="op">;</span></a>
+<a class="sourceLine" id="cb3-55" title="55"><span class="op">}</span>)()<span class="op">;</span></a></code></pre></div>
+<p>If code is working ok, you can see a comments section under this text and add a new comment following the provided link.</p>
+
+
+<div id="gh-comments-list">
+</div>
+
+<script type="text/javascript">
+    // This is a self executing function
+    var issueId = 1;
+    var url = "https://github.com/rainbyte/rainbyte.github.io/issues/" + issueId;
+    var api_url = "https://api.github.com/repos/rainbyte/rainbyte.github.io/issues/" + issueId + "/comments";
+    (function() {
+        // DOM is already available, now we can handle page elements
+        var ghCommentsList = document.getElementById("gh-comments-list");
+
+        var request = new XMLHttpRequest();
+        request.open('GET', api_url, true);
+        request.onload = function() {
+            if (request.status >= 200 && request.status < 400) {
+                // Request was successful, we can process the raw comments
+                var comments = JSON.parse(request.responseText);
+                var fragment = document.createDocumentFragment();
+                var range = new Range();
+
+                // Render comments section header
+                fragment.appendChild(range.createContextualFragment(`
+                    <div>
+                        <b>Comments section</b> (visit the <b><a href='${url}'>issue</a></b> of this post to add one)
+                    </div>
+                `));
+
+                // Render view of each comment
+                comments.forEach(comment => {
+                    var date = new Date(comment.created_at);
+                    var renderedComment = range.createContextualFragment(`
+                        <div class='gh-comment'>
+                            <div class='gh-comment-header'>
+                                <img src='${comment.user.avatar_url}'>
+                                <div>
+                                    <b><a href='${comment.user.html_url}'>${comment.user.login}</a></b> posted at <em>${date.toDateString()}</em>
+                                </div>
+                            </div>
+                            <div class='gh-comment-body'>
+                                ${comment.body}
+                            </div>
+                        </div>
+                    `);
+                    fragment.appendChild(renderedComment);
+                });
+
+                // Make changes visible by adding rendered nodes
+                ghCommentsList.append(fragment);
+            } else {
+                // Request reached the target server, but it returned an error
+                ghCommentsList.append("Comments are not available now.");
+            }
+        };
+        request.onerror = function() {
+            // There was a connection error of some sort
+            ghCommentsList.append("Comments are not available now.");
+        };
+        request.send();
+    })();
+</script>
+
+        </div>
+        <div id="footer">
+            Site proudly generated by
+            <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+        </div>
+    </body>
+</html>

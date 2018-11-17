@@ -1,8 +1,7 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<!DOCTYPE html>
+<html lang="en">
     <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta charset="utf-8" /> 
         <title>(λblog.rainbyte) - Programación de GPU en Haskell usando GPipe - Parte 1</title>
         <link rel="stylesheet" type="text/css" href="../css/default.css" />
         <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
@@ -128,6 +127,11 @@
 <p>Dibujar es la unica acción en el shader que posee un efecto secundario: en este caso el buffer trasero de la ventana es alterado. Una ventana tiene (al menos) dos buffers, uno llamado buffer frontal que es mostrado en la pantalla, y otro que llamamos buffer trasero donde los shaders estan dibujando. Cuando la acción <code>shader primitiveArray</code> en la monada <code>Render</code> retorna, el buffer trasero sera actualizado. Para presentar en la pantalla esta nueva imagen renderizada, necesitamos llamar a <code>swapContextBuffers</code> dentro de nuestra monada <code>ContextT</code>. Esto le va a indicar al hardware grafico que intercambie los buffers frontal y trasero. No se va a realizar ninguna copia de memoria, sino solamente un intercambio de valores de punteros, asi que es bastante efectivo. Sin embargo, <code>swapContextBuffers</code> puede bloquearse momentaneamente si tratas de presentar imagenes mas rapido que la pantalla pueda actualizarse, pero esto es usualmente algo bueno, ya que de otra forma estarias gastando ciclos de GPU y CPU produciendo más imagenes de las que pueden presentarse.</p>
 <p>Hay una linea en la acción <code>Render</code> de nuestro ejemplo, que omití antes descaradamente: <code>clearContextColor (V3 0 0 0)</code>. Esta acción ocurre antes de ejecutar el shader, y es usada para setear cada pixel en los contenidos previos del buffer trasero a un valor constante, en este caso <code>V3 0 0 0</code>, es decir, color negro. Luego de un intercambio, los contenidos del buffer trasero son indefinidos, asi que es siempre una buena idea comenzar cada frame haciendo limpieza luego de <code>swapContextBuffers</code>. Limpiar y ejecutar shaders son dos acciones de la monada <code>Render</code> que tienen efectos secundarios.</p>
 <p>Esto concluye la primer parte de este tutorial. La proxima vez voy a escribir detalladamente sobre <code>Buffer</code> y <code>PrimitiveArray</code>.</p>
+
+
+<div id="gh-comments-list">
+    Comments are not open for this post yet.
+</div>
 
         </div>
         <div id="footer">

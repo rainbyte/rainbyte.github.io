@@ -1,8 +1,7 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<!DOCTYPE html>
+<html lang="en">
     <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta charset="utf-8" /> 
         <title>(λblog.rainbyte) - Programación de GPU en Haskell usando GPipe - Parte 2</title>
         <link rel="stylesheet" type="text/css" href="../css/default.css" />
         <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
@@ -189,6 +188,11 @@
 <a class="sourceLine" id="cb17-5" title="5">  <span class="dt">Combine</span> () () <span class="fu">=</span> ()</a></code></pre></div>
 <p>Cuando tienes tu <code>PrimitiveArray</code>, la información de tipo ya sea si fue instanciado, indexado o ambos, se ha ido. Esto significa que puedes usar <code>mappend</code> sobre un array de primitivas instanciado junto con uno no instanciado, y que el shader al cual envías un array de primitivas no le importa si era instanciado o indexado.</p>
 <p>Esta vez no hay ejemplos de código, así que voy a dejar como ejercicio aplicar lo que aprendiste esta vez en el ejemplo de <a href="(/posts/160426-01-gpipe-part-01.html)">la parte anterior</a>. La próxima vez finalmente vamos a abordar <code>Shader</code>!</p>
+
+
+<div id="gh-comments-list">
+    Comments are not open for this post yet.
+</div>
 
         </div>
         <div id="footer">
