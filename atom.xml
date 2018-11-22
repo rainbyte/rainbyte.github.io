@@ -8,8 +8,204 @@
         <name>rainbyte</name>
         <email>rainbyte@tuta.io</email>
     </author>
-    <updated>2018-11-16T22:48:00Z</updated>
+    <updated>2018-11-22T03:12:00Z</updated>
     <entry>
+    <title>Pandoc filter for custom ruby notation</title>
+    <link href="http://rainbyte.github.io/posts/181122-01-pandoc-filter-ruby.html" />
+    <id>http://rainbyte.github.io/posts/181122-01-pandoc-filter-ruby.html</id>
+    <published>2018-11-22T03:12:00Z</published>
+    <updated>2018-11-22T03:12:00Z</updated>
+    <summary type="html"><![CDATA[<div class="info">
+    Posted on November 22, 2018
+    
+        by rainbyte
+    
+</div>
+
+<div class="info">
+    
+        Tags: <a href="/tags/blog.html">blog</a>, <a href="/tags/haskell.html">haskell</a>, <a href="/tags/pandoc.html">pandoc</a>, <a href="/tags/markdown.html">markdown</a>, <a href="/tags/chinese.html">chinese</a>, <a href="/tags/japanese.html">japanese</a>
+    
+</div>
+
+<h2 id="the-motivation">The motivation</h2>
+<p>Chinese and Japanese languages use ideograms in their written forms, but sometimes it is useful to show the reader how those ideograms should be pronounced. To do that, phonetic systems like <strong><ruby>汉语<rt>hànyǔ</rt></ruby><ruby>拼音<rt>pīnyīn</rt></ruby></strong> and <strong><ruby>振<rt>fu</rt>り<rt>ri</rt>仮<rt>ga</rt>名<rt>na</rt></ruby></strong> are used.</p>
+<p>In html documents we can use <code>ruby</code> elements to show phonetic representation above the ideograms, like in the following example:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Code</th>
+<th>Expected Result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>我喜欢&lt;ruby&gt;汉&lt;rt&gt;hàn&lt;/rt&gt;字&lt;rt&gt;zì&lt;/rt&gt;&lt;/ruby&gt;</code></td>
+<td>中国<ruby>汉<rt>hàn</rt>字<rt>zì</rt></ruby></td>
+</tr>
+</tbody>
+</table>
+<p>The problem is that writing text using <code>ruby</code> elements it is tedious and error prone. We prefer writing something like the following examples:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Code</th>
+<th>Expected Result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>我喜欢{汉字|hàn|zì}</code></td>
+<td>我喜欢<ruby>汉<rt>hàn</rt>字<rt>zì</rt></ruby></td>
+</tr>
+<tr class="even">
+<td><code>我喜欢{汉字|hànzì}</code></td>
+<td>我喜欢<ruby>汉字<rt>hànzì</rt></ruby></td>
+</tr>
+<tr class="odd">
+<td><code>我喜欢{汉字|}</code></td>
+<td>我喜欢<ruby>汉<rt></rt>字<rt></rt></ruby></td>
+</tr>
+<tr class="even">
+<td><code>我喜欢{汉字|hà|n|zì}</code></td>
+<td>我喜欢<ruby>汉字<rt>hà</td>
+</tr>
+<tr class="odd">
+<td><code>我喜欢{汉字}</code></td>
+<td>我喜欢{汉字}</td>
+</tr>
+<tr class="even">
+<td><code>我喜欢{|hànzì}</code></td>
+<td>我喜欢<ruby><rt>hànzì</rt></ruby></td>
+</tr>
+<tr class="odd">
+<td><code>我喜欢{|}</code></td>
+<td>我喜欢</td>
+</tr>
+</tbody>
+</table>
+<p>The rest of the post explains how to handle those custom markdown expressions to produce the <code>ruby</code> elements without writing them by hand. I implemented this code in <strong>Haskell</strong> language as a <strong>Pandoc</strong> filter, because this blog uses <strong>Hakyll</strong> static generator which uses the <strong>Pandoc</strong> library.</p>
+<h2 id="document-representation">Document representation</h2>
+<p>Pandoc uses a custom datatype to represent in an uniform way the multiple types of contents it can handle. That type is called <code>Pandoc</code> and basically contains a tree-like structure formed by different nodes. We are interested in processing only nodes which are specific instances of the <code>Inline</code> type, because they contain the pieces of text we want to modify.</p>
+<p>We have a piece of code which process the provided Pandoc data structure.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb1-1" title="1"><span class="ot">transformCustomMarkdownRuby ::</span> <span class="dt">Pandoc</span> <span class="ot">-&gt;</span> <span class="dt">Pandoc</span></a>
+<a class="sourceLine" id="cb1-2" title="2">transformCustomMarkdownRuby <span class="fu">=</span> walk handleInline</a>
+<a class="sourceLine" id="cb1-3" title="3">  <span class="kw">where</span></a>
+<a class="sourceLine" id="cb1-4" title="4"><span class="ot">    handleInline ::</span> <span class="dt">Inline</span> <span class="ot">-&gt;</span> <span class="dt">Inline</span></a>
+<a class="sourceLine" id="cb1-5" title="5">    handleInline (<span class="dt">Str</span> s) <span class="fu">=</span> <span class="kw">case</span> (parse markdownRuby <span class="st">&quot;&quot;</span> s) <span class="kw">of</span></a>
+<a class="sourceLine" id="cb1-6" title="6">        (<span class="dt">Left</span> _)     <span class="ot">-&gt;</span> <span class="dt">Str</span> s</a>
+<a class="sourceLine" id="cb1-7" title="7">        (<span class="dt">Right</span> rubies) <span class="ot">-&gt;</span> <span class="dt">RawInline</span> (<span class="dt">Format</span> <span class="st">&quot;html&quot;</span>) (rubiesToHtml rubies)</a>
+<a class="sourceLine" id="cb1-8" title="8">    handleInline x       <span class="fu">=</span> x</a></code></pre></div>
+<p>The key point in this code is the pattern matching over the <code>Inline</code> type, specifically over the <code>Str</code> instances. We use the <code>walk</code> function to process all the matched nodes recursively, leaving the other ones untouched. A <code>RawInline</code> instance is generated when ruby tags are found, otherwise the original <code>Str</code> instance is preserved.</p>
+<h2 id="text-processing">Text processing</h2>
+<p>When we have a candidate to be modified, it is necessary to verify if it follows the correct syntax, so we can parse it to extract the data and render it the way we want.</p>
+<p>Now, here we have the code which does main work:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb2-1" title="1"><span class="ot">markdownRuby ::</span> <span class="dt">Parsec</span> <span class="dt">String</span> () [(<span class="dt">String</span>,[(<span class="dt">String</span>,<span class="dt">String</span>)],<span class="dt">String</span>)]</a>
+<a class="sourceLine" id="cb2-2" title="2">markdownRuby <span class="fu">=</span> many <span class="fu">$</span> choice [try ruby, fallback]</a>
+<a class="sourceLine" id="cb2-3" title="3">  <span class="kw">where</span></a>
+<a class="sourceLine" id="cb2-4" title="4"><span class="ot">    ruby ::</span> <span class="dt">Parsec</span> <span class="dt">String</span> () (<span class="dt">String</span>,[(<span class="dt">String</span>,<span class="dt">String</span>)],<span class="dt">String</span>)</a>
+<a class="sourceLine" id="cb2-5" title="5">    ruby <span class="fu">=</span> (,,) <span class="co">-- (openingText,rubyPairs,closingText)</span></a>
+<a class="sourceLine" id="cb2-6" title="6">        <span class="fu">&lt;$&gt;</span> (many <span class="fu">$</span> noneOf <span class="st">&quot;{&quot;</span>)</a>
+<a class="sourceLine" id="cb2-7" title="7">        <span class="fu">&lt;*&gt;</span> between (char <span class="ch">&#39;{&#39;</span>) (char <span class="ch">&#39;}&#39;</span>) markdownRubyPairs</a>
+<a class="sourceLine" id="cb2-8" title="8">        <span class="fu">&lt;*&gt;</span> (many <span class="fu">$</span> noneOf <span class="st">&quot;{&quot;</span>)</a>
+<a class="sourceLine" id="cb2-9" title="9"><span class="ot">    fallback ::</span> <span class="dt">Parsec</span> <span class="dt">String</span> () (<span class="dt">String</span>,[(<span class="dt">String</span>,<span class="dt">String</span>)],<span class="dt">String</span>)</a>
+<a class="sourceLine" id="cb2-10" title="10">    fallback <span class="fu">=</span> (,,) <span class="co">-- (openingText,rubyPairs,closingText)</span></a>
+<a class="sourceLine" id="cb2-11" title="11">        <span class="fu">&lt;$&gt;</span> (many1 <span class="fu">$</span> anyChar)</a>
+<a class="sourceLine" id="cb2-12" title="12">        <span class="fu">&lt;*&gt;</span> <span class="fu">pure</span> []</a>
+<a class="sourceLine" id="cb2-13" title="13">        <span class="fu">&lt;*&gt;</span> <span class="fu">pure</span> <span class="st">&quot;&quot;</span></a>
+<a class="sourceLine" id="cb2-14" title="14"><span class="ot">markdownRubyPairs ::</span> <span class="dt">Parsec</span> <span class="dt">String</span> () [(<span class="dt">String</span>,<span class="dt">String</span>)]</a>
+<a class="sourceLine" id="cb2-15" title="15">markdownRubyPairs <span class="fu">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb2-16" title="16">    elems <span class="ot">&lt;-</span> taggedElems</a>
+<a class="sourceLine" id="cb2-17" title="17">    tags  <span class="ot">&lt;-</span> many1 rubyTag</a>
+<a class="sourceLine" id="cb2-18" title="18">    <span class="kw">let</span> sameLen <span class="fu">=</span> <span class="fu">length</span> elems <span class="fu">==</span> <span class="fu">length</span> tags</a>
+<a class="sourceLine" id="cb2-19" title="19">        matchingPairs <span class="fu">=</span> <span class="fu">zip</span> elems tags</a>
+<a class="sourceLine" id="cb2-20" title="20">        singlePair <span class="fu">=</span> [(<span class="fu">mconcat</span> elems,intercalate <span class="st">&quot;|&quot;</span> tags)]</a>
+<a class="sourceLine" id="cb2-21" title="21">    <span class="fu">pure</span> <span class="fu">$</span> <span class="kw">if</span> sameLen <span class="kw">then</span> matchingPairs <span class="kw">else</span> singlePair</a>
+<a class="sourceLine" id="cb2-22" title="22">  <span class="kw">where</span></a>
+<a class="sourceLine" id="cb2-23" title="23"><span class="ot">    taggedElems ::</span> <span class="dt">Parsec</span> <span class="dt">String</span> () [<span class="dt">String</span>]</a>
+<a class="sourceLine" id="cb2-24" title="24">    taggedElems <span class="fu">=</span> <span class="fu">fmap</span> (<span class="fu">fmap</span> <span class="fu">pure</span>) (many (noneOf <span class="st">&quot;|}&quot;</span>))</a>
+<a class="sourceLine" id="cb2-25" title="25">    rubyTag <span class="fu">=</span> char <span class="ch">&#39;|&#39;</span> <span class="fu">*&gt;</span> (many <span class="fu">$</span> noneOf <span class="st">&quot;|}&quot;</span>)</a>
+<a class="sourceLine" id="cb2-26" title="26"><span class="ot">rubyToHtml ::</span> (<span class="dt">String</span>,[(<span class="dt">String</span>,<span class="dt">String</span>)],<span class="dt">String</span>) <span class="ot">-&gt;</span> <span class="dt">String</span></a>
+<a class="sourceLine" id="cb2-27" title="27">rubyToHtml (prev,pairs,next) <span class="fu">=</span> prev <span class="fu">&lt;&gt;</span> pairsToHtml pairs <span class="fu">&lt;&gt;</span> next </a>
+<a class="sourceLine" id="cb2-28" title="28">  <span class="kw">where</span></a>
+<a class="sourceLine" id="cb2-29" title="29">    pairsToHtml [] <span class="fu">=</span> <span class="st">&quot;&quot;</span></a>
+<a class="sourceLine" id="cb2-30" title="30">    pairsToHtml ps <span class="fu">=</span> (wrap <span class="fu">.</span> <span class="fu">mconcat</span> <span class="fu">.</span> <span class="fu">fmap</span> pairToHtml) ps</a>
+<a class="sourceLine" id="cb2-31" title="31">    pairToHtml (<span class="st">&quot;&quot;</span>,<span class="st">&quot;&quot;</span>) <span class="fu">=</span> <span class="st">&quot;&quot;</span></a>
+<a class="sourceLine" id="cb2-32" title="32">    pairToHtml (<span class="fu">elem</span>,tag) <span class="fu">=</span> <span class="fu">elem</span> <span class="fu">&lt;&gt;</span> <span class="st">&quot;&lt;rt&gt;&quot;</span> <span class="fu">&lt;&gt;</span> tag <span class="fu">&lt;&gt;</span> <span class="st">&quot;&lt;/rt&gt;&quot;</span></a>
+<a class="sourceLine" id="cb2-33" title="33">    wrap x <span class="fu">=</span> <span class="st">&quot;&lt;ruby&gt;&quot;</span> <span class="fu">&lt;&gt;</span> x <span class="fu">&lt;&gt;</span> <span class="st">&quot;&lt;/ruby&gt;&quot;</span></a>
+<a class="sourceLine" id="cb2-34" title="34"><span class="ot">rubiesToHtml ::</span> [(<span class="dt">String</span>,[(<span class="dt">String</span>,<span class="dt">String</span>)],<span class="dt">String</span>)] <span class="ot">-&gt;</span> <span class="dt">String</span></a>
+<a class="sourceLine" id="cb2-35" title="35">rubiesToHtml <span class="fu">=</span> <span class="fu">mconcat</span> <span class="fu">.</span> <span class="fu">fmap</span> rubyToHtml</a></code></pre></div>
+<p>We are using a library called <code>Parsec</code>, which provides us tools to easily handle the parsing. This code uses them to separate the text in 3 parts: the text before our target, the target itself, the text after our target. Because our target should be between braces, we use te <code>between</code> combinator to find it.</p>
+<p>When the target is found, its contents are separated into base elements and their respective ruby tags, so they can be grouped into pairs. It is assumed that the number of elements and tags is equal, otherwise we have to merge them into a single pair to preserve this property.</p>
+<p>Finally, when we have the independent pieces, we can take and arrange them to render the view in the format we like. Pandoc support many formats, but in this case we are using Html.</p>
+<h2 id="some-caveats">Some caveats</h2>
+<p>The current code doesn’t handle some cases well. I’m still working on it to make it work with markdown tables, formatting inside the tags, and other missing bits.</p>
+
+
+<div id="gh-comments-list">
+</div>
+
+<script type="text/javascript">
+    // This is a self executing function
+    var issueId = 2;
+    var url = "https://github.com/rainbyte/rainbyte.github.io/issues/" + issueId;
+    var api_url = "https://api.github.com/repos/rainbyte/rainbyte.github.io/issues/" + issueId + "/comments";
+    (function() {
+        // DOM is already available, now we can handle page elements
+        var ghCommentsList = document.getElementById("gh-comments-list");
+
+        var request = new XMLHttpRequest();
+        request.open('GET', api_url, true);
+        request.onload = function() {
+            if (request.status >= 200 && request.status < 400) {
+                // Request was successful, we can process the raw comments
+                var comments = JSON.parse(request.responseText);
+                var fragment = document.createDocumentFragment();
+                var range = new Range();
+
+                // Render comments section header
+                fragment.appendChild(range.createContextualFragment(`
+                    <div>
+                        <b>Comments section</b> (visit the <b><a href='${url}'>issue</a></b> of this post to add one)
+                    </div>
+                `));
+
+                // Render view of each comment
+                comments.forEach(comment => {
+                    var date = new Date(comment.created_at);
+                    var renderedComment = range.createContextualFragment(`
+                        <div class='gh-comment'>
+                            <div class='gh-comment-header'>
+                                <img src='${comment.user.avatar_url}'>
+                                <div>
+                                    <b><a href='${comment.user.html_url}'>${comment.user.login}</a></b> posted at <em>${date.toDateString()}</em>
+                                </div>
+                            </div>
+                            <div class='gh-comment-body'>
+                                ${comment.body}
+                            </div>
+                        </div>
+                    `);
+                    fragment.appendChild(renderedComment);
+                });
+
+                // Make changes visible by adding rendered nodes
+                ghCommentsList.append(fragment);
+            } else {
+                // Request reached the target server, but it returned an error
+                ghCommentsList.append("Comments are not available now.");
+            }
+        };
+        request.onerror = function() {
+            // There was a connection error of some sort
+            ghCommentsList.append("Comments are not available now.");
+        };
+        request.send();
+    })();
+</script>
+]]></summary>
+</entry>
+<entry>
     <title>Use GitHub API to implement comments feature</title>
     <link href="http://rainbyte.github.io/posts/181113-01-use-github-api-to-implement-comments.html" />
     <id>http://rainbyte.github.io/posts/181113-01-use-github-api-to-implement-comments.html</id>
@@ -234,7 +430,7 @@
 </div>
 
 <p>Nota: estas leyendo la traducción al castellano de una serie de tutoriales en ingles sobre GPipe; la versión original, escrita por Tobias Bexelius (creador de GPipe), se encuentra <a href="http://tobbebex.blogspot.com.ar/2015/09/gpu-programming-in-haskell-using-gpipe_11.html">aqui</a>.</p>
-<p><a href="/posts/160426-01-gpipe-part-01.html">&lt; Episodio previo: Hello triangle</a></p>
+<p><a href="/posts/160426-01-gpipe-part-01.html">< Episodio previo: Hello triangle</a></p>
 <p>¡Bienvenido nuevamente! En la ultima parte obtuviste tu primer triangulo mediante GPipe. Esta vez vamos a examinar <code>Buffer</code> y <code>PrimitiveArray</code> con más detalle.</p>
 <h2 id="buffers">Buffers</h2>
 <p>En el ejemplo “Hello world” que hicimos la ultima vez, usamos un <code>Buffer</code> para almacenar las posiciones y colores del triangulo. A partir de este buffer, creamos un <code>PrimitiveArray</code> que enviamos al shader. Más adelante vamos a ver que un <code>Buffer</code> puede ser usado también para otras cosas.</p>
@@ -344,7 +540,7 @@
 <a class="sourceLine" id="cb10-8" title="8">  <span class="dt">PointList</span><span class="ot"> ::</span> <span class="dt">PrimitiveTopology</span> <span class="dt">Points</span></a></code></pre></div>
 <p>En la mayoría de los casos vas a trabajar con triángulos. Veamos como se ven las tres topologias de triángulos:</p>
 <figure>
-<img src="/images/gpipe-part-02-triangle-topologies.png" alt="(a) - TriangleStrip, (b) - TriangleFan, (c) - TriangleList (Image courtesy of OpenGL specification by Khronos)" /><figcaption>(a) - TriangleStrip, (b) - TriangleFan, (c) - TriangleList<br />
+<img src="/images/gpipe-part-02-triangle-topologies.png" alt="               " /><figcaption>(a) - TriangleStrip, (b) - TriangleFan, (c) - TriangleList<br />
 (Image courtesy of OpenGL specification by Khronos)</figcaption>
 </figure>
 <p>En un <code>TriangleStrip</code>, cada vértice forma un triangulo con los dos vértices previos, alternando el camino de los vértices para cada triangulo. Esto significa que el primer triangulo es formado por los vértices 1-2-3 en ese orden, el siguiente por 2-4-3, luego por 3-4-5, 4-6-5, y así sucesivamente. Para <code>TriangleFan</code>, cada triangulo es formado por el primer vértice en el array junto con cada dos vértices consecutivos, en ese orden. Para <code>TriangleList</code>, cada tres vértices simplemente forman un triangulo; no se comparte ningún vértice entre los triángulos.</p>
@@ -453,7 +649,7 @@
 <p>Cuando realizas <code>import Graphics.GPipe</code> tambien obtienes los paquetes <a href="https://hackage.haskell.org/package/linear">linear</a> y <a href="https://hackage.haskell.org/package/Boolean">Boolean</a> completos, ya que son utilizados constantemente en aplicaciones GPipe.</p>
 <p>Ahora estamos listos para compilar (usa <code>-threaded</code> como parametro para GHC, ya que GPipe-GLFW lo requiere) y ejecutar nuestro programa, el cual nos mostrará un triangulo bastante colorido en la esquina inferior izquierda de la ventana:</p>
 <figure>
-<img src="/images/gpipe-part-01-triangle.png" alt="Un triangulo colorido" /><figcaption>Un triangulo colorido</figcaption>
+<img src="/images/gpipe-part-01-triangle.png" alt="  " /><figcaption>Un triangulo colorido</figcaption>
 </figure>
 <h2 id="el-contexto">El contexto</h2>
 <p>Lo primero que hacemos en la función <code>main</code> es ejecutar <code>runContextT</code>. Un <em>contexto</em> posee dos cosas: una <em>ventana</em>, y un <em>espacio de objetos</em>. La ventana es donde tus graficos renderizados se mostraran en pantalla, y el espacio de objetos es lo que va a contener todos los datos para la GPU que tu programa define, muy parecido a lo que es un proceso para los datos usados por la CPU. <code>runContextT</code> crea un nuevo contexto para nostros. Toma tres argumentos: una <em>fabrica</em>, un <em>formato</em>, y una <em>acción monadica</em>.</p>
@@ -472,7 +668,7 @@
 <h2 id="renderizado---de-eso-se-trata-realmente">Renderizado - De eso se trata realmente</h2>
 <p>Ahora que tenemos nuestro contexto, hagamos algo de renderizado. Cualquier renderizado que haga en GPipe, va a seguir esta secuencia de operaciones:</p>
 <figure>
-<img src="/images/gpipe-part-01-sequence.svg" alt="Secuencia de operaciones de GPipe" /><figcaption>Secuencia de operaciones de GPipe</figcaption>
+<img src="/images/gpipe-part-01-sequence.svg" alt="    " /><figcaption>Secuencia de operaciones de GPipe</figcaption>
 </figure>
 <p>Por lo pronto, todo renderizado de GPipe va a crear, a partir de un buffer de datos, un array de <em>vertices</em> que serán ensamblados en un array de <em>primitivas</em>. Hay tres clases de primitivas: puntos, lineas, y triangulos; pero vamos a trabajar casi exclusivamente con triangulos. El array de primitivas entonces se transforma en un stream de primitivas dentro de un <em>shader</em>, permitiendonos aplicar transformaciones a esos vertices. Las primitivas luego son rasterizadas, es decir son cortadas en <em>fragmentos</em> medidos en pixels, formando un stream de fragmentos. Este stream es luego dibujado en la ventana del contexto, o en una imagen fuera de pantalla.</p>
 <p>En la monada <code>ContextT</code>, comenzamos creando un buffer de datos que es almacenado en la GPU. En nuestro ejemplo <em>hello world</em> de más arriba, nuestro buffer es llamado <code>vertexBuffer</code> y tiene 3 elementos, siendo cada uno una tupla <code>(B4 Float, B3 Float)</code>. <code>B4</code> y <code>B3</code> son para un buffer las <em>“representaciones”</em> de <code>V4</code> y <code>V3</code>, los tipos vectoriales del paquete <em>linear</em>. Voy a dar más detalles sobre que son estas <em>“representaciones”</em> en la siguiente parte de este tutorial, pero por ahora puedes pensar a <code>B4</code> como otro nombre para <code>V4</code> cuando lo usamos en un <code>Buffer</code>. Despues de crear el buffer, escribimos tres valores dentro de él, a partir de una lista comun.</p>
@@ -746,7 +942,7 @@ After tweaking the snippet a bit, I added it to <code>~/.config/gtk-3.0/gtk.css<
 <p>Just wanted to say hello for first time! :)</p>
 <!-- more -->
 <figure>
-<img src="/images/Hello-World.png" alt="See the world" /><figcaption>See the world</figcaption>
+<img src="/images/Hello-World.png" alt="  " /><figcaption>See the world</figcaption>
 </figure>
 <p>Let’s try some example code with markdown and pygments:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode scheme"><code class="sourceCode scheme"><a class="sourceLine" id="cb1-1" title="1">#lang racket</a>

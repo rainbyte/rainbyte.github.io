@@ -36,7 +36,7 @@
 </div>
 
 <p>Nota: estas leyendo la traducción al castellano de una serie de tutoriales en ingles sobre GPipe; la versión original, escrita por Tobias Bexelius (creador de GPipe), se encuentra <a href="http://tobbebex.blogspot.com.ar/2015/09/gpu-programming-in-haskell-using-gpipe_11.html">aqui</a>.</p>
-<p><a href="../posts/160426-01-gpipe-part-01.html">&lt; Episodio previo: Hello triangle</a></p>
+<p><a href="../posts/160426-01-gpipe-part-01.html">< Episodio previo: Hello triangle</a></p>
 <p>¡Bienvenido nuevamente! En la ultima parte obtuviste tu primer triangulo mediante GPipe. Esta vez vamos a examinar <code>Buffer</code> y <code>PrimitiveArray</code> con más detalle.</p>
 <h2 id="buffers">Buffers</h2>
 <p>En el ejemplo “Hello world” que hicimos la ultima vez, usamos un <code>Buffer</code> para almacenar las posiciones y colores del triangulo. A partir de este buffer, creamos un <code>PrimitiveArray</code> que enviamos al shader. Más adelante vamos a ver que un <code>Buffer</code> puede ser usado también para otras cosas.</p>
@@ -146,7 +146,7 @@
 <a class="sourceLine" id="cb10-8" title="8">  <span class="dt">PointList</span><span class="ot"> ::</span> <span class="dt">PrimitiveTopology</span> <span class="dt">Points</span></a></code></pre></div>
 <p>En la mayoría de los casos vas a trabajar con triángulos. Veamos como se ven las tres topologias de triángulos:</p>
 <figure>
-<img src="../images/gpipe-part-02-triangle-topologies.png" alt="(a) - TriangleStrip, (b) - TriangleFan, (c) - TriangleList (Image courtesy of OpenGL specification by Khronos)" /><figcaption>(a) - TriangleStrip, (b) - TriangleFan, (c) - TriangleList<br />
+<img src="../images/gpipe-part-02-triangle-topologies.png" alt="               " /><figcaption>(a) - TriangleStrip, (b) - TriangleFan, (c) - TriangleList<br />
 (Image courtesy of OpenGL specification by Khronos)</figcaption>
 </figure>
 <p>En un <code>TriangleStrip</code>, cada vértice forma un triangulo con los dos vértices previos, alternando el camino de los vértices para cada triangulo. Esto significa que el primer triangulo es formado por los vértices 1-2-3 en ese orden, el siguiente por 2-4-3, luego por 3-4-5, 4-6-5, y así sucesivamente. Para <code>TriangleFan</code>, cada triangulo es formado por el primer vértice en el array junto con cada dos vértices consecutivos, en ese orden. Para <code>TriangleList</code>, cada tres vértices simplemente forman un triangulo; no se comparte ningún vértice entre los triángulos.</p>

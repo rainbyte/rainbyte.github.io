@@ -76,7 +76,7 @@
 <p>Cuando realizas <code>import Graphics.GPipe</code> tambien obtienes los paquetes <a href="https://hackage.haskell.org/package/linear">linear</a> y <a href="https://hackage.haskell.org/package/Boolean">Boolean</a> completos, ya que son utilizados constantemente en aplicaciones GPipe.</p>
 <p>Ahora estamos listos para compilar (usa <code>-threaded</code> como parametro para GHC, ya que GPipe-GLFW lo requiere) y ejecutar nuestro programa, el cual nos mostrará un triangulo bastante colorido en la esquina inferior izquierda de la ventana:</p>
 <figure>
-<img src="../images/gpipe-part-01-triangle.png" alt="Un triangulo colorido" /><figcaption>Un triangulo colorido</figcaption>
+<img src="../images/gpipe-part-01-triangle.png" alt="  " /><figcaption>Un triangulo colorido</figcaption>
 </figure>
 <h2 id="el-contexto">El contexto</h2>
 <p>Lo primero que hacemos en la función <code>main</code> es ejecutar <code>runContextT</code>. Un <em>contexto</em> posee dos cosas: una <em>ventana</em>, y un <em>espacio de objetos</em>. La ventana es donde tus graficos renderizados se mostraran en pantalla, y el espacio de objetos es lo que va a contener todos los datos para la GPU que tu programa define, muy parecido a lo que es un proceso para los datos usados por la CPU. <code>runContextT</code> crea un nuevo contexto para nostros. Toma tres argumentos: una <em>fabrica</em>, un <em>formato</em>, y una <em>acción monadica</em>.</p>
@@ -95,7 +95,7 @@
 <h2 id="renderizado---de-eso-se-trata-realmente">Renderizado - De eso se trata realmente</h2>
 <p>Ahora que tenemos nuestro contexto, hagamos algo de renderizado. Cualquier renderizado que haga en GPipe, va a seguir esta secuencia de operaciones:</p>
 <figure>
-<img src="../images/gpipe-part-01-sequence.svg" alt="Secuencia de operaciones de GPipe" /><figcaption>Secuencia de operaciones de GPipe</figcaption>
+<img src="../images/gpipe-part-01-sequence.svg" alt="    " /><figcaption>Secuencia de operaciones de GPipe</figcaption>
 </figure>
 <p>Por lo pronto, todo renderizado de GPipe va a crear, a partir de un buffer de datos, un array de <em>vertices</em> que serán ensamblados en un array de <em>primitivas</em>. Hay tres clases de primitivas: puntos, lineas, y triangulos; pero vamos a trabajar casi exclusivamente con triangulos. El array de primitivas entonces se transforma en un stream de primitivas dentro de un <em>shader</em>, permitiendonos aplicar transformaciones a esos vertices. Las primitivas luego son rasterizadas, es decir son cortadas en <em>fragmentos</em> medidos en pixels, formando un stream de fragmentos. Este stream es luego dibujado en la ventana del contexto, o en una imagen fuera de pantalla.</p>
 <p>En la monada <code>ContextT</code>, comenzamos creando un buffer de datos que es almacenado en la GPU. En nuestro ejemplo <em>hello world</em> de más arriba, nuestro buffer es llamado <code>vertexBuffer</code> y tiene 3 elementos, siendo cada uno una tupla <code>(B4 Float, B3 Float)</code>. <code>B4</code> y <code>B3</code> son para un buffer las <em>“representaciones”</em> de <code>V4</code> y <code>V3</code>, los tipos vectoriales del paquete <em>linear</em>. Voy a dar más detalles sobre que son estas <em>“representaciones”</em> en la siguiente parte de este tutorial, pero por ahora puedes pensar a <code>B4</code> como otro nombre para <code>V4</code> cuando lo usamos en un <code>Buffer</code>. Despues de crear el buffer, escribimos tres valores dentro de él, a partir de una lista comun.</p>
