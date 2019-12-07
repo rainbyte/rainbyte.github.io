@@ -24,22 +24,40 @@
             <h1>Useful commands and snippets cheatsheet</h1>
             <h2 id="common-terminal-tasks">common terminal tasks</h2>
 <ul>
-<li>Find files: <code>find $root-path -name &quot;$file-pattern&quot;</code></li>
-<li>Find dirs: <code>find $root-path -name &quot;$file-pattern&quot; -type d</code></li>
+<li>Find files: <code>find $root-path -name "$file-pattern"</code></li>
+<li>Find dirs: <code>find $root-path -name "$file-pattern" -type d</code></li>
 <li>Follow logs: <code>tail -f $logfile</code></li>
 <li>Cmd info (detailed): <code>man $command</code></li>
 <li>Cmd info (summary): <code>tldr $command</code></li>
+</ul>
+<h2 id="dbus-interaction">dbus interaction</h2>
+<ul>
+<li>Inspect notifications: <code>dbus-monitor interface='org.freedesktop.Notifications'</code></li>
+<li>Inspect notifications: <code>dbus-monitor interface='org.gtk.Notifications'</code></li>
+<li>Show <span class="math inline">$BUS_NAME PID (1): `dbus-send --session --print-reply --dest=org.freedesktop.DBus / org.freedesktop.DBus.GetConnectionUnixProcessID string:$</span>BUS_NAME`</li>
+<li>Show $BUS_NAME PID (2): <code>gdbus call --session --dest org.freedesktop.DBus --object-path / --method org.freedesktop.DBus.GetConnectionUnixProcessID $BUS_NAME</code></li>
 </ul>
 <h2 id="downloads-from-terminal">downloads from terminal</h2>
 <ul>
 <li>Common: <code>aria2c $url</code></li>
 <li>Magnet: <code>aria2c $magnet-uri</code></li>
 <li>Torrent: <code>aria2c $torrent-file</code></li>
+<li>Site (spider copy): <code>httrack $url --path $folder</code></li>
+<li>Site (single page): <code>httrack $url --path $folder --near --robots=0 --depth=1</code></li>
 </ul>
 <h2 id="fish">fish</h2>
 <ul>
-<li>Create cmd alias: <code>alias $name &quot;$command&quot;</code></li>
+<li>Create cmd shortcut: <code>alias -s $name "$command"</code></li>
 <li>Save function: <code>funcsave $function</code></li>
+</ul>
+<h2 id="flatpak">flatpak</h2>
+<ul>
+<li>App info (installed): <code>flatpak info $app</code></li>
+<li>App info (remote): <code>flatpak remote-info $repo --app $app</code></li>
+<li>Expose folder to app: <code>flatpak --filesystem=$folder:ro $app</code></li>
+<li>Expose envvar to app: <code>flatpak --env=$envvar=$value $app</code></li>
+<li>Remove unneeded deps: <code>flatpak remove --unused</code></li>
+<li>Show running apps: <code>flatpak ps</code></li>
 </ul>
 <h2 id="gnome-extensions">gnome extensions</h2>
 <ul>
@@ -56,6 +74,10 @@
 <ul>
 <li>Connect: <code>mysql -D $db-name -u $db-user -p</code></li>
 <li>Dump: <code>mysqldump -u $db-user $db-name &gt; $file</code></li>
+</ul>
+<h2 id="python">python</h2>
+<ul>
+<li>Avoid Conda autostart: <code>conda config --set auto_activate_base False</code></li>
 </ul>
 <h2 id="systemd">systemd</h2>
 <ul>

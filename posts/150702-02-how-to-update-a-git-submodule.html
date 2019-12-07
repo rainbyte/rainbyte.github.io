@@ -45,12 +45,12 @@ This occurs because, the parent repo and the submodule, are actually two indepen
 <p><code>$ # edit &lt;some files&gt;</code></p>
 <p><code>$ git add &lt;some files&gt;</code></p></li>
 <li><p>Now we have some changes ready to commit and push them:</p>
-<p><code>$ git commit -m &quot;Edited &lt;some files&gt;</code></p>
+<p><code>$ git commit -m "Edited &lt;some files&gt;</code></p>
 <p><code>$ git push</code></p></li>
 <li><p>Finally, we tell the parent repo that the submodule has changed:</p>
 <p><code>$ cd the/parent/repo/path</code></p>
 <p><code>$ git add the/submodule/repo/path</code></p>
-<p><code>$ git commit -m &quot;Updated the submodule&quot;</code></p>
+<p><code>$ git commit -m "Updated the submodule"</code></p>
 <p><code>$ git push</code></p></li>
 </ol>
 <p>Syncing everytime a change is made to the submodule <strong>is not advisable</strong>, think carefully before doing it.<br />
