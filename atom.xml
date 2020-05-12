@@ -8,8 +8,134 @@
         <name>rainbyte</name>
         <email>rainbyte@tuta.io</email>
     </author>
-    <updated>2019-12-07T02:51:00Z</updated>
+    <updated>2020-05-12T20:03:00Z</updated>
     <entry>
+    <title>¿Es la moneda digital China la mejor opción para el mundo?</title>
+    <link href="http://rainbyte.github.io/posts/200512-01-la-mejor-moneda-digital.html" />
+    <id>http://rainbyte.github.io/posts/200512-01-la-mejor-moneda-digital.html</id>
+    <published>2020-05-12 20:03:00</published>
+    <updated>2020-05-12T20:03:00Z</updated>
+    <summary type="html"><![CDATA[<div class="info">
+    Posted on May 12, 2020
+    
+        by rainbyte
+    
+</div>
+
+<div class="info">
+    
+        Tags: <a href="/tags/cryptocurrency.html">cryptocurrency</a>, <a href="/tags/nanocurrency.html">nanocurrency</a>, <a href="/tags/xrb.html">xrb</a>
+    
+</div>
+
+<h2 id="introducción">Introducción</h2>
+<p>Según <a href="https://www.chinadaily.com.cn/a/202004/24/WS5ea28240a310a8b2411516bf.html"><em>China Daily</em></a> la nueva moneda de dicho país llevaría el nombre <em>E-RMB</em>, e informa que ya se realizaron pruebas de uso en las ciudades de Shenzhen, Suzhou, Chengdu y Xiong’an. Aunque todavía se desconocen detalles de su implementación final, se sabe que las operaciones ya no se realizarán sobre servidores de empresas o bancos sin supervision directa.</p>
+<p>Con estas noticias recientes sobre este desarrollo de China, aparecen ciertos interrogantes que nos hacen pensar: ¿Provee alguna ventaja? ¿Cuáles son sus costos asociados? ¿Qué cambios causaría?</p>
+<p>En el contexto actual conviven distintos sistemas que interactúan entre si:</p>
+<ul>
+<li>Billetes de papel emitidos por bancos centrales</li>
+<li>Cuentas en bancos tradicionales</li>
+<li>Pago electrónico (Alipay, MercadoPago, Ualá, WeChat Pay)</li>
+<li>Cajeros automáticos (Banelco, Link)</li>
+<li>Saldo virtual en sitios web específicos.</li>
+</ul>
+<p>Algunos de estos sistemas son digitales, entonces ¿cuál es la diferencia entre esta moneda digital y los sistemas existentes?</p>
+<h2 id="marco-teórico-de-análisis">Marco teórico de análisis</h2>
+<p>Para evaluar un sistema de dinero digital, precisamos revisar un conjunto de cualidades que nos permiten conocer su naturaleza desde ciertas perspectivas:</p>
+<ul>
+<li>Velocidad de confirmación: cantidad de tiempo requerido para propagar una transacción y confirmarla de manera segura.</li>
+<li>Escalabilidad: cantidad de transacciones que la infraestructura de la red puede procesar por segundo, fundamental en momentos de uso elevado.</li>
+<li>Comisiones: dinero que cobra el propio sistema por procesar una transacción, cubriendo costos operativos, consumo energético e impacto ambiental.</li>
+<li>Consenso: hablamos de una red <em>descentralizada</em> cuando las decisiones se toman por acuerdo entre sus participantes, caso contrario es una red <em>centralizada</em>, donde un número limitado de entes poseen un alto grado de control.</li>
+<li>Inmutabilidad: posibilidad de modificar transacciones ya realizadas, ya sea cambiar su monto, destinatario, o incluso cancelarlas.</li>
+<li>Privacidad: posibilidad de conocer datos específicos sobre una transacción, como ser su monto, los usuarios implicados, la fecha exacta, etc.</li>
+<li>Emisión y distribución: ¿Se generan más unidades monetarias? ¿Bajo qué condiciones? ¿Cómo llega ese dinero a los usuarios?</li>
+<li>Contratos inteligentes: posibilidad de programar contratos que son verificados y aplicados por el propio sistema, con poca o nula intervención humana.</li>
+<li>Auditabilidad: cuando el código de la implementación está disponible, las instituciones, empresas y particulares pueden inspeccionarlo para entender y verificar su correcto funcionamiento, lo cual también es util para crear sistemas independientes que se integran formando un ecosistema.</li>
+</ul>
+<h2 id="la-propuesta-de-china">La propuesta de China</h2>
+<p>A pesar de que China ya posee sistemas digitales como ya mencionamos, su manejo es realizado por empresas y bancos privados, por lo que el país muestra interés en un sistema catalogado como CBDC (monedas digitales de los bancos centrales), el cual le permitiría un mayor control sobre el flujo de transacciones.</p>
+<p>Incluso aunque China incursionó en la investigación sobre <code>blockchain</code>, un tipo de sistema descentralizado, ello no implica que el diseño de su moneda también lo sea, por el contrario demostró rechazo al espíritu de esa solución. Por ello se estima que el país busca reservar cierto control sobre la emisión y las cuentas, lo cual señala elevada centralización, contraria al enfoque inicial.</p>
+<p>No se hicieron comunicados sobre la disponibilidad de la moneda a nivel global, pero se menciono su utilización para liquidar grandes transacciones desde y hacia empresas e instituciones en el exterior, lo cual coincide con ciertos rumores de que el país se esta deshaciendo de sus reservas en dólares.</p>
+<p>Se desconoce si la moneda dará soporte para alguna clase de contrato inteligente, pero los sistemas centralizados son inadecuados para contratos confiables, y se asume que no proveerá opciones de completa privacidad, ya que el gobierno planea un monto elevado de monitorización de las transacciones en tiempo real.</p>
+<h2 id="conclusión">Conclusión</h2>
+<p>Se puede notar cierto nivel de hermetismo en torno al proyecto de la moneda China E-RMB, lo cual indica que a pesar de cubrir el apartado de escalabilidad en las pruebas, es posible que el sistema oculte un alto grado de centralización y no provea garantías de auditabilidad, para la población en general, ni para empresas y bancos que conforman el sistema actual.</p>
+<p>Esta moneda no muestra ventajas claras, busca reemplazar el dinero de papel por un formato electrónico más restrictivo y reducir la influencia de entidades privadas, causando un costo social elevado, por lo tanto se recomienda el uso de alternativas más equitativas que ya funcionan a escala global.</p>
+<p>Existen sistemas descentralizados, que actúan por consenso de todos sus integrantes. Aunque muchos usan la tecnología <code>blockchain</code>, aparecieron tecnologías más eficientes, como <a href="https://tokens-economy.gitbook.io/consensus/chain-based-dag/block-lattice-directed-acyclic-graphs-dags"><code>block-lattice</code></a>, que permiten mejoras importantes de escalabilidad y los hacen más atractivos.</p>
+<p>Cualquier persona, con acceso a un dispositivo conectado a internet, puede participar en estas redes a nivel mundial y con alto grado de seguridad. Los gobiernos, siguiendo las mismas reglas, pueden integrarlas en su flujo local. Imprimir un <a href="https://en.wikipedia.org/wiki/QR_code"><code>código QR</code></a> en papel permite recibir pagos sin internet.</p>
+<p>A modo informativo describimos algunos ejemplos y sus características:</p>
+<ul>
+<li><a href="https://bitcoin.org">Bitcoin</a> (2008 <code>blockchain</code>): el sistema más popular de este tipo, pero ha mostrado limitaciones de escalabilidad y un alto consumo energético. Una transacción toma tiempos mayores a 20 minutos y la comisión ronda 3 USD (Mayo 2020). Emite 12.5 monedas cada 10 minutos, hasta 21 millones. Sitio web, <a href="https://bitcoin.org">https://bitcoin.org</a></li>
+<li><a href="https://ethereum.org">Ethereum</a> (2015 <code>blockchain</code>): mediante contratos inteligentes permite crear aplicaciones autónomas que interactúan con los usuarios. Una transacción tarda unos 6 minutos y la comisión rondan 0.11 USD (Mayo 2020), emite 2 monedas cada 15 segundos, sin limite. Sitio web, <a href="https://ethereum.org">https://ethereum.org</a></li>
+<li><a href="https://nano.org">Nano XRB</a> (2015 <code>block-lattice</code>): puede realizar transacciones inmutables en tiempo menor a 0.2 segundos, es libre de comisiones, ya que la red prioriza la eficiencia y minimiza los costos de consumo eléctrico. Existen solo 133 millones de monedas, la emisión y distribución finalizó. Sitio web, <a href="https://nano.org">https://nano.org</a></li>
+</ul>
+<p>En todos los casos el código de las implementaciones está disponible para su análisis en los respectivos sitios, lo cual permite estudiarlas e integrarlas con sistemas existentes.</p>
+
+
+<div id="gh-comments-list">
+</div>
+
+<script type="text/javascript">
+    // This is a self executing function
+    var issueId = 4;
+    var url = "https://github.com/rainbyte/rainbyte.github.io/issues/" + issueId;
+    var api_url = "https://api.github.com/repos/rainbyte/rainbyte.github.io/issues/" + issueId + "/comments";
+    (function() {
+        // DOM is already available, now we can handle page elements
+        var ghCommentsList = document.getElementById("gh-comments-list");
+
+        var request = new XMLHttpRequest();
+        request.open('GET', api_url, true);
+        request.onload = function() {
+            if (request.status >= 200 && request.status < 400) {
+                // Request was successful, we can process the raw comments
+                var comments = JSON.parse(request.responseText);
+                var fragment = document.createDocumentFragment();
+                var range = new Range();
+
+                // Render comments section header
+                fragment.appendChild(range.createContextualFragment(`
+                    <div>
+                        <b>Comments section</b> (visit the <b><a href='${url}'>issue</a></b> of this post to add one)
+                    </div>
+                `));
+
+                // Render view of each comment
+                comments.forEach(comment => {
+                    var date = new Date(comment.created_at);
+                    var renderedComment = range.createContextualFragment(`
+                        <div class='gh-comment'>
+                            <div class='gh-comment-header'>
+                                <img src='${comment.user.avatar_url}'>
+                                <div>
+                                    <b><a href='${comment.user.html_url}'>${comment.user.login}</a></b> posted at <em>${date.toDateString()}</em>
+                                </div>
+                            </div>
+                            <div class='gh-comment-body'>
+                                ${comment.body}
+                            </div>
+                        </div>
+                    `);
+                    fragment.appendChild(renderedComment);
+                });
+
+                // Make changes visible by adding rendered nodes
+                ghCommentsList.append(fragment);
+            } else {
+                // Request reached the target server, but it returned an error
+                ghCommentsList.append("Comments are not available now.");
+            }
+        };
+        request.onerror = function() {
+            // There was a connection error of some sort
+            ghCommentsList.append("Comments are not available now.");
+        };
+        request.send();
+    })();
+</script>
+]]></summary>
+</entry>
+<entry>
     <title>Plantillas de Gnome</title>
     <link href="http://rainbyte.github.io/posts/191207-01-plantillas.html" />
     <id>http://rainbyte.github.io/posts/191207-01-plantillas.html</id>
@@ -946,74 +1072,6 @@ After tweaking the snippet a bit, I added it to <code>~/.config/gtk-3.0/gtk.css<
 <span id="cb1-10"><a href="#cb1-10"></a>    <span class="kw">border-width</span>: <span class="dv">0</span><span class="op">;</span></span>
 <span id="cb1-11"><a href="#cb1-11"></a>}</span></code></pre></div>
 <p>An that’s all, no plugin needed and it is useful system wide (at least for apps which don’t support client side decorations).</p>
-
-
-<div id="gh-comments-list">
-    Comments are not open for this post yet.
-</div>
-]]></summary>
-</entry>
-<entry>
-    <title>Grouping by key with Python</title>
-    <link href="http://rainbyte.github.io/posts/150519-01-grouping-by-key-with-python.html" />
-    <id>http://rainbyte.github.io/posts/150519-01-grouping-by-key-with-python.html</id>
-    <published>2015-05-19 23:02:37</published>
-    <updated>2015-05-19T23:02:37Z</updated>
-    <summary type="html"><![CDATA[<div class="info">
-    Posted on May 19, 2015
-    
-        by rainbyte
-    
-</div>
-
-<div class="info">
-    
-        Tags: <a href="/tags/python.html">python</a>, <a href="/tags/snippets.html">snippets</a>, <a href="/tags/batch.html">batch</a>
-    
-</div>
-
-<p>Today I had to process some data, which was inside an unordered list, using the Python language.</p>
-<p>Some computations employed all the list items, others were based only on related ones.</p>
-<!-- more -->
-<p>The data was arranged in tuples, each one contained a main value among others.</p>
-<p>That value (let’s call it “key”), identified a relation with other tuples.</p>
-<p>Simplifying it, quite a bit, was something similar to this:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1"></a>items <span class="op">=</span> [(<span class="dv">1</span>, <span class="st">&quot;a&quot;</span>), (<span class="dv">3</span>, <span class="st">&quot;q&quot;</span>), (<span class="dv">2</span>, <span class="st">&quot;c&quot;</span>), (<span class="dv">2</span>, <span class="st">&quot;x&quot;</span>), (<span class="dv">1</span>, <span class="st">&quot;z&quot;</span>)]</span></code></pre></div>
-<p>The problem could be solved using some nested “while” iterations.</p>
-<p>But actually, I wanted something more brief and readable.</p>
-<p>Then, I looked for an alternative, and found itertools.</p>
-<p>First I’ve loaded the required module:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1"></a><span class="im">from</span> itertools <span class="im">import</span> groupby</span></code></pre></div>
-<p>Then, the final solution was much like this:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1"></a><span class="cf">for</span> key, group <span class="kw">in</span> groupby(<span class="bu">sorted</span>(items), <span class="kw">lambda</span> x: x[<span class="dv">0</span>]):</span>
-<span id="cb3-2"><a href="#cb3-2"></a>    <span class="co"># Do something with the key</span></span>
-<span id="cb3-3"><a href="#cb3-3"></a>    <span class="bu">print</span>(key)</span>
-<span id="cb3-4"><a href="#cb3-4"></a>    <span class="cf">for</span> <span class="bu">tuple</span> <span class="kw">in</span> group:</span>
-<span id="cb3-5"><a href="#cb3-5"></a>        <span class="co"># Process each tuple with same key</span></span>
-<span id="cb3-6"><a href="#cb3-6"></a>        <span class="bu">print</span>(<span class="bu">tuple</span>)</span>
-<span id="cb3-7"><a href="#cb3-7"></a>    <span class="co"># Other statements</span></span>
-<span id="cb3-8"><a href="#cb3-8"></a>    <span class="bu">print</span>(<span class="st">&quot;^^^^^^^^^&quot;</span>)</span></code></pre></div>
-<p>There are some remarkable points in this code:</p>
-<ul>
-<li>The list needs to be <code>sorted</code> previously, so keys can be matched up.</li>
-<li>I’ve used a <code>lambda</code> in order to select which element is the key.</li>
-<li>The key can be accessed individually.</li>
-<li>Related tuples can accessed via the group variable.</li>
-<li>Each item inside each group still contains the key.</li>
-</ul>
-<p>This code would print something like this:</p>
-<pre><code>1
-(1, &#39;a&#39;)
-(1, &#39;z&#39;)
-^^^^^^^^^
-2
-(2, &#39;c&#39;)
-(2, &#39;x&#39;)
-^^^^^^^^^
-3
-(3, &#39;q&#39;)
-^^^^^^^^^</code></pre>
-<p>At the end, this method was cleaner than using iterations by hand.</p>
 
 
 <div id="gh-comments-list">
