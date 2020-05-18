@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" /> 
+        <title>(λblog.rainbyte) - Using Kotlin coroutines to handle blocking computations in Android</title>
+        <link rel="stylesheet" type="text/css" href="../css/default.css" />
+        <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
+    </head>
+    <body>
+        <header>
+            <div id="logo">
+                <a href="../">(λblog.rainbyte)</a>
+            </div>
+            <nav id="navigation">
+                <a href="../">Home</a>
+                <a href="../about.html">About</a>
+                <a href="../cheatsheet.html">Cheatsheet</a>
+                <a href="../posts.html">Archive</a>
+                <a href="../atom.xml">Feed</a>
+            </nav>
+        </header>
+
+        <section id="content">
+            <h1>Using Kotlin coroutines to handle blocking computations in Android</h1>
+            <div class="info">
+    Posted on May 18, 2020
+    
+        by rainbyte
+    
+</div>
+
+<div class="info">
+    
+        Tags: <a title="All pages tagged 'android'." href="../tags/android.html">android</a>, <a title="All pages tagged 'async'." href="../tags/async.html">async</a>, <a title="All pages tagged 'coroutines'." href="../tags/coroutines.html">coroutines</a>, <a title="All pages tagged 'kotlin'." href="../tags/kotlin.html">kotlin</a>
+    
+</div>
+
+<p>When we need to execute time intensive computations and show some the result to the user, we should avoid running them inside UI thread, otherwise app UI could get frozen.</p>
+<p>Here we have a detailed example which uses a coroutine to run Fibonacci fib function without blocking app UI:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode kotlin"><code class="sourceCode kotlin"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="kw">class</span> MainActivity : <span class="dt">AppCompatActivity</span>(), <span class="dt">CoroutineScope</span> {</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a>    <span class="co">// Blocking computation, requires too much time to finish</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a>    <span class="kw">fun</span> <span class="fu">fib</span>(<span class="va">x</span>: <span class="dt">Int</span>): <span class="dt">Int</span> = <span class="cf">if</span> (x &lt;= <span class="dv">1</span>) x <span class="cf">else</span> fib(x - <span class="dv">1</span>) + fib(x - <span class="dv">2</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true"></a>    <span class="co">// Attach coroutines context to activity</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true"></a>    <span class="kw">override</span> <span class="kw">val</span> <span class="va">coroutineContext</span>: CoroutineContext =</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true"></a>            Dispatchers.Main + SupervisorJob()</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true"></a>    <span class="co">// Coroutines should respect activity lifetime</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true"></a>    <span class="kw">override</span> <span class="kw">fun</span> <span class="fu">onDestroy</span>() {</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true"></a>        <span class="kw">super</span>.onDestroy()</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true"></a>        coroutineContext[Job]!!.cancel()</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true"></a>    }</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true"></a>    <span class="kw">override</span> <span class="kw">fun</span> <span class="fu">onCreate</span>(<span class="va">savedInstanceState</span>: <span class="dt">Bundle?</span>) {</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true"></a>        <span class="kw">super</span>.onCreate(savedInstanceState)</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true"></a>        setContentView(R.layout.activity_main)</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true"></a></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true"></a>        btnCalc.setOnClickListener {</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true"></a>            <span class="kw">val</span> <span class="va">number</span>: <span class="kw">Int</span> = editNumber.text.toString().toInt()</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true"></a>            <span class="co">// Start coroutine on the context attached to activity</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true"></a>            <span class="kw">this</span>.launch {</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true"></a>                <span class="co">// Switch to IO dispatcher to perform blocking computation</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true"></a>                <span class="kw">val</span> <span class="va">result</span> = withContext(Dispatchers.IO) {</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true"></a>                    fib(number)</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true"></a>                }</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true"></a>                <span class="cf">if</span> (result != <span class="kw">null</span>) {</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true"></a>                    editResult.setText(result.toString())</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true"></a>                }</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true"></a>            }</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true"></a>        }</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true"></a>    }</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true"></a>}</span></code></pre></div>
+<p>UI code is also provided to complete the example</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a><span class="kw">&lt;?xml</span> version=&quot;1.0&quot; encoding=&quot;utf-8&quot;<span class="kw">?&gt;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a><span class="kw">&lt;LinearLayout</span><span class="ot"> xmlns:android=</span><span class="st">&quot;http://schemas.android.com/apk/res/android&quot;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true"></a><span class="ot">    xmlns:tools=</span><span class="st">&quot;http://schemas.android.com/tools&quot;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true"></a><span class="ot">    android:layout_width=</span><span class="st">&quot;match_parent&quot;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true"></a><span class="ot">    android:layout_height=</span><span class="st">&quot;match_parent&quot;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true"></a><span class="ot">    android:orientation=</span><span class="st">&quot;vertical&quot;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true"></a><span class="ot">    android:layout_margin=</span><span class="st">&quot;10dp&quot;</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true"></a><span class="ot">    tools:context=</span><span class="st">&quot;.MainActivity&quot;</span><span class="kw">&gt;</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true"></a>    <span class="kw">&lt;TextView</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true"></a><span class="ot">        android:layout_width=</span><span class="st">&quot;wrap_content&quot;</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true"></a><span class="ot">        android:layout_height=</span><span class="st">&quot;wrap_content&quot;</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true"></a><span class="ot">        android:text=</span><span class="st">&quot;Number&quot;</span> <span class="kw">/&gt;</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true"></a>    <span class="kw">&lt;EditText</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true"></a><span class="ot">        android:id=</span><span class="st">&quot;@+id/editNumber&quot;</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true"></a><span class="ot">        android:layout_width=</span><span class="st">&quot;match_parent&quot;</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true"></a><span class="ot">        android:layout_height=</span><span class="st">&quot;wrap_content&quot;</span> <span class="kw">/&gt;</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true"></a></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true"></a>    <span class="kw">&lt;TextView</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true"></a><span class="ot">        android:layout_width=</span><span class="st">&quot;wrap_content&quot;</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true"></a><span class="ot">        android:layout_height=</span><span class="st">&quot;wrap_content&quot;</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true"></a><span class="ot">        android:text=</span><span class="st">&quot;Result&quot;</span> <span class="kw">/&gt;</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true"></a></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true"></a>    <span class="kw">&lt;EditText</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true"></a><span class="ot">        android:id=</span><span class="st">&quot;@+id/editResult&quot;</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true"></a><span class="ot">        android:layout_width=</span><span class="st">&quot;match_parent&quot;</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true"></a><span class="ot">        android:layout_height=</span><span class="st">&quot;wrap_content&quot;</span> <span class="kw">/&gt;</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true"></a></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true"></a>    <span class="kw">&lt;Button</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true"></a><span class="ot">        android:id=</span><span class="st">&quot;@+id/btnCalc&quot;</span></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true"></a><span class="ot">        android:layout_width=</span><span class="st">&quot;wrap_content&quot;</span></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true"></a><span class="ot">        android:layout_height=</span><span class="st">&quot;wrap_content&quot;</span></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true"></a><span class="ot">        android:text=</span><span class="st">&quot;Calculate fib(number)&quot;</span> <span class="kw">/&gt;</span></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true"></a></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true"></a><span class="kw">&lt;/LinearLayout&gt;</span></span></code></pre></div>
+
+
+<div id="gh-comments-list">
+    Comments are not open for this post yet.
+</div>
+
+        </section>
+        <footer>
+            Site proudly generated by
+            <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+        </footer>
+    </body>
+</html>

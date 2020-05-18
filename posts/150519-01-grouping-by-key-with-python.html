@@ -31,7 +31,7 @@
 
 <div class="info">
     
-        Tags: <a href="../tags/python.html">python</a>, <a href="../tags/snippets.html">snippets</a>, <a href="../tags/batch.html">batch</a>
+        Tags: <a title="All pages tagged 'python'." href="../tags/python.html">python</a>, <a title="All pages tagged 'snippets'." href="../tags/snippets.html">snippets</a>, <a title="All pages tagged 'batch'." href="../tags/batch.html">batch</a>
     
 </div>
 
@@ -41,21 +41,21 @@
 <p>The data was arranged in tuples, each one contained a main value among others.</p>
 <p>That value (let’s call it “key”), identified a relation with other tuples.</p>
 <p>Simplifying it, quite a bit, was something similar to this:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1"></a>items <span class="op">=</span> [(<span class="dv">1</span>, <span class="st">&quot;a&quot;</span>), (<span class="dv">3</span>, <span class="st">&quot;q&quot;</span>), (<span class="dv">2</span>, <span class="st">&quot;c&quot;</span>), (<span class="dv">2</span>, <span class="st">&quot;x&quot;</span>), (<span class="dv">1</span>, <span class="st">&quot;z&quot;</span>)]</span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a>items <span class="op">=</span> [(<span class="dv">1</span>, <span class="st">&quot;a&quot;</span>), (<span class="dv">3</span>, <span class="st">&quot;q&quot;</span>), (<span class="dv">2</span>, <span class="st">&quot;c&quot;</span>), (<span class="dv">2</span>, <span class="st">&quot;x&quot;</span>), (<span class="dv">1</span>, <span class="st">&quot;z&quot;</span>)]</span></code></pre></div>
 <p>The problem could be solved using some nested “while” iterations.</p>
 <p>But actually, I wanted something more brief and readable.</p>
 <p>Then, I looked for an alternative, and found itertools.</p>
 <p>First I’ve loaded the required module:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1"></a><span class="im">from</span> itertools <span class="im">import</span> groupby</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a><span class="im">from</span> itertools <span class="im">import</span> groupby</span></code></pre></div>
 <p>Then, the final solution was much like this:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1"></a><span class="cf">for</span> key, group <span class="kw">in</span> groupby(<span class="bu">sorted</span>(items), <span class="kw">lambda</span> x: x[<span class="dv">0</span>]):</span>
-<span id="cb3-2"><a href="#cb3-2"></a>    <span class="co"># Do something with the key</span></span>
-<span id="cb3-3"><a href="#cb3-3"></a>    <span class="bu">print</span>(key)</span>
-<span id="cb3-4"><a href="#cb3-4"></a>    <span class="cf">for</span> <span class="bu">tuple</span> <span class="kw">in</span> group:</span>
-<span id="cb3-5"><a href="#cb3-5"></a>        <span class="co"># Process each tuple with same key</span></span>
-<span id="cb3-6"><a href="#cb3-6"></a>        <span class="bu">print</span>(<span class="bu">tuple</span>)</span>
-<span id="cb3-7"><a href="#cb3-7"></a>    <span class="co"># Other statements</span></span>
-<span id="cb3-8"><a href="#cb3-8"></a>    <span class="bu">print</span>(<span class="st">&quot;^^^^^^^^^&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="cf">for</span> key, group <span class="kw">in</span> groupby(<span class="bu">sorted</span>(items), <span class="kw">lambda</span> x: x[<span class="dv">0</span>]):</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a>    <span class="co"># Do something with the key</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a>    <span class="bu">print</span>(key)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a>    <span class="cf">for</span> <span class="bu">tuple</span> <span class="kw">in</span> group:</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a>        <span class="co"># Process each tuple with same key</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a>        <span class="bu">print</span>(<span class="bu">tuple</span>)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true"></a>    <span class="co"># Other statements</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true"></a>    <span class="bu">print</span>(<span class="st">&quot;^^^^^^^^^&quot;</span>)</span></code></pre></div>
 <p>There are some remarkable points in this code:</p>
 <ul>
 <li>The list needs to be <code>sorted</code> previously, so keys can be matched up.</li>
