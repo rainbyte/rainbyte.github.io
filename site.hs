@@ -123,7 +123,7 @@ finish context item =
 
 customSiteConfig :: Configuration
 customSiteConfig = defaultConfiguration
-    { destinationDirectory = "_site"
+    { destinationDirectory = "docs"
     }
 
 customFeedConfig :: FeedConfiguration
