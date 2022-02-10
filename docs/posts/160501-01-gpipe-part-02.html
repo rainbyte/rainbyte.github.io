@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" /> 
+        <title>(λblog.rainbyte) - Programación de GPU en Haskell usando GPipe - Parte 2</title>
+        <link rel="stylesheet" type="text/css" href="../css/default.css" />
+        <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
+    </head>
+    <body>
+        <header>
+            <div id="logo">
+                <a href="../">(λblog.rainbyte)</a>
+            </div>
+            <nav id="navigation">
+                <a href="../">Home</a>
+                <a href="../about.html">About</a>
+                <a href="../cheatsheet.html">Cheatsheet</a>
+                <a href="../posts.html">Archive</a>
+                <a href="../atom.xml">Feed</a>
+            </nav>
+        </header>
+
+        <section id="content">
+            <h1>Programación de GPU en Haskell usando GPipe - Parte 2</h1>
+            <div class="info">
+    Posted on October 26, 2016
+    
+        by rainbyte
+    
+</div>
+
+<div class="info">
+    
+        Tags: <a title="All pages tagged 'gpipe'." href="../tags/gpipe.html">gpipe</a>, <a title="All pages tagged 'gpu'." href="../tags/gpu.html">gpu</a>, <a title="All pages tagged 'haskell'." href="../tags/haskell.html">haskell</a>, <a title="All pages tagged 'opengl'." href="../tags/opengl.html">opengl</a>
+    
+</div>
+
+<p>Nota: estas leyendo la traducción al castellano de una serie de tutoriales en ingles sobre GPipe; la versión original, escrita por Tobias Bexelius (creador de GPipe), se encuentra <a href="http://tobbebex.blogspot.com.ar/2015/09/gpu-programming-in-haskell-using-gpipe_11.html">aqui</a>.</p>
+<p><a href="../posts/160426-01-gpipe-part-01.html">< Episodio previo: Hello triangle</a></p>
+<p>¡Bienvenido nuevamente! En la ultima parte obtuviste tu primer triangulo mediante GPipe. Esta vez vamos a examinar <code>Buffer</code> y <code>PrimitiveArray</code> con más detalle.</p>
+<h2 id="buffers">Buffers</h2>
+<p>En el ejemplo “Hello world” que hicimos la ultima vez, usamos un <code>Buffer</code> para almacenar las posiciones y colores del triangulo. A partir de este buffer, creamos un <code>PrimitiveArray</code> que enviamos al shader. Más adelante vamos a ver que un <code>Buffer</code> puede ser usado también para otras cosas.</p>
+<p>Un <code>Buffer</code> en GPipe es un array de datos que esta almacenado en la GPU. Es mutable, así como <code>IOArray</code> o <code>STArray</code>, y así como aquellos también vive en una monada, en este caso la monada <code>ContextT</code>. Veamos primero la función que se encarga de crear buffers:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ot">newBuffer ::</span> (<span class="dt">MonadIO</span> m, <span class="dt">BufferFormat</span> b) <span class="ot">=&gt;</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">ContextT</span> w os f m (<span class="dt">Buffer</span> os b)</span></code></pre></div>
+<p>Un buffer tiene tipo <code>Buffer os b</code>, donde <code>os</code> es el mismo que el de <code>ContextT</code>. Como puedes recordar desde la ultima vez, este parámetro de tipo <code>os</code> es usado para evitar que los objetos asociados a un contexto puedan escapar de la monada, y <code>Buffer</code> es uno de esos objetos.</p>
+<p><code>newBuffer</code> solo toma un argumento: el numero de elementos a crear en el buffer. Un buffer tiene elementos mutables, pero el numero de elementos es inmutable. El tipo de los elementos del buffer se denota con <code>b</code>, y puedes ver que este <code>b</code> esta delimitado por el typeclass <code>BufferFormat b</code>. Antes de mostrarte ese typeclass, miremos la función que vas a usar para llenar el buffer con datos desde el lado de la CPU:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ot">writeBuffer ::</span> <span class="dt">MonadIO</span> m <span class="ot">=&gt;</span> <span class="dt">Buffer</span> os b <span class="ot">-&gt;</span> <span class="dt">BufferStartPos</span> <span class="ot">-&gt;</span> [<span class="dt">HostFormat</span> b] <span class="ot">-&gt;</span> <span class="dt">ContextT</span> w os f m ()</span></code></pre></div>
+<p>Esta función toma un buffer para escribir y una posición de inicio con indice basado en cero, nada extraño en esto, pero luego toma una lista de <code>HostFormat b</code>… ¿Que ocurre con esto? Los contenidos de un buffer no tienen la misma representación en el host que en el buffer, el cual vive en la GPU (desde ahora voy a usar el termino <strong>host</strong> cuando me refiero al entorno normal de Haskell que vive en la CPU, en contraposición al mundo de la GPU). <code>HostFormat b</code> es un tipo al typeclass <code>BufferFormat b</code>. Miremos ese typeclass:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> <span class="dt">BufferFormat</span> f <span class="kw">where</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> <span class="dt">HostFormat</span> f</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="ot">  toBuffer ::</span> <span class="dt">ToBuffer</span> (<span class="dt">HostFormat</span> f) f</span></code></pre></div>
+<p>El único propósito de esta clase, es proveer una representación para el tipo de los elementos del buffer en el host, así como una conversión de la representación del host a la del buffer. Aquí hay algunos ejemplos de instancias de esta clase, y sus representaciones en el host:</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">f</th>
+<th style="text-align: left;">HostFormat f</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">B Float</td>
+<td style="text-align: left;">Float</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">B Int32</td>
+<td style="text-align: left;">Int32</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">B Word32</td>
+<td style="text-align: left;">Word32</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">B2 Float</td>
+<td style="text-align: left;">V2 Float</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">B2 Int32</td>
+<td style="text-align: left;">V2 Int32</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">B2 Word32</td>
+<td style="text-align: left;">V2 Word32</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">B2 Int16</td>
+<td style="text-align: left;">V2 Int16</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">B2 Word16</td>
+<td style="text-align: left;">V2 Word16</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">(a, b)</td>
+<td style="text-align: left;">(HostFormat a, HostFormat b)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">V2 a</td>
+<td style="text-align: left;">V2 (HostFormat a)</td>
+</tr>
+</tbody>
+</table>
+<p>Hay muchas más instancias, incluyendo <code>B3</code>, <code>B4</code> y tuplas mas grandes. Mira la lista completa <a href="https://hackage.haskell.org/package/GPipe-2.0.1/docs/Graphics-GPipe-Buffer.html#t:BufferFormat">en hackage</a>.</p>
+<p>Un <code>Float</code> en el host se convertirá <code>B Float</code> en el <code>Buffer</code>. <code>B a</code> es un tipo opaco de cual no puedes inspeccionar su valor o hacer ningún calculo, por ej. no hay instancia de <code>Num</code> para <code>B Float</code>. Para <code>Buffer</code> no se expone una manera de aplicar funciones en sus elementos de ninguna manera (por ej. <code>Buffer</code> no posee instancia del typeclass <code>Functor</code>), pero vamos a crear pronto un <code>VertexArray</code> a partir de nuestro <code>Buffer</code> y entonces será distinto.</p>
+<p>GPipe también define los tipos <code>B2 a</code>, <code>B3 a</code> y <code>B4 a</code>. Para un conjunto selecto de <code>a</code>, <code>B2 a</code> es la representación en el buffer de un <code>V2 a</code> en el host. <code>V2 a</code> es también una instancia de <code>BufferFormat</code> con <code>V2 (HostFormat a)</code> como representación en el host, lo cual significa que tanto <code>V2 (B Float)</code> como <code>B2 Float</code> tienen la misma representación en el host: <code>V2 Float</code>. Ambos formatos de buffer tienen el mismo tamaño e incluso disposición interna, pero <code>B2 Float</code> puede ser usado de manera más eficiente como vamos a ver luego. Por esta razón, siempre intenta usar tipos B en vez de tipos V en los buffers, cuando sea posible. Entonces, ¿porque hay una instancia de <code>BufferFormat</code> para <code>V2</code>? El caso de uso principal es el de las matrices, por ej. <code>V4 (V4 Float)</code> en el host puede almacenarse en un buffer como <code>V4 (B4 Float)</code>.</p>
+<p>Otra cosa interesante que puedes haber notado al estudiar la lista de instancias de <code>BufferFormat</code>, es que hay instancias de <code>B2 Int16</code> y <code>B2 Word16</code>, pero no de <code>B Int16</code> ni <code>B Word16</code>. Esto es porque los atributos de los vértices tienen que estar alineados a 4 bytes en algunas piezas de hardware, y GPipe respeta esto en sus tipos de datos. <code>Int16</code> y <code>Word16</code> son ambos de 2 bytes, así que necesitas tener un vector de al menos dos de ellos. Hay instancias de <code>B3 Int16</code> y <code>B3 Word16</code>, pero estas poseen un relleno (padding) de 2 bytes extra. La motivación para esto es que siempre podrías usar <code>B Int32</code> en vez de <code>B Int16</code> si existiese, funcionarían con los mismos shaders y serian del mismo tamaño de todas formas si agregamos el relleno para el segundo. Por otra parte, un <code>B3 Int32</code> toma 12 bytes mientras que un <code>B3 Int16</code> con relleno incluido solo ocupa 8 bytes, así que hay un caso distintivo para este ultimo. Un <code>B4 Int16</code> también utiliza 8 bytes, pero no funcionaria con los mismos shaders, como va a ser evidente en la siguiente parte de este tutorial.</p>
+<p>Ahora miremos el miembro <code>toBuffer</code> del typeclass <code>BufferFormat</code>. Posee el tipo <code>ToBuffer (HostFormat f) f</code>. <code>ToBuffer</code> es algo llamado <strong>arrow</strong> en Haskell. Es como una función (en este caso <code>HostFormat f -&gt; f</code>), pero más general. Echemos un vistazo a la instancia <code>BufferFormat (a, b)</code> como ejemplo:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE Arrows #-}</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="kw">instance</span> (<span class="dt">BufferFormat</span> a, <span class="dt">BufferFormat</span> b) <span class="ot">=&gt;</span> <span class="dt">BufferFormat</span> (a, b) <span class="kw">where</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> <span class="dt">HostFormat</span> (a,b) <span class="ot">=</span> (<span class="dt">HostFormat</span> a, <span class="dt">HostFormat</span> b)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  toBuffer <span class="ot">=</span> proc <span class="op">~</span>(a, b) <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>                a' <span class="ot">&lt;-</span> toBuffer <span class="op">-&lt;</span> a</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>                b' <span class="ot">&lt;-</span> toBuffer <span class="op">-&lt;</span> b</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>                returnA <span class="op">-&lt;</span> (a', b')</span></code></pre></div>
+<p>La notación arrow casi se parece a un lambda (usando el keyword especial <code>proc</code>) retornando una acción monadica. Pero no es una monada. La mayor diferencia con una monada es que no puede seleccionar una acción basándose en los valores de retorno del arrow. Es por esto que las acciones de un arrow poseen una cola (<code>-&lt;</code>); cualquier cosa entre las partes <code>&lt;-</code> y <code>-&lt;</code> de un arrow, no puede referenciar nada fuera de ellas (<code>a</code>, <code>b</code>, <code>a'</code>, <code>b'</code> en este caso). Esto obliga a que toda invocación a <code>toBuffer</code> deba ir a través de la misma serie de acciones de arrow, independientemente de los valores de entrada reales. Otro requerimiento adicional que tiene GPipe, es que necesita ser capaz de producir valores de forma lazy, es por ello el tilde (<code>~</code>) en el patrón <code>proc</code>. Las únicas acciones del arrow <code>ToBuffer</code> que GPipe define para usar en tu propia implementación de <code>toBuffer</code>, son los métodos <code>toBuffer</code> de otras instancias. Vas a ver aparecer este patrón, donde un arrow es usado para definir la conversión entre dos dominios, en varios lugares de GPipe a medida continuemos con el tutorial.</p>
+<h2 id="arrays-de-vértices">Arrays de vértices</h2>
+<p>Bueno, ¡ahora eres un experto en buffers! Vamos a darles algún uso:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ot">newVertexArray ::</span> <span class="dt">Buffer</span> os a <span class="ot">-&gt;</span> <span class="dt">Render</span> os f (<span class="dt">VertexArray</span> t a)</span></code></pre></div>
+<p>Ejecutas esta función en una monada <code>Render</code> para crear un <code>VertexArray t a</code>. Un array de vértices es como la vista de un buffer, y <code>newVertexArray</code> no copia ningún dato. Ya que operamos dentro de la monada <code>Render</code> (que es ejecutada por la función render, la cual no permite valores de retorno), y un <code>Buffer</code> solo puede ser modificado fuera de esta monada (en la monada <code>ContextT</code>), conceptualmente podrías pensar a <code>VertexArray</code> como una copia del <code>Buffer</code>. No lo es realmente, pero puedes tratarlo como una.</p>
+<p><code>VertexArray t a</code> es un array de vértices donde cada vértice es un elemento de tipo <code>a</code>, que es el mismo tipo de los elementos del <code>Buffer</code> a partir del cual lo creaste. No te preocupes por el parámetro <code>T</code> por ahora, vamos a llegar a eso en un momento. El <code>VertexArray</code> posee tantos vértices como elementos pertenecientes al <code>Buffer</code> que lo origina, pero en contraste a este ultimo, puedes recortar un <code>VertexArray</code> usando las funciones <code>dropVertices</code> o <code>takeVertices</code>. Estas funcionan exactamente como <code>drop</code> o <code>take</code> trabajan sobre listas normales:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ot">takeVertices ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">VertexArray</span> t a <span class="ot">-&gt;</span> <span class="dt">VertexArray</span> t a <span class="dt">Source</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="ot">dropVertices ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">VertexArray</span> () a <span class="ot">-&gt;</span> <span class="dt">VertexArray</span> t a <span class="dt">Source</span></span></code></pre></div>
+<p><code>VertexArray</code> también tiene una instancia de <code>Functor</code>, la cual permite aplicar <code>fmap</code> sobre los vértices. ¡Aqui es donde la opacidad de los tipos B entran en juego! Ahora que puedes hacer cosas con tus valores B, vas a notar que las opciones son algo limitadas. Puedes simplemente agarrar elementos de estructuras como tuplas y/o construir nuevas estructuras con los valores que posees. A pesar de esto, hay un par de funciones que operan sobre valores B que puedes usar aquí:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ot">toB22 ::</span> <span class="kw">forall</span> a<span class="op">.</span> (<span class="dt">Storable</span> a, <span class="dt">BufferFormat</span> (<span class="dt">B2</span> a)) <span class="ot">=&gt;</span> <span class="dt">B4</span> a <span class="ot">-&gt;</span> (<span class="dt">B2</span> a, <span class="dt">B2</span> a)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="ot">toB3 ::</span> <span class="kw">forall</span> a<span class="op">.</span> (<span class="dt">Storable</span> a, <span class="dt">BufferFormat</span> (<span class="dt">B3</span> a)) <span class="ot">=&gt;</span> <span class="dt">B4</span> a <span class="ot">-&gt;</span> <span class="dt">B3</span> a</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="ot">toB21 ::</span> <span class="kw">forall</span> a<span class="op">.</span> (<span class="dt">Storable</span> a, <span class="dt">BufferFormat</span> (<span class="dt">B</span> a)) <span class="ot">=&gt;</span> <span class="dt">B3</span> a <span class="ot">-&gt;</span> (<span class="dt">B2</span> a, <span class="dt">B</span> a)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="ot">toB12 ::</span> <span class="kw">forall</span> a<span class="op">.</span> (<span class="dt">Storable</span> a, <span class="dt">BufferFormat</span> (<span class="dt">B</span> a)) <span class="ot">=&gt;</span> <span class="dt">B3</span> a <span class="ot">-&gt;</span> (<span class="dt">B</span> a, <span class="dt">B2</span> a)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="ot">toB11 ::</span> <span class="kw">forall</span> a<span class="op">.</span> (<span class="dt">Storable</span> a, <span class="dt">BufferFormat</span> (<span class="dt">B</span> a)) <span class="ot">=&gt;</span> <span class="dt">B2</span> a <span class="ot">-&gt;</span> (<span class="dt">B</span> a, <span class="dt">B</span> a)</span></code></pre></div>
+<p>Estas permiten separar vectores B en partes mas pequeñas. Fijate que de todos modos no hay funciones que puedan combinarlas nuevamente.</p>
+<p>Puedes también hacer comprimir (zip) dos <code>VertexArray</code> juntos, con la función <code>zipVertices</code>, que funciona exactamente como <code>zipWith</code> para listas normales; provees una función para combinar los elementos de ambos argumentos <code>VertexArray</code> y el resultante sera del tamaño del más pequeño de ambos arrays:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ot">zipVertices ::</span> (a <span class="ot">-&gt;</span> b <span class="ot">-&gt;</span> c) <span class="ot">-&gt;</span> <span class="dt">VertexArray</span> t a <span class="ot">-&gt;</span> <span class="dt">VertexArray</span> t' b <span class="ot">-&gt;</span> <span class="dt">VertexArray</span> (<span class="dt">Combine</span> t t') c</span></code></pre></div>
+<p><em>(Nuevamente, no te preocupes por el extraño primer parámetro en el VertexArray retornado, lo explicaré más adelante)</em></p>
+<p>Comprimir arrays de vértices es lo que se corresponde con usar arrays no-intercalados (non-interleaved) en OpenGL, mientras que un array de vértices desde un solo buffer de un tipo de elementos compuestos (así como una tupla de dos valores B) corresponde a arrays intercalados (interleaved). ¡Esta es solo la manera funcional y type safe de hacerlo!</p>
+<h2 id="arrays-de-primitivas">Arrays de primitivas</h2>
+<p>Ahora que haz recortado (trim), comprimido (zip) y mapeado (fmap) tus arrays de vértices a la perfección, es hora de crear un array de primitivas. La manera más simple de crear uno es con esta función:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ot">toPrimitiveArray ::</span> <span class="dt">PrimitiveTopology</span> p <span class="ot">-&gt;</span> <span class="dt">VertexArray</span> () a <span class="ot">-&gt;</span> <span class="dt">PrimitiveArray</span> p a</span></code></pre></div>
+<p>Siempre vas a necesitar una topología de primitivas, ademas de tu array de vértices, para crear un <code>PrimitiveArray</code>. La topología de primitivas denota como los vértices deben conectarse para formar primitivas, y es uno de estos constructores:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">PrimitiveTopology</span> p <span class="kw">where</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">TriangleList</span><span class="ot"> ::</span> <span class="dt">PrimitiveTopology</span> <span class="dt">Triangles</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">TriangleStrip</span><span class="ot"> ::</span> <span class="dt">PrimitiveTopology</span> <span class="dt">Triangles</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">TriangleFan</span><span class="ot"> ::</span> <span class="dt">PrimitiveTopology</span> <span class="dt">Triangles</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">LineList</span><span class="ot"> ::</span> <span class="dt">PrimitiveTopology</span> <span class="dt">Lines</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">LineStrip</span><span class="ot"> ::</span> <span class="dt">PrimitiveTopology</span> <span class="dt">Lines</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">LineLoop</span><span class="ot"> ::</span> <span class="dt">PrimitiveTopology</span> <span class="dt">Lines</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">PointList</span><span class="ot"> ::</span> <span class="dt">PrimitiveTopology</span> <span class="dt">Points</span></span></code></pre></div>
+<p>En la mayoría de los casos vas a trabajar con triángulos. Veamos como se ven las tres topologias de triángulos:</p>
+<figure>
+<img src="../images/gpipe-part-02-triangle-topologies.png" alt="               " />
+<figcaption aria-hidden="true">(a) - TriangleStrip, (b) - TriangleFan, (c) - TriangleList<br />
+(Image courtesy of OpenGL specification by Khronos)</figcaption>
+</figure>
+<p>En un <code>TriangleStrip</code>, cada vértice forma un triangulo con los dos vértices previos, alternando el camino de los vértices para cada triangulo. Esto significa que el primer triangulo es formado por los vértices 1-2-3 en ese orden, el siguiente por 2-4-3, luego por 3-4-5, 4-6-5, y así sucesivamente. Para <code>TriangleFan</code>, cada triangulo es formado por el primer vértice en el array junto con cada dos vértices consecutivos, en ese orden. Para <code>TriangleList</code>, cada tres vértices simplemente forman un triangulo; no se comparte ningún vértice entre los triángulos.</p>
+<p>Los vértices siempre vienen en orden antihorario para un triangulo de cara orientada hacia el frente (lo cual significa que todos los triángulos en la imagen de arriba, excepto el de más a la derecha, están orientados con cara hacia el fondo; solo como ejemplo de cuan intuitiva puede ser la especificación de OpenGL). La orientación de la cara de un triangulo va a ser importante luego, cuando lo rastericemos, en ese momento podrás elegir solo rasterizar los triángulos de cara hacia el frente o hacia el fondo.</p>
+<p>Los arrays de primitivas no se pueden recortar como los de vértices, pero poseen una instancia de <code>Functor</code> así que puedes hacer <code>fmap</code> sobre ellos exactamente como con los arrays de vértices. También tienen una instancia de <code>Monoid</code>, que permite concatenar dos <code>PrimitiveArray</code> juntos en uno solo usando <code>mappend</code>. Esto hace posible crea un <code>PrimitiveArray</code> conformado por varias tiras de triángulos disjuntas, pero maneras más eficientes de lograrlo serán presentadas en las siguientes dos secciones.</p>
+<h2 id="arrays-de-indices">Arrays de indices</h2>
+<p>Es común que un vértice sea usado no solo por dos triángulos consecutivos en una tira, sino también por triángulos de otra tira. Seria un desperdicio duplicar para cada tira todos los datos de los vértices compartidos, y por esta razón puedes usar un <code>index array</code> como reemplazo:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ot">toPrimitiveArrayIndexed ::</span> <span class="dt">PrimitiveTopology</span> p <span class="ot">-&gt;</span> <span class="dt">IndexArray</span> <span class="ot">-&gt;</span> <span class="dt">VertexArray</span> () a <span class="ot">-&gt;</span> <span class="dt">PrimitiveArray</span> p a</span></code></pre></div>
+<p>En vez de formas primitivas tomando vértices consecutivos en un <code>VertexArray</code>, esta función va a tomar los indices de un <code>IndexArray</code> y usarlos para referenciar vértices del <code>VertexArray</code>. Múltiples elementos en el <code>IndexArray</code> pueden referirse al mismo vértice. La topología de primitivas funciona de la misma manera para esta función, pero es aplicada al <code>IndexArray</code>. Por ejemplo, si <code>TriangleStrip</code> es usado, el primer triangulo es formado por los vértices referenciados por los primeros tres indices, el siguiente esta formado por el segundo, el cuarto y el tercer indice, y así sucesivamente.</p>
+<p>Puedes crear un <code>IndexArray</code> usando</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ot">newIndexArray ::</span> <span class="kw">forall</span> os f b a<span class="op">.</span> (<span class="dt">BufferFormat</span> b, <span class="dt">Integral</span> a, <span class="dt">IndexFormat</span> b <span class="op">~</span> a) <span class="ot">=&gt;</span> <span class="dt">Buffer</span> os b <span class="ot">-&gt;</span> <span class="dt">Maybe</span> a <span class="ot">-&gt;</span> <span class="dt">Render</span> os f <span class="dt">IndexArray</span></span></code></pre></div>
+<p>Muy parecido a crear un <code>VertexArray</code>, pero el tipo de los elementos del <code>Buffer</code> a partir del cual lo creas, esta también acotado por el siguiente type family:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="kw">family</span> <span class="dt">IndexFormat</span> a <span class="kw">where</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">IndexFormat</span> (<span class="dt">B</span> <span class="dt">Word32</span>) <span class="ot">=</span> <span class="dt">Word32</span>  </span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">IndexFormat</span> (<span class="dt">BPacked</span> <span class="dt">Word16</span>) <span class="ot">=</span> <span class="dt">Word16</span>  </span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">IndexFormat</span> (<span class="dt">BPacked</span> <span class="dt">Word8</span>) <span class="ot">=</span> <span class="dt">Word8</span></span></code></pre></div>
+<p>Esto significa que los indices pueden ser <code>Word32</code>, <code>Word16</code> o <code>Word8</code>. ¿Recuerdas que previamente mencioné que todos los tipos de los elementos del buffer necesitaban tener una alineación de 4-bytes? Los arrays de indices realmente <em>requieren</em> que todos los elementos estén empaquetados, pero todavía soporta indices de tipo <code>Word16</code> y <code>Word8</code>. Esto significa que los buffers de estos dos tipos de elementos <em>no pueden</em> ser usados como arrays de vértices. Esto es por lo que la representación de <code>Word16</code> y <code>Word8</code> es <code>BPacked Word16</code> y <code>BPacked Word8</code>. Estos funcionan exactamente como sus contrapartes <em>B</em>, con la excepción de que no hay instancias de <code>VertexInput</code> para ningun <code>BPacked a</code>. <code>VertexInput</code> es el type class usado en la creación de streams de primitivas desde arrays de primitivas, lo cual vamos a usar en la siguiente parte de este tutorial. Como puedes suponer a esta altura, el type family <code>IndexFormat a</code> evalúa a los mismos tipos que el tipo asociado <code>HostFormat a</code>.</p>
+<p>Además de un buffer de indices, <code>newIndexArray</code> también toma un <code>Maybe a</code> como argumento. Esto denota un indice opcional llamado <em>primitive restart</em>, es decir un valor de indice especial, que si es encontrado en el array de indices mientras se procesan las primitivas, señala que la topología actual debe terminar y el siguiente indice es el comienzo de una nueva topología. Esto hace posible tener múltiples tiras de triángulos en un solo <code>IndexArray</code> con solo separarlos con un indice especial, lo cual es mucho más eficiente que concatenar múltiples <code>PrimitiveStream</code> usando su instancia de <code>Monoid</code>.</p>
+<p>Los arrays de indices pueden ser recortados como cualquier array de vértices, pero siempre usando las funciones <code>takeIndices</code> y <code>dropIndices</code>. No poseen instancia de <code>Functor</code> (lo cual no tiene sentido) ni de <code>Monoid</code>.</p>
+<h2 id="arrays-de-primitivas-instanciados">Arrays de primitivas instanciados</h2>
+<p>La ultima cosa que voy a mostrarte en este episodio son los <em>arrays de primitivas instanciados</em>. Imagina que quieres crear una malla de triángulos de un templo, donde tienes muchos pilares idénticos ubicado en fila. En vez de duplicar los triángulos de cada pilar, o hacer un solo array de primitivas para concatenarlo consigo mismo múltiples veces, puedes crear un array de primitivas instanciado. La función de ve así:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="ot">toPrimitiveArrayInstanced ::</span> <span class="dt">PrimitiveTopology</span> p <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> b <span class="ot">-&gt;</span> c) <span class="ot">-&gt;</span> <span class="dt">VertexArray</span> () a <span class="ot">-&gt;</span> <span class="dt">VertexArray</span> t b <span class="ot">-&gt;</span> <span class="dt">PrimitiveArray</span> p c</span></code></pre></div>
+<p>Es muy similar a la función <code>zipVertices</code> en que toma dos <code>VertexArray</code> y una función binaria para combinar los vértices de estos arrays, pero <code>toPrimitiveArrayInstanced</code> no junta los dos arrays. En cambio, va a crear un array de primitivas desde el primer array de vértices para cada vértice del segundo array, y concatenar los resultados. En nuestro ejemplo de los pilares del templo, el primer array contiene entonces la tira para un solo pilar, mientras que el segundo array contiene una posición para instanciar cada pilar, resultado en un array de primitivas donde cada vértice contiene su posición individual dentro del pilar, asi como la posición de la instancia dentro del templo. Necesitarias entonces un shader que combine estas dos posiciones juntas en la posición final. Esta es la manera más eficiente de renderizar múltiples instancias de un mismo objeto.</p>
+<p>Si quieres usar un arrays de primitivas instanciados y array de primitivas indexados al mismo tiempo, hay una función para hacer eso también:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ot">toPrimitiveArrayIndexedInstanced ::</span> <span class="dt">PrimitiveTopology</span> p <span class="ot">-&gt;</span> <span class="dt">IndexArray</span> <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> b <span class="ot">-&gt;</span> c) <span class="ot">-&gt;</span> <span class="dt">VertexArray</span> () a <span class="ot">-&gt;</span> <span class="dt">VertexArray</span> t b <span class="ot">-&gt;</span> <span class="dt">PrimitiveArray</span> p c</span></code></pre></div>
+<p>Para hacer la instanciación aun más poderosa, puedes replicar los vértices en un array un numero fijo de veces cada uno y luego comprimirlo con otro array y usar el resultado como instancias en <code>toPrimitiveArrayInstanced</code>. Por ejemplo, podrías tener un array de vértices con tres diferentes colores, replicar cada color 5 veces, luego comprimirlo con un array de 15 posiciones, y usar esto como instancias de nuestro templo para tener 15 pilares de colores en tres diferentes graduaciones para variar. La función que usarías para hacer esto es:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="ot">replicateEach ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">VertexArray</span> t a <span class="ot">-&gt;</span> <span class="dt">VertexArray</span> <span class="dt">Instances</span> a</span></code></pre></div>
+<p>Esto va a replicar cada vértice en el array de argumento tantas veces como sea dictado por el primer argumento. Fijate que el tipo de <code>Instances</code> en el primer parámetro de tipo del resultante <code>VertexArray</code>. Quizás hayas notado que este parámetro había sido previamente <code>()</code> o solamente <code>t</code>. Si este parámetro de <code>VertexArray</code> es <code>Instances</code> entonces el <code>VertexArray</code> solo puede ser usado para instancias, es decir como ultimo argumento en una llamada a <code>toPrimitiveArrayInstanced</code> o <code>toPrimitiveArrayIndexedInstanced</code>. Si vas hacia atrás y miras los tipos de las funciones que toman o retornan <code>VertexArray</code> más arriba, vas a notar que:</p>
+<ul>
+<li><code>replicateEach</code> retorna un <code>VertexArray</code> que debe ser usado como instancia.</li>
+<li><code>dropVertices</code> no puede ser usado en ningún <code>VertexArray</code> que deba ser usado como instancia.</li>
+<li><code>zipVertices</code> retorna un <code>VertexArray</code> que debe ser usado como instancia si alguno de los arrays de entrada debe ser usado como instancia.</li>
+</ul>
+<p>Fui un poco injusto ahora, porque esto ultimo no era algo que pudieses notar solo mirando el tipo de la la función, necesitabas esta definición también:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="kw">family</span> <span class="dt">Combine</span> t t' <span class="kw">where</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Combine</span> () <span class="dt">Instances</span> <span class="ot">=</span> <span class="dt">Instances</span>  </span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Combine</span> <span class="dt">Instances</span> () <span class="ot">=</span> <span class="dt">Instances</span>  </span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Combine</span> <span class="dt">Instances</span> <span class="dt">Instances</span> <span class="ot">=</span> <span class="dt">Instances</span>  </span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Combine</span> () () <span class="ot">=</span> ()</span></code></pre></div>
+<p>Cuando tienes tu <code>PrimitiveArray</code>, la información de tipo ya sea si fue instanciado, indexado o ambos, se ha ido. Esto significa que puedes usar <code>mappend</code> sobre un array de primitivas instanciado junto con uno no instanciado, y que el shader al cual envías un array de primitivas no le importa si era instanciado o indexado.</p>
+<p>Esta vez no hay ejemplos de código, así que voy a dejar como ejercicio aplicar lo que aprendiste esta vez en el ejemplo de <a href="(/posts/160426-01-gpipe-part-01.html)">la parte anterior</a>. La próxima vez finalmente vamos a abordar <code>Shader</code>!</p>
+
+
+<div id="gh-comments-list">
+    Comments are not open for this post yet.
+</div>
+
+        </section>
+        <footer>
+            Site proudly generated by
+            <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+        </footer>
+    </body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" /> 
+        <title>(λblog.rainbyte) - Grouping by key with Python</title>
+        <link rel="stylesheet" type="text/css" href="../css/default.css" />
+        <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
+    </head>
+    <body>
+        <header>
+            <div id="logo">
+                <a href="../">(λblog.rainbyte)</a>
+            </div>
+            <nav id="navigation">
+                <a href="../">Home</a>
+                <a href="../about.html">About</a>
+                <a href="../cheatsheet.html">Cheatsheet</a>
+                <a href="../posts.html">Archive</a>
+                <a href="../atom.xml">Feed</a>
+            </nav>
+        </header>
+
+        <section id="content">
+            <h1>Grouping by key with Python</h1>
+            <div class="info">
+    Posted on May 19, 2015
+    
+        by rainbyte
+    
+</div>
+
+<div class="info">
+    
+        Tags: <a title="All pages tagged 'python'." href="../tags/python.html">python</a>, <a title="All pages tagged 'snippets'." href="../tags/snippets.html">snippets</a>, <a title="All pages tagged 'batch'." href="../tags/batch.html">batch</a>
+    
+</div>
+
+<p>Today I had to process some data, which was inside an unordered list, using the Python language.</p>
+<p>Some computations employed all the list items, others were based only on related ones.</p>
+<!-- more -->
+<p>The data was arranged in tuples, each one contained a main value among others.</p>
+<p>That value (let’s call it “key”), identified a relation with other tuples.</p>
+<p>Simplifying it, quite a bit, was something similar to this:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>items <span class="op">=</span> [(<span class="dv">1</span>, <span class="st">&quot;a&quot;</span>), (<span class="dv">3</span>, <span class="st">&quot;q&quot;</span>), (<span class="dv">2</span>, <span class="st">&quot;c&quot;</span>), (<span class="dv">2</span>, <span class="st">&quot;x&quot;</span>), (<span class="dv">1</span>, <span class="st">&quot;z&quot;</span>)]</span></code></pre></div>
+<p>The problem could be solved using some nested “while” iterations.</p>
+<p>But actually, I wanted something more brief and readable.</p>
+<p>Then, I looked for an alternative, and found itertools.</p>
+<p>First I’ve loaded the required module:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> itertools <span class="im">import</span> groupby</span></code></pre></div>
+<p>Then, the final solution was much like this:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> key, group <span class="kw">in</span> groupby(<span class="bu">sorted</span>(items), <span class="kw">lambda</span> x: x[<span class="dv">0</span>]):</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Do something with the key</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(key)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> <span class="bu">tuple</span> <span class="kw">in</span> group:</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Process each tuple with same key</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="bu">tuple</span>)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Other statements</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">&quot;^^^^^^^^^&quot;</span>)</span></code></pre></div>
+<p>There are some remarkable points in this code:</p>
+<ul>
+<li>The list needs to be <code>sorted</code> previously, so keys can be matched up.</li>
+<li>I’ve used a <code>lambda</code> in order to select which element is the key.</li>
+<li>The key can be accessed individually.</li>
+<li>Related tuples can accessed via the group variable.</li>
+<li>Each item inside each group still contains the key.</li>
+</ul>
+<p>This code would print something like this:</p>
+<pre><code>1
+(1, 'a')
+(1, 'z')
+^^^^^^^^^
+2
+(2, 'c')
+(2, 'x')
+^^^^^^^^^
+3
+(3, 'q')
+^^^^^^^^^</code></pre>
+<p>At the end, this method was cleaner than using iterations by hand.</p>
+
+
+<div id="gh-comments-list">
+    Comments are not open for this post yet.
+</div>
+
+        </section>
+        <footer>
+            Site proudly generated by
+            <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+        </footer>
+    </body>
+</html>

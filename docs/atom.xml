@@ -1,0 +1,1571 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title>(λblog.rainbyte)</title>
+    <link href="http://rainbyte.github.io/atom.xml" rel="self" />
+    <link href="http://rainbyte.github.io" />
+    <id>http://rainbyte.github.io/atom.xml</id>
+    <author>
+        <name>rainbyte</name>
+        <email>rainbyte@tuta.io</email>
+    </author>
+    <updated>2020-08-29 06:42:00</updated>
+    <entry>
+    <title>Haskell from 0 to IO (Maybe Hero)</title>
+    <link href="http://rainbyte.github.io/posts/200828-01-haskell-0-to-io.html" />
+    <id>http://rainbyte.github.io/posts/200828-01-haskell-0-to-io.html</id>
+    <published>2020-08-28 03:56:00</published>
+    <updated>2020-08-29 06:42:00</updated>
+    <summary type="html"><![CDATA[<div class="info">
+    Posted on August 28, 2020
+    
+        by rainbyte
+    
+</div>
+
+<div class="info">
+    
+        Tags: <a title="All pages tagged &#39;haskell&#39;." href="/tags/haskell.html">haskell</a>, <a title="All pages tagged &#39;io&#39;." href="/tags/io.html">io</a>, <a title="All pages tagged &#39;monad&#39;." href="/tags/monad.html">monad</a>, <a title="All pages tagged &#39;typeclasses&#39;." href="/tags/typeclasses.html">typeclasses</a>
+    
+</div>
+
+<h2 id="introduction">Introduction</h2>
+<p>This guide references some syntax and patterns used when writing programs
+in the Haskell language. A text editor and the GHC compiler are required
+to run the code, but online environments are also an option.</p>
+<h2 id="minimal-example">Minimal example</h2>
+<p>Haskell expects programs have an entrypoint called <code>main</code>, which later is
+explained in detail, but for now we will create a file named <code>Program.hs</code>
+and write inside the following code:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- Comments are written like this</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="fu">print</span> <span class="st">&quot;hola&quot;</span></span></code></pre></div>
+<p>Check if code can be interpreted:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">runghc</span> Program.hs</span></code></pre></div>
+<p>Check if code can be compiled and executed:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">ghc</span> <span class="at">-o</span> Program Program.hs</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./Program</span></span></code></pre></div>
+<p>Some system also require to add the <code>-dynamic</code> option (eg. Arch Linux).</p>
+<h2 id="definitions">Definitions</h2>
+<p>Haskell definitions indicate a type with <code>::</code> and their value with <code>=</code>.</p>
+<p>Here <code>num</code> is defined with type <code>Int</code> and value <code>9</code>:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ot">num ::</span> <span class="dt">Int</span> <span class="co">-- type</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>num <span class="ot">=</span> <span class="dv">9</span>    <span class="co">-- definition</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="fu">print</span> num</span></code></pre></div>
+<p>The <code>=</code> symbol means equality in both ways, this means that <code>num</code> can be
+replaced by <code>9</code> anywhere.</p>
+<p>Detailed definitions are done using <code>let..in..</code>, which has a <code>let</code> section
+with local values accessed by the <code>in</code> section to calculate a final value.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>num <span class="ot">=</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> x <span class="ot">=</span> <span class="dv">5</span>  <span class="co">-- define x</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>        y <span class="ot">=</span> <span class="dv">10</span> <span class="co">-- define y</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">in</span> x <span class="op">+</span> y   <span class="co">-- use them</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="fu">print</span> num</span></code></pre></div>
+<p>Other way to have local definitions is to attach a <code>where</code> section, the
+following code is equivalent to the previous one:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>num <span class="ot">=</span> x <span class="op">+</span> y <span class="co">-- use definitions</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    x <span class="ot">=</span> <span class="dv">5</span>  <span class="co">-- define x</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    y <span class="ot">=</span> <span class="dv">10</span> <span class="co">-- define y</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="fu">print</span> num</span></code></pre></div>
+<h2 id="types">Types</h2>
+<p>Carefully designed types reject unwanted values by making them unrepresentable.</p>
+<p>The <code>type</code> keyword indicates an alias to an existing type.</p>
+<p>Here <code>String</code> is an alias to a list of <code>Char</code>:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">String</span> <span class="ot">=</span> [<span class="dt">Char</span>]</span></code></pre></div>
+<p>The <code>data</code> keyword is used to define custom types.</p>
+<p>Booleans are represented in this way:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Bool</span> <span class="ot">=</span> <span class="dt">False</span> <span class="op">|</span> <span class="dt">True</span></span></code></pre></div>
+<p>We can apply conditionals over booleans like this:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ot">b ::</span> <span class="dt">Bool</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>b <span class="ot">=</span> <span class="dt">True</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="ot">s ::</span> <span class="dt">String</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>s <span class="ot">=</span> <span class="kw">if</span> b <span class="kw">then</span> <span class="st">&quot;True&quot;</span> <span class="kw">else</span> <span class="st">&quot;False&quot;</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="fu">print</span> s</span></code></pre></div>
+<p>The <code>Ordering</code> type is used to compare things:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Ordering</span> <span class="ot">=</span> <span class="dt">LT</span> <span class="op">|</span> <span class="dt">EQ</span> <span class="op">|</span> <span class="dt">GT</span></span></code></pre></div>
+<p>Handling each possible case for a type is called <code>pattern matching</code>, and
+ideally all of them should be handled</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ord</span><span class="ot"> ::</span> <span class="dt">Ordering</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ord</span> <span class="ot">=</span> <span class="dt">LT</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="ot">s ::</span> <span class="dt">String</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>s <span class="ot">=</span> <span class="kw">case</span> <span class="fu">ord</span> <span class="kw">of</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">LT</span> <span class="ot">-&gt;</span> <span class="st">&quot;Less Than&quot;</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">EQ</span> <span class="ot">-&gt;</span> <span class="st">&quot;Equal&quot;</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">GT</span> <span class="ot">-&gt;</span> <span class="st">&quot;Greater Than&quot;</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="fu">print</span> s</span></code></pre></div>
+<p>The <code>Maybe</code> type is parametrized and represents the existence of something with
+a generic type <code>t</code>, avoiding the use of <code>null</code> at all.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Maybe</span> t <span class="ot">=</span> <span class="dt">Nothing</span> <span class="op">|</span> <span class="dt">Just</span> t</span></code></pre></div>
+<p><code>Pattern matching</code> also works with parametrized types:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="ot">mInt ::</span> <span class="dt">Maybe</span> <span class="dt">Int</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>mInt <span class="ot">=</span> <span class="dt">Just</span> <span class="dv">9</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="ot">num ::</span> <span class="dt">Int</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>num <span class="ot">=</span> <span class="kw">case</span> mInt <span class="kw">of</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Just</span> n  <span class="ot">-&gt;</span> n</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Nothing</span> <span class="ot">-&gt;</span> <span class="dv">0</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="fu">print</span> num</span></code></pre></div>
+<p>The <code>Either</code> type has 2 parameters and represents the existence of a value with
+type <code>e</code> or a value with type <code>t</code>.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Either</span> e t <span class="ot">=</span> <span class="dt">Left</span> e <span class="op">|</span> <span class="dt">Right</span> t</span></code></pre></div>
+<p>We can use <code>Either String t</code> to represent an error message when a result of
+type <code>t</code> cannot be obtained.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ot">err ::</span> <span class="dt">Either</span> <span class="dt">String</span> <span class="dt">Int</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>err <span class="ot">=</span> <span class="dt">Left</span> <span class="st">&quot;Could not obtain the number&quot;</span></span></code></pre></div>
+<h2 id="functions">Functions</h2>
+<p>When we see an arrow <code>-&gt;</code> in a type, we know it is a function.</p>
+<p>Every function receives an <code>a</code> and gives a <code>b</code> as result.</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="ot">f ::</span> a <span class="ot">-&gt;</span> b</span></code></pre></div>
+<p>Functions indicate their body with <code>=</code>.</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="ot">f ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>f x <span class="ot">=</span> x <span class="op">+</span> <span class="dv">3</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="fu">print</span> (f <span class="dv">5</span>)</span></code></pre></div>
+<p>The same function can be implemented inline as a lambda</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="ot">f ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>f <span class="ot">=</span> \x <span class="ot">-&gt;</span> x <span class="op">+</span> <span class="dv">3</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="fu">print</span> (f <span class="dv">5</span>)</span></code></pre></div>
+<p>We can “combine” functions using the <code>.</code> operator, called <code>composition</code>, so
+that if we have <code>g . f</code> then <code>f</code> will produce an intermediate result to be
+taken by <code>g</code> to produce a final result:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="ot">f ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>f x <span class="ot">=</span> x <span class="op">+</span> <span class="dv">3</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="ot">g ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>g x <span class="ot">=</span> x <span class="op">*</span> <span class="dv">5</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a><span class="ot">h ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>h <span class="ot">=</span> g <span class="op">.</span> f <span class="co">-- be careful with the order</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="fu">print</span> (h <span class="dv">2</span>)</span></code></pre></div>
+<p>There is also an <code>$</code> operator, called “application”, usually used to change
+precedence and avoid extra parenthesis. You can think of it as having
+parenthesis at both sides.</p>
+<p>Here we have equivalent <code>main</code> implementations, choose the one you prefer.</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="ot">f ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>f x <span class="ot">=</span> x <span class="op">+</span> <span class="dv">1</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="co">-- all of these are equivalent</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>main1 <span class="ot">=</span> <span class="fu">print</span> <span class="op">.</span> f <span class="op">$</span> <span class="dv">3</span> <span class="op">+</span> <span class="dv">4</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>main2 <span class="ot">=</span> (<span class="fu">print</span> <span class="op">.</span> f) <span class="op">$</span> (<span class="dv">3</span> <span class="op">+</span> <span class="dv">4</span>)</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>main3 <span class="ot">=</span> (<span class="fu">print</span> <span class="op">.</span> f) (<span class="dv">3</span> <span class="op">+</span> <span class="dv">4</span>)</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>main4 <span class="ot">=</span> <span class="fu">print</span> (f (<span class="dv">3</span> <span class="op">+</span> <span class="dv">4</span>))</span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> main1</span></code></pre></div>
+<p>A function can give a function as result and we can use this mechanism
+to make new definitions:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="ot">f ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> (<span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span>)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>f x <span class="ot">=</span> \y <span class="ot">-&gt;</span> x <span class="op">+</span> y</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>add5 <span class="ot">=</span> f <span class="dv">5</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="fu">print</span> (add5 <span class="dv">6</span>)</span></code></pre></div>
+<p>Parenthesis in that type signature can be omitted, and we can also evaluate
+the <code>f</code> function with all the parameters at once:</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="ot">f ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>f x <span class="ot">=</span> \y <span class="ot">-&gt;</span> x <span class="op">+</span> y</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="fu">print</span> (f <span class="dv">5</span> <span class="dv">6</span>)</span></code></pre></div>
+<p>We can also move the <code>y</code> parameter to the left side, just to make it easier
+to read:</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="ot">f ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>f x y <span class="ot">=</span> x <span class="op">+</span> y</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="fu">print</span> (f <span class="dv">5</span> <span class="dv">6</span>)</span></code></pre></div>
+<p>A function can receive a function as parameter, but then those parenthesis
+are required to maintain precedence. We don’t know what the <code>h</code> function
+does, but we know it can be used over an <code>Int</code> like <code>3</code>.</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="ot">g ::</span> (<span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span>) <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>g h <span class="ot">=</span> h <span class="dv">3</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>f x <span class="ot">=</span> x <span class="op">+</span> <span class="dv">2</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="fu">print</span> (g f) <span class="co">-- g consumes f function</span></span></code></pre></div>
+<p><code>Pattern matching</code> can also be used to define a function piece-by-piece</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="ot">fib ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>fib <span class="dv">0</span> <span class="ot">=</span> <span class="dv">0</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>fib <span class="dv">1</span> <span class="ot">=</span> <span class="dv">1</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>fib x <span class="ot">=</span> fib (x <span class="op">-</span> <span class="dv">1</span>) <span class="op">+</span> fib (x <span class="op">-</span> <span class="dv">2</span>)</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="fu">print</span> (fib <span class="dv">10</span>)</span></code></pre></div>
+<h2 id="typeclasses">Typeclasses</h2>
+<p>When types are generic, function body can only use known operations.</p>
+<p>Here type <code>a</code> could be any type, so <code>x</code> can only be returned as-is.</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="ot">id&#39; ::</span> a <span class="ot">-&gt;</span> a</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>id&#39; x <span class="ot">=</span> x</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="fu">print</span> (id&#39; <span class="dv">5</span>)</span></code></pre></div>
+<p>We can define a set of operations, then types could implement them,
+that is called <code>typeclass</code>.</p>
+<p>As example a type which fulfils the <code>Eq</code> typeclass will have all its
+functions available.</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> <span class="dt">Eq</span> a <span class="kw">where</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="ot">    (==) ::</span> a <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> <span class="dt">Bool</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="ot">    (/=) ::</span> a <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> <span class="dt">Bool</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>    (<span class="op">/=</span>) x y <span class="ot">=</span> <span class="fu">not</span> (x <span class="op">==</span> y)</span></code></pre></div>
+<p>We can see that <code>Ord</code> needs <code>b</code> to implement <code>Eq</code>, because it needs
+operations from that set.</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> <span class="dt">Eq</span> b <span class="ot">=&gt;</span> <span class="dt">Ord</span> b <span class="kw">where</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="ot">    compare              ::</span> b <span class="ot">-&gt;</span> b <span class="ot">-&gt;</span> <span class="dt">Ordering</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>    (<span class="op">&lt;</span>), (<span class="op">&lt;=</span>), (<span class="op">&gt;=</span>),<span class="ot"> (&gt;) ::</span> b <span class="ot">-&gt;</span> b <span class="ot">-&gt;</span> <span class="dt">Bool</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">max</span>,<span class="ot"> min             ::</span> b <span class="ot">-&gt;</span> b <span class="ot">-&gt;</span> b</span></code></pre></div>
+<p>Typeclass implementation is done via instances for each type.</p>
+<p>Here we define <code>Eq</code> for the <code>Bool</code> type.</p>
+<p>Remember that <code>(/=)</code> is already defined based on <code>(==)</code>.</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="kw">instance</span> <span class="dt">Eq</span> <span class="dt">Bool</span> <span class="kw">where</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>    (<span class="op">==</span>) <span class="dt">True</span>  <span class="dt">True</span>  <span class="ot">=</span> <span class="dt">True</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>    (<span class="op">==</span>) <span class="dt">False</span> <span class="dt">False</span> <span class="ot">=</span> <span class="dt">True</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>    (<span class="op">==</span>) _     _     <span class="ot">=</span> <span class="dt">False</span></span></code></pre></div>
+<p>The type <code>t</code> implements <code>Ord</code> and <code>Num</code> typeclasses, so inside <code>isPositive</code>
+we can use number and comparison operations over <code>x</code> value.</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="ot">isPositive ::</span> (<span class="dt">Ord</span> t, <span class="dt">Num</span> t) <span class="ot">=&gt;</span> t <span class="ot">-&gt;</span> <span class="dt">Bool</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>isPositive x <span class="ot">=</span> <span class="fu">compare</span> <span class="dv">0</span> x</span></code></pre></div>
+<h2 id="inputoutput">Input/Output</h2>
+<p>Now we are ready to inspect the type of the <code>main</code> function we wrote at the
+beginning.</p>
+<div class="sourceCode" id="cb31"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="fu">print</span> <span class="st">&quot;hola&quot;</span></span></code></pre></div>
+<p>The <code>IO a</code> type represents a set of instructions that will be executed
+by the runtime of Haskell, with something of type <code>a</code> as result.</p>
+<p>In the case of main <code>a</code> is <code>()</code>, which is called <strong>unit</strong>, and its only
+possible value is <code>()</code>.</p>
+<p>This means that the <code>main</code> function produces a set of instructions to be
+executed by the runtime when the program is launched.</p>
+<p>We know that <code>print "hola"</code> type is also <code>IO ()</code> because it should have
+the same type that <code>main</code> has to be valid code, and we also know that
+<code>"hola"</code> is a <code>String</code>.</p>
+<p>We could think that <code>print :: String -&gt; IO ()</code>, but we have been using
+<code>print</code> with things of other types too, so its type should be something
+like <code>C a =&gt; a -&gt; IO ()</code> with some unknown constraint C.</p>
+<p>That constraint is the <code>Show</code> typeclass we can see here:</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> <span class="dt">Show</span> a <span class="kw">where</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="ot">    show ::</span> a <span class="ot">-&gt;</span> <span class="dt">String</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- plus other definitions</span></span></code></pre></div>
+<p>Given that <code>show</code> function takes something and produces a <code>String</code>, then
+that function is the missing piece.</p>
+<p>Then we can infer that <code>print</code> type is <code>Show a =&gt; a -&gt; IO ()</code>, so <code>a</code>
+is converted to an <code>String</code> which is printed.</p>
+<p>This is the definition of the <code>print</code> function:</p>
+<div class="sourceCode" id="cb33"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span><span class="ot"> ::</span> <span class="dt">Show</span> a <span class="ot">=&gt;</span> a <span class="ot">-&gt;</span> <span class="dt">IO</span> ()</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span> x <span class="ot">=</span> <span class="fu">putStrLn</span> (<span class="fu">show</span> x)</span></code></pre></div>
+<p>As we can see, it uses <code>show</code> to obtain an <code>String</code>, which will be consumed
+by the <code>putStrLn</code> function, and that is the one that has the <code>String -&gt; IO ()</code>
+type we thought before.</p>
+<p>We will see soon how to write bigger programs using <code>IO a</code> type, but first
+we should talk a bit more about typeclasses.</p>
+<h2 id="typeclass-laws">Typeclass Laws</h2>
+<p>Some typeclasses define a set of associated laws which cannot be checked
+by the compiler, but the code must follow them to preserve the logic.</p>
+<p>Haskell relies on developers to check that their code adheres to the laws,
+which could be done via mathematical proofs, but there are also tools to
+generate informal tests to check properties (eg. QuickCheck).</p>
+<p>We can take as example the <code>Eq</code> typeclass we saw before:</p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> <span class="dt">Eq</span> a <span class="kw">where</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="ot">    (==) ::</span> a <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> <span class="dt">Bool</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a><span class="ot">    (/=) ::</span> a <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> <span class="dt">Bool</span></span></code></pre></div>
+<p>A valid <code>Eq</code> implementation should follow these laws:</p>
+<ul>
+<li>Reflexivity: <code>x == x = True</code></li>
+<li>Symmetry: <code>x == y = y == x</code></li>
+<li>Transitivity: if <code>x == y &amp;&amp; y == z = True</code>, then <code>x == z = True</code></li>
+<li>Substitution: if <code>x == y = True</code>, then <code>f x == f y = True</code></li>
+<li>Negation: <code>x /= y = not (x == y)</code></li>
+</ul>
+<p>We can see that our previous <code>Eq Bool</code> instance follows <em>reflexivity</em> law,
+because by definition agrees with <code>x == x</code> form:</p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>(<span class="op">==</span>) <span class="dt">True</span>  <span class="dt">True</span>  <span class="ot">=</span> <span class="dt">True</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>(<span class="op">==</span>) <span class="dt">False</span> <span class="dt">False</span> <span class="ot">=</span> <span class="dt">True</span></span></code></pre></div>
+<p>Given that our implementation is valid, we can always replace <code>x == x</code>
+with <code>True</code> when we see it, which is useful to simplify our code.</p>
+<p>Typeclass laws help us to refactor the code and make it better using known
+properties.</p>
+<h2 id="typeclass-examples">Typeclass Examples</h2>
+<p>There are many typeclasses defined in the Haskell libraries, the <a href="https://wiki.haskell.org/Typeclassopedia">Typeclassopedia</a> is a good place to start learning more details
+about the standard typeclasses, but I will mention here some of the most common
+ones and their laws, just as reference, there is no need to memorize them now
+because they will become familiar as time passes.</p>
+<ol type="1">
+<li><p><strong>Semigroup Typeclass</strong></p>
+<p>Types which fulfil <code>Semigroup</code> api should implement <code>(&lt;&gt;)</code> function, also
+called <code>append</code>.</p>
+<div class="sourceCode" id="cb36"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> <span class="dt">Semigroup</span> a <span class="kw">where</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a><span class="ot">    (&lt;&gt;) ::</span> a <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> a</span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- other definitions...</span></span></code></pre></div>
+<p>The following property, called <strong>associativity</strong>, should be true for
+any valid <code>Semigroup</code> instance:</p>
+<ul>
+<li><code>(x &lt;&gt; y) &lt;&gt; z = x &lt;&gt; (y &lt;&gt; z)</code></li>
+</ul>
+<p>We can use <code>(&lt;&gt;)</code> function to take to things of the same type and produce
+a combined result also of the same type.</p>
+<div class="sourceCode" id="cb37"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>s1 <span class="ot">=</span> <span class="st">&quot;hola&quot;</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>s2 <span class="ot">=</span> <span class="st">&quot;mundo&quot;</span></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="fu">print</span> (s1 <span class="op">&lt;&gt;</span> s2)</span></code></pre></div>
+<p>Each <code>Semigroup</code> instance defines how those things are combined, in this
+case <code>String</code> concatenation occurs.</p></li>
+<li><p><strong>Functor Typeclass</strong></p>
+<p>Types which fulfil <code>Functor</code> api implement <code>fmap</code> function.</p>
+<div class="sourceCode" id="cb38"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> <span class="dt">Functor</span> t <span class="kw">where</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="ot">    fmap ::</span> (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> t a <span class="ot">-&gt;</span> t b</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- other definitions...</span></span></code></pre></div>
+<p>The following properties should be true for any valid <code>Functor</code> instance:</p>
+<ul>
+<li><code>fmap id  ==  id</code></li>
+<li><code>fmap (f . g)  ==  fmap f . fmap g</code></li>
+</ul>
+<p>We can use <code>fmap</code> over a parametrized type <code>t a</code> to apply a function
+<code>a -&gt; b</code> which takes things of type <code>a</code> to produce things of type <code>b</code>.</p>
+<p>Here <code>fmap</code> is applied over a parametrized <code>List Int</code> to apply <code>f</code> function
+which will add 3 to each integer inside the list, obtaining a new list with
+the same shape but new values.</p>
+<div class="sourceCode" id="cb39"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="ot">xs ::</span> [<span class="dt">Int</span>]</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>xs <span class="ot">=</span> [<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>]</span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a><span class="ot">f ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>f x <span class="ot">=</span> x <span class="op">+</span> <span class="dv">3</span></span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="fu">print</span> (<span class="fu">fmap</span> f xs)</span></code></pre></div>
+<p>Remember, <code>fmap</code> behavior depends on the specific parametrized type we are
+working with, eg. in the case of data structures usually allows us to apply
+a function over each element preserving the structure shape.</p></li>
+<li><p><strong>Applicative Typeclass</strong></p>
+<p>Types which fulfil <code>Applicative</code> api should implement the required functions
+(ie. <code>pure</code>, <code>(&lt;*&gt;)</code>, etc) and must have a <code>Functor</code> instance as well, so
+the <code>fmap</code> function will be available as well.</p>
+<div class="sourceCode" id="cb40"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> <span class="dt">Functor</span> t <span class="ot">=&gt;</span> <span class="dt">Applicative</span> t <span class="kw">where</span></span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a><span class="ot">    pure ::</span> a <span class="ot">-&gt;</span> t a</span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a><span class="ot">    (&lt;*&gt;) ::</span> t (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> t a <span class="ot">-&gt;</span> t b</span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- other definitions...</span></span></code></pre></div>
+<p>The following properties should be true for any <code>Applicative</code> instance:</p>
+<ul>
+<li><code>pure id &lt;*&gt; v = v</code></li>
+<li><code>pure (.) &lt;*&gt; u &lt;*&gt; v &lt;*&gt; w = u &lt;*&gt; (v &lt;*&gt; w)</code></li>
+<li><code>pure f &lt;*&gt; pure x = pure (f x)</code></li>
+<li><code>u &lt;*&gt; pure y = pure ($ y) &lt;*&gt; u</code></li>
+</ul>
+<p>The <code>pure</code> function is really useful when working with a parametrized type
+<code>t a</code> (eg. <code>IO a</code>, <code>Maybe a</code>, etc) because it allows us to take something
+of type <code>a</code> and generate a value of type <code>t a</code> in a predefined way.</p>
+<div class="sourceCode" id="cb41"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="fu">pure</span> ()</span></code></pre></div>
+<p>This example shows a program which does nothing, but it is interesting
+anyway because we can see how <code>pure</code> obtains a <code>IO a</code> from an <code>a</code>, which
+in this case is the unit type.</p></li>
+<li><p><strong>Monad Typeclass</strong></p>
+<p>Any type which implements <code>Monad</code> will have a <code>(&gt;&gt;=)</code> operation, called
+<code>bind</code>, it should also implement <code>Applicative</code> and <code>Functor</code> api as well,
+so we also have the <code>pure</code> and <code>fmap</code> functions available for <code>Monad</code>
+instances.</p>
+<div class="sourceCode" id="cb42"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> <span class="dt">Applicative</span> m <span class="ot">=&gt;</span> <span class="dt">Monad</span> m <span class="kw">where</span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a><span class="ot">    (&gt;&gt;=) ::</span> m a <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> m b) <span class="ot">-&gt;</span> m b</span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- other definitions...</span></span></code></pre></div>
+<p>When we see <code>mf &gt;&gt;= k</code> we know <code>k</code> consumes something of type <code>a</code> obtained
+from <code>mf</code> (because <code>mf :: m a</code> and <code>k :: (a -&gt; m b)</code>), so we can say <code>k</code> is
+a <strong>continuation</strong>, because it could be the next piece to be executed.</p>
+<p>Keep in mind that the following properties are required for any valid
+<code>Monad</code> instance:</p>
+<ul>
+<li><code>pure a &gt;&gt;= k  =  k a</code></li>
+<li><code>mf &gt;&gt;= pure = mf</code></li>
+<li><code>mf &gt;&gt;= (\x -&gt; k x &gt;&gt;= h)  =  (mf &gt;&gt;= k) &gt;&gt;= h</code></li>
+</ul>
+<p>The <code>&gt;&gt;=</code> function is useful when we have something of a parametrized type
+<code>t a</code> and we want to process the values of type <code>a</code> with the condition that
+in the end we should produce something of type <code>t b</code>.</p>
+<div class="sourceCode" id="cb43"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="ot">f ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">String</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>f n <span class="ot">=</span> <span class="st">&quot;n = &quot;</span> <span class="op">&lt;&gt;</span> <span class="fu">show</span> n</span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a><span class="ot">mInt ::</span> <span class="dt">Maybe</span> <span class="dt">Int</span></span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>mInt <span class="ot">=</span> <span class="dt">Nothing</span></span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="fu">print</span> (mInt <span class="op">&gt;&gt;=</span> (<span class="fu">pure</span> <span class="op">.</span> f))</span></code></pre></div>
+<p>In the example we have <code>mInt</code> of type <code>Maybe Int</code> and we would like to
+process that <code>Int</code> with the function <code>f</code> to obtain an <code>String</code>, so we
+use the bind function <code>&gt;&gt;=</code> to do handle this and give <code>pure . f</code> as
+continuation, so it conforms with the expected type <code>Int -&gt; Maybe String</code>.</p>
+<p>The parametrized type <code>Maybe a</code> has a bind implementation which is
+intelligent enough to note that the <code>a</code> (ie. <code>Int</code>) doesn’t exist,
+because <code>mInt</code> value is <code>Nothing</code>, so bind avoids calling <code>pure . f</code>
+as the continuation expects the <code>Int</code> to be there.</p>
+<p>We can se that <code>pure . f</code> uses <code>pure</code> to conform with <code>Int -&gt; Maybe Int</code>
+type, and it could have consumed an <code>Int</code> if <code>mInt</code> had it
+(eg. <code>mInt = Just 4</code>).</p>
+<p>As we can see, bind mechanism and meaning are related to the parametrized
+type which implements the <code>Monad</code> instance, so we need to understand that
+type very well before learning about the inner working of a certain
+typeclass instance.</p></li>
+</ol>
+<h2 id="do-notation">Do-notation</h2>
+<p>Finally, as promised, we can see how to write bigger programs using <code>IO a</code>
+type.</p>
+<p>First we can see a piece of code which uses <code>(&gt;&gt;=)</code> operator to obtain a
+<code>String</code> written by the user and then prints it to the console.</p>
+<div class="sourceCode" id="cb44"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="fu">getLine</span> <span class="op">&gt;&gt;=</span> <span class="fu">putStrLn</span></span></code></pre></div>
+<p>We can rewrite it using an explicit parameter named <code>line</code>, which is produced
+by <code>getLine</code> subroutine and passed to the continuation (remember that when we
+see something like <code>mf &gt;&gt;= k</code>, then <code>k</code> is the continuation).</p>
+<div class="sourceCode" id="cb45"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="fu">getLine</span> <span class="op">&gt;&gt;=</span> (\line <span class="ot">-&gt;</span> <span class="fu">putStrLn</span> line)</span></code></pre></div>
+<p>As this gets tiring really quickly, Haskell defines a special syntax called
+<code>do-notation</code>, which we can use to write equivalent code in a more familiar
+style.</p>
+<p>Like in 2nd example <code>getLine</code> result is available as <code>line</code> value.</p>
+<div class="sourceCode" id="cb46"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>    line <span class="ot">&lt;-</span> <span class="fu">getLine</span></span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">putStrLn</span> line</span></code></pre></div>
+<p>As a final example we have an imperative-style program which asks the user
+for an input and then iterates over the elements of a list printing the
+user input each time.</p>
+<div class="sourceCode" id="cb47"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Control.Monad</span> (forM_)</span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>xs <span class="ot">=</span> [<span class="dv">1</span><span class="op">..</span><span class="dv">10</span>]</span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a>    line <span class="ot">&lt;-</span> <span class="fu">getLine</span></span>
+<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a>    forM_ xs <span class="op">$</span> \x <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a>        <span class="fu">putStrLn</span> (line <span class="op">&lt;&gt;</span> <span class="fu">show</span> x)</span></code></pre></div>
+<p>There are other ways to write this program, but this can feel familiar to
+programmers which already know other languages.</p>
+
+
+<div id="gh-comments-list">
+</div>
+
+<script type="text/javascript">
+    // This is a self executing function
+    var issueId = 6;
+    var url = "https://github.com/rainbyte/rainbyte.github.io/issues/" + issueId;
+    var api_url = "https://api.github.com/repos/rainbyte/rainbyte.github.io/issues/" + issueId + "/comments";
+    (function() {
+        // DOM is already available, now we can handle page elements
+        var ghCommentsList = document.getElementById("gh-comments-list");
+
+        var request = new XMLHttpRequest();
+        request.open('GET', api_url, true);
+        request.onload = function() {
+            if (request.status >= 200 && request.status < 400) {
+                // Request was successful, we can process the raw comments
+                var comments = JSON.parse(request.responseText);
+                var fragment = document.createDocumentFragment();
+                var range = new Range();
+
+                // Render comments section header
+                fragment.appendChild(range.createContextualFragment(`
+                    <div>
+                        <b>Comments section</b> (visit the <b><a href='${url}'>issue</a></b> of this post to add one)
+                    </div>
+                `));
+
+                // Render view of each comment
+                comments.forEach(comment => {
+                    var date = new Date(comment.created_at);
+                    var renderedComment = range.createContextualFragment(`
+                        <div class='gh-comment'>
+                            <div class='gh-comment-header'>
+                                <img src='${comment.user.avatar_url}'>
+                                <div>
+                                    <b><a href='${comment.user.html_url}'>${comment.user.login}</a></b> posted at <em>${date.toDateString()}</em>
+                                </div>
+                            </div>
+                            <div class='gh-comment-body'>
+                                ${comment.body}
+                            </div>
+                        </div>
+                    `);
+                    fragment.appendChild(renderedComment);
+                });
+
+                // Make changes visible by adding rendered nodes
+                ghCommentsList.append(fragment);
+            } else {
+                // Request reached the target server, but it returned an error
+                ghCommentsList.append("Comments are not available now.");
+            }
+        };
+        request.onerror = function() {
+            // There was a connection error of some sort
+            ghCommentsList.append("Comments are not available now.");
+        };
+        request.send();
+    })();
+</script>
+]]></summary>
+</entry>
+<entry>
+    <title>Using Kotlin coroutines to handle blocking computations in Android</title>
+    <link href="http://rainbyte.github.io/posts/200518-01-kotlin-coroutines-android.html" />
+    <id>http://rainbyte.github.io/posts/200518-01-kotlin-coroutines-android.html</id>
+    <published>2020-05-18 05:23:00</published>
+    <updated>2020-05-18T05:23:00Z</updated>
+    <summary type="html"><![CDATA[<div class="info">
+    Posted on May 18, 2020
+    
+        by rainbyte
+    
+</div>
+
+<div class="info">
+    
+        Tags: <a title="All pages tagged &#39;android&#39;." href="/tags/android.html">android</a>, <a title="All pages tagged &#39;async&#39;." href="/tags/async.html">async</a>, <a title="All pages tagged &#39;coroutines&#39;." href="/tags/coroutines.html">coroutines</a>, <a title="All pages tagged &#39;kotlin&#39;." href="/tags/kotlin.html">kotlin</a>
+    
+</div>
+
+<p>When we need to execute time intensive computations and show some the result
+to the user, we should avoid running them inside UI thread, otherwise app UI
+could get frozen.</p>
+<p>Here we have a detailed example which uses a coroutine to run Fibonacci fib
+function without blocking app UI:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode kotlin"><code class="sourceCode kotlin"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> MainActivity <span class="op">:</span> <span class="dt">AppCompatActivity</span><span class="op">(),</span> <span class="dt">CoroutineScope</span> <span class="op">{</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Blocking computation, requires too much time to finish</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">fun</span> <span class="fu">fib</span><span class="op">(</span><span class="va">x</span><span class="op">:</span> <span class="dt">Int</span><span class="op">):</span> <span class="dt">Int</span> <span class="op">=</span> <span class="cf">if</span> <span class="op">(</span>x <span class="op">&lt;=</span> <span class="dv">1</span><span class="op">)</span> x <span class="cf">else</span> fib<span class="op">(</span>x <span class="op">-</span> <span class="dv">1</span><span class="op">)</span> <span class="op">+</span> fib<span class="op">(</span>x <span class="op">-</span> <span class="dv">2</span><span class="op">)</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Attach coroutines context to activity</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">override</span> <span class="kw">val</span> <span class="va">coroutineContext</span><span class="op">:</span> CoroutineContext <span class="op">=</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>            Dispatchers<span class="op">.</span>Main <span class="op">+</span> SupervisorJob<span class="op">()</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Coroutines should respect activity lifetime</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="kw">override</span> <span class="kw">fun</span> <span class="fu">onDestroy</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>        <span class="kw">super</span><span class="op">.</span>onDestroy<span class="op">()</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>        coroutineContext<span class="op">[</span>Job<span class="op">]!!.</span>cancel<span class="op">()</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    <span class="kw">override</span> <span class="kw">fun</span> <span class="fu">onCreate</span><span class="op">(</span><span class="va">savedInstanceState</span><span class="op">:</span> <span class="dt">Bundle</span><span class="op">?)</span> <span class="op">{</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>        <span class="kw">super</span><span class="op">.</span>onCreate<span class="op">(</span>savedInstanceState<span class="op">)</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>        setContentView<span class="op">(</span>R<span class="op">.</span>layout<span class="op">.</span>activity_main<span class="op">)</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>        btnCalc<span class="op">.</span>setOnClickListener <span class="op">{</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>            <span class="kw">val</span> <span class="va">number</span><span class="op">:</span> <span class="kw">Int</span> <span class="op">=</span> editNumber<span class="op">.</span>text<span class="op">.</span>toString<span class="op">().</span>toInt<span class="op">()</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>            <span class="co">// Start coroutine on the context attached to activity</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>            <span class="kw">this</span><span class="op">.</span>launch <span class="op">{</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>                <span class="co">// Switch to IO dispatcher to perform blocking computation</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>                <span class="kw">val</span> <span class="va">result</span> <span class="op">=</span> withContext<span class="op">(</span>Dispatchers<span class="op">.</span>IO<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>                    fib<span class="op">(</span>number<span class="op">)</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>                <span class="op">}</span></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> <span class="op">(</span>result <span class="op">!=</span> <span class="kw">null</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>                    editResult<span class="op">.</span>setText<span class="op">(</span>result<span class="op">.</span>toString<span class="op">())</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>                <span class="op">}</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>            <span class="op">}</span></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>UI code is also provided to complete the example</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode xml"><code class="sourceCode xml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">&lt;?xml</span><span class="ot"> version=</span><span class="st">&quot;1.0&quot;</span><span class="ot"> encoding=</span><span class="st">&quot;utf-8&quot;</span><span class="fu">?&gt;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">LinearLayout</span><span class="ot"> xmlns:android=</span><span class="st">&quot;http://schemas.android.com/apk/res/android&quot;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="ot">    xmlns:tools=</span><span class="st">&quot;http://schemas.android.com/tools&quot;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="ot">    android:layout_width=</span><span class="st">&quot;match_parent&quot;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="ot">    android:layout_height=</span><span class="st">&quot;match_parent&quot;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="ot">    android:orientation=</span><span class="st">&quot;vertical&quot;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="ot">    android:layout_margin=</span><span class="st">&quot;10dp&quot;</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="ot">    tools:context=</span><span class="st">&quot;.MainActivity&quot;</span>&gt;</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">TextView</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="ot">        android:layout_width=</span><span class="st">&quot;wrap_content&quot;</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="ot">        android:layout_height=</span><span class="st">&quot;wrap_content&quot;</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="ot">        android:text=</span><span class="st">&quot;Number&quot;</span> /&gt;</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">EditText</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="ot">        android:id=</span><span class="st">&quot;@+id/editNumber&quot;</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="ot">        android:layout_width=</span><span class="st">&quot;match_parent&quot;</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="ot">        android:layout_height=</span><span class="st">&quot;wrap_content&quot;</span> /&gt;</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">TextView</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="ot">        android:layout_width=</span><span class="st">&quot;wrap_content&quot;</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="ot">        android:layout_height=</span><span class="st">&quot;wrap_content&quot;</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="ot">        android:text=</span><span class="st">&quot;Result&quot;</span> /&gt;</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">EditText</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a><span class="ot">        android:id=</span><span class="st">&quot;@+id/editResult&quot;</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a><span class="ot">        android:layout_width=</span><span class="st">&quot;match_parent&quot;</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a><span class="ot">        android:layout_height=</span><span class="st">&quot;wrap_content&quot;</span> /&gt;</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">Button</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a><span class="ot">        android:id=</span><span class="st">&quot;@+id/btnCalc&quot;</span></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a><span class="ot">        android:layout_width=</span><span class="st">&quot;wrap_content&quot;</span></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a><span class="ot">        android:layout_height=</span><span class="st">&quot;wrap_content&quot;</span></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a><span class="ot">        android:text=</span><span class="st">&quot;Calculate fib(number)&quot;</span> /&gt;</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">LinearLayout</span>&gt;</span></code></pre></div>
+
+
+<div id="gh-comments-list">
+</div>
+
+<script type="text/javascript">
+    // This is a self executing function
+    var issueId = 5;
+    var url = "https://github.com/rainbyte/rainbyte.github.io/issues/" + issueId;
+    var api_url = "https://api.github.com/repos/rainbyte/rainbyte.github.io/issues/" + issueId + "/comments";
+    (function() {
+        // DOM is already available, now we can handle page elements
+        var ghCommentsList = document.getElementById("gh-comments-list");
+
+        var request = new XMLHttpRequest();
+        request.open('GET', api_url, true);
+        request.onload = function() {
+            if (request.status >= 200 && request.status < 400) {
+                // Request was successful, we can process the raw comments
+                var comments = JSON.parse(request.responseText);
+                var fragment = document.createDocumentFragment();
+                var range = new Range();
+
+                // Render comments section header
+                fragment.appendChild(range.createContextualFragment(`
+                    <div>
+                        <b>Comments section</b> (visit the <b><a href='${url}'>issue</a></b> of this post to add one)
+                    </div>
+                `));
+
+                // Render view of each comment
+                comments.forEach(comment => {
+                    var date = new Date(comment.created_at);
+                    var renderedComment = range.createContextualFragment(`
+                        <div class='gh-comment'>
+                            <div class='gh-comment-header'>
+                                <img src='${comment.user.avatar_url}'>
+                                <div>
+                                    <b><a href='${comment.user.html_url}'>${comment.user.login}</a></b> posted at <em>${date.toDateString()}</em>
+                                </div>
+                            </div>
+                            <div class='gh-comment-body'>
+                                ${comment.body}
+                            </div>
+                        </div>
+                    `);
+                    fragment.appendChild(renderedComment);
+                });
+
+                // Make changes visible by adding rendered nodes
+                ghCommentsList.append(fragment);
+            } else {
+                // Request reached the target server, but it returned an error
+                ghCommentsList.append("Comments are not available now.");
+            }
+        };
+        request.onerror = function() {
+            // There was a connection error of some sort
+            ghCommentsList.append("Comments are not available now.");
+        };
+        request.send();
+    })();
+</script>
+]]></summary>
+</entry>
+<entry>
+    <title>Plantillas de Gnome</title>
+    <link href="http://rainbyte.github.io/posts/191207-01-plantillas.html" />
+    <id>http://rainbyte.github.io/posts/191207-01-plantillas.html</id>
+    <published>2019-12-07 02:51:00</published>
+    <updated>2019-12-07T02:51:00Z</updated>
+    <summary type="html"><![CDATA[<div class="info">
+    Posted on December  7, 2019
+    
+        by rainbyte
+    
+</div>
+
+<div class="info">
+    
+        Tags: <a title="All pages tagged &#39;gnome&#39;." href="/tags/gnome.html">gnome</a>
+    
+</div>
+
+<h2 id="plantillas-de-gnome">Plantillas de Gnome</h2>
+<p>Gnome posee una carpeta <code>~/Plantillas</code> en la cual es posible agregar archivos como base para crear nuevos documentos de forma automática.</p>
+<p>Muchas veces se da el caso de crear documentos con cierto contenido que se repite en cada uno de ellos, por ejemplo los archivos .desktop:</p>
+<pre class="desktop"><code>[Desktop Entry]
+
+Type=Application
+Name=Firefox
+Exec=/usr/bin/firefox</code></pre>
+<p>Como puede verse, estos documentos siempre tienen la misma cabecera y algunas opciones que deben estar allí siempre (ej. <code>Type</code> y <code>Name</code>).</p>
+<p>Como solución podríamos crear un archivo <code>~/Plantillas/Nuevo Desktop Entry.desktop</code>, para evitar tipear esas cosas, algo asi:</p>
+<pre class="desktop"><code>[Desktop Entry]
+
+Type=Application
+Name=${nombre}
+Exec=${comando}</code></pre>
+<p>Luego desde Nautilus podemos hacer click derecho e ir al menú <code>Nuevo documento...</code> y allí ver nuestra plantilla.</p>
+<p>Finalmente es cuestión de cambiar el nombre y rellenar los campos (ej. <code>${nombre}</code> y <code>${comando}</code>).</p>
+
+
+<div id="gh-comments-list">
+</div>
+
+<script type="text/javascript">
+    // This is a self executing function
+    var issueId = 3;
+    var url = "https://github.com/rainbyte/rainbyte.github.io/issues/" + issueId;
+    var api_url = "https://api.github.com/repos/rainbyte/rainbyte.github.io/issues/" + issueId + "/comments";
+    (function() {
+        // DOM is already available, now we can handle page elements
+        var ghCommentsList = document.getElementById("gh-comments-list");
+
+        var request = new XMLHttpRequest();
+        request.open('GET', api_url, true);
+        request.onload = function() {
+            if (request.status >= 200 && request.status < 400) {
+                // Request was successful, we can process the raw comments
+                var comments = JSON.parse(request.responseText);
+                var fragment = document.createDocumentFragment();
+                var range = new Range();
+
+                // Render comments section header
+                fragment.appendChild(range.createContextualFragment(`
+                    <div>
+                        <b>Comments section</b> (visit the <b><a href='${url}'>issue</a></b> of this post to add one)
+                    </div>
+                `));
+
+                // Render view of each comment
+                comments.forEach(comment => {
+                    var date = new Date(comment.created_at);
+                    var renderedComment = range.createContextualFragment(`
+                        <div class='gh-comment'>
+                            <div class='gh-comment-header'>
+                                <img src='${comment.user.avatar_url}'>
+                                <div>
+                                    <b><a href='${comment.user.html_url}'>${comment.user.login}</a></b> posted at <em>${date.toDateString()}</em>
+                                </div>
+                            </div>
+                            <div class='gh-comment-body'>
+                                ${comment.body}
+                            </div>
+                        </div>
+                    `);
+                    fragment.appendChild(renderedComment);
+                });
+
+                // Make changes visible by adding rendered nodes
+                ghCommentsList.append(fragment);
+            } else {
+                // Request reached the target server, but it returned an error
+                ghCommentsList.append("Comments are not available now.");
+            }
+        };
+        request.onerror = function() {
+            // There was a connection error of some sort
+            ghCommentsList.append("Comments are not available now.");
+        };
+        request.send();
+    })();
+</script>
+]]></summary>
+</entry>
+<entry>
+    <title>Pandoc filter for custom ruby notation</title>
+    <link href="http://rainbyte.github.io/posts/181122-01-pandoc-filter-ruby.html" />
+    <id>http://rainbyte.github.io/posts/181122-01-pandoc-filter-ruby.html</id>
+    <published>2018-11-22 03:12:00</published>
+    <updated>2018-11-22T03:12:00Z</updated>
+    <summary type="html"><![CDATA[<div class="info">
+    Posted on November 22, 2018
+    
+        by rainbyte
+    
+</div>
+
+<div class="info">
+    
+        Tags: <a title="All pages tagged &#39;blog&#39;." href="/tags/blog.html">blog</a>, <a title="All pages tagged &#39;haskell&#39;." href="/tags/haskell.html">haskell</a>, <a title="All pages tagged &#39;pandoc&#39;." href="/tags/pandoc.html">pandoc</a>, <a title="All pages tagged &#39;markdown&#39;." href="/tags/markdown.html">markdown</a>, <a title="All pages tagged &#39;chinese&#39;." href="/tags/chinese.html">chinese</a>, <a title="All pages tagged &#39;japanese&#39;." href="/tags/japanese.html">japanese</a>
+    
+</div>
+
+<h2 id="the-motivation">The motivation</h2>
+<p>Chinese and Japanese languages use ideograms in their written forms, but sometimes it is useful to show the reader how those ideograms should be pronounced. To do that, phonetic systems like <strong><ruby>汉语<rt>hànyǔ</rt></ruby><ruby>拼音<rt>pīnyīn</rt></ruby></strong> and <strong><ruby>振<rt>fu</rt>り<rt>ri</rt>仮<rt>ga</rt>名<rt>na</rt></ruby></strong> are used.</p>
+<p>In html documents we can use <code>ruby</code> elements to show phonetic representation above the ideograms, like in the following example:</p>
+<table>
+<colgroup>
+<col style="width: 21%" />
+<col style="width: 78%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Code</th>
+<th>Expected Result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>我喜欢&lt;ruby&gt;汉&lt;rt&gt;hàn&lt;/rt&gt;字&lt;rt&gt;zì&lt;/rt&gt;&lt;/ruby&gt;</code></td>
+<td>中国<ruby>汉<rt>hàn</rt>字<rt>zì</rt></ruby></td>
+</tr>
+</tbody>
+</table>
+<p>The problem is that writing text using <code>ruby</code> elements it is tedious and error prone. We prefer writing something like the following examples:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Code</th>
+<th>Expected Result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>我喜欢{汉字|hàn|zì}</code></td>
+<td>我喜欢<ruby>汉<rt>hàn</rt>字<rt>zì</rt></ruby></td>
+</tr>
+<tr class="even">
+<td><code>我喜欢{汉字|hànzì}</code></td>
+<td>我喜欢<ruby>汉字<rt>hànzì</rt></ruby></td>
+</tr>
+<tr class="odd">
+<td><code>我喜欢{汉字|}</code></td>
+<td>我喜欢<ruby>汉<rt></rt>字<rt></rt></ruby></td>
+</tr>
+<tr class="even">
+<td><code>我喜欢{汉字|hà|n|zì}</code></td>
+<td>我喜欢<ruby>汉字<rt>hà</td>
+</tr>
+<tr class="odd">
+<td><code>我喜欢{汉字}</code></td>
+<td>我喜欢{汉字}</td>
+</tr>
+<tr class="even">
+<td><code>我喜欢{|hànzì}</code></td>
+<td>我喜欢<ruby><rt>hànzì</rt></ruby></td>
+</tr>
+<tr class="odd">
+<td><code>我喜欢{|}</code></td>
+<td>我喜欢</td>
+</tr>
+</tbody>
+</table>
+<p>The rest of the post explains how to handle those custom markdown expressions to produce the <code>ruby</code> elements without writing them by hand. I implemented this code in <strong>Haskell</strong> language as a <strong>Pandoc</strong> filter, because this blog uses <strong>Hakyll</strong> static generator which uses the <strong>Pandoc</strong> library.</p>
+<h2 id="document-representation">Document representation</h2>
+<p>Pandoc uses a custom datatype to represent in an uniform way the multiple types of contents it can handle. That type is called <code>Pandoc</code> and basically contains a tree-like structure formed by different nodes. We are interested in processing only nodes which are specific instances of the <code>Inline</code> type, because they contain the pieces of text we want to modify.</p>
+<p>We have a piece of code which process the provided Pandoc data structure.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ot">transformCustomMarkdownRuby ::</span> <span class="dt">Pandoc</span> <span class="ot">-&gt;</span> <span class="dt">Pandoc</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>transformCustomMarkdownRuby <span class="ot">=</span> walk handleInline</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="ot">    handleInline ::</span> <span class="dt">Inline</span> <span class="ot">-&gt;</span> <span class="dt">Inline</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    handleInline (<span class="dt">Str</span> s) <span class="ot">=</span> <span class="kw">case</span> (parse markdownRuby <span class="st">&quot;&quot;</span> s) <span class="kw">of</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>        (<span class="dt">Left</span> _)     <span class="ot">-&gt;</span> <span class="dt">Str</span> s</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>        (<span class="dt">Right</span> rubies) <span class="ot">-&gt;</span> <span class="dt">RawInline</span> (<span class="dt">Format</span> <span class="st">&quot;html&quot;</span>) (rubiesToHtml rubies)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    handleInline x       <span class="ot">=</span> x</span></code></pre></div>
+<p>The key point in this code is the pattern matching over the <code>Inline</code> type, specifically over the <code>Str</code> instances. We use the <code>walk</code> function to process all the matched nodes recursively, leaving the other ones untouched. A <code>RawInline</code> instance is generated when ruby tags are found, otherwise the original <code>Str</code> instance is preserved.</p>
+<h2 id="text-processing">Text processing</h2>
+<p>When we have a candidate to be modified, it is necessary to verify if it follows the correct syntax, so we can parse it to extract the data and render it the way we want.</p>
+<p>Now, here we have the code which does main work:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ot">markdownRuby ::</span> <span class="dt">Parsec</span> <span class="dt">String</span> () [(<span class="dt">String</span>,[(<span class="dt">String</span>,<span class="dt">String</span>)],<span class="dt">String</span>)]</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>markdownRuby <span class="ot">=</span> many <span class="op">$</span> choice [try ruby, fallback]</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="ot">    ruby ::</span> <span class="dt">Parsec</span> <span class="dt">String</span> () (<span class="dt">String</span>,[(<span class="dt">String</span>,<span class="dt">String</span>)],<span class="dt">String</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    ruby <span class="ot">=</span> (,,) <span class="co">-- (openingText,rubyPairs,closingText)</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>        <span class="op">&lt;$&gt;</span> (many <span class="op">$</span> noneOf <span class="st">&quot;{&quot;</span>)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>        <span class="op">&lt;*&gt;</span> between (char <span class="ch">&#39;{&#39;</span>) (char <span class="ch">&#39;}&#39;</span>) markdownRubyPairs</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>        <span class="op">&lt;*&gt;</span> (many <span class="op">$</span> noneOf <span class="st">&quot;{&quot;</span>)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="ot">    fallback ::</span> <span class="dt">Parsec</span> <span class="dt">String</span> () (<span class="dt">String</span>,[(<span class="dt">String</span>,<span class="dt">String</span>)],<span class="dt">String</span>)</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    fallback <span class="ot">=</span> (,,) <span class="co">-- (openingText,rubyPairs,closingText)</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>        <span class="op">&lt;$&gt;</span> (many1 <span class="op">$</span> anyChar)</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>        <span class="op">&lt;*&gt;</span> <span class="fu">pure</span> []</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>        <span class="op">&lt;*&gt;</span> <span class="fu">pure</span> <span class="st">&quot;&quot;</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="ot">markdownRubyPairs ::</span> <span class="dt">Parsec</span> <span class="dt">String</span> () [(<span class="dt">String</span>,<span class="dt">String</span>)]</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>markdownRubyPairs <span class="ot">=</span> <span class="kw">do</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    elems <span class="ot">&lt;-</span> taggedElems</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    tags  <span class="ot">&lt;-</span> many1 rubyTag</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> sameLen <span class="ot">=</span> <span class="fu">length</span> elems <span class="op">==</span> <span class="fu">length</span> tags</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>        matchingPairs <span class="ot">=</span> <span class="fu">zip</span> elems tags</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>        singlePair <span class="ot">=</span> [(<span class="fu">mconcat</span> elems,intercalate <span class="st">&quot;|&quot;</span> tags)]</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pure</span> <span class="op">$</span> <span class="kw">if</span> sameLen <span class="kw">then</span> matchingPairs <span class="kw">else</span> singlePair</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="ot">    taggedElems ::</span> <span class="dt">Parsec</span> <span class="dt">String</span> () [<span class="dt">String</span>]</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>    taggedElems <span class="ot">=</span> <span class="fu">fmap</span> (<span class="fu">fmap</span> <span class="fu">pure</span>) (many (noneOf <span class="st">&quot;|}&quot;</span>))</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>    rubyTag <span class="ot">=</span> char <span class="ch">&#39;|&#39;</span> <span class="op">*&gt;</span> (many <span class="op">$</span> noneOf <span class="st">&quot;|}&quot;</span>)</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a><span class="ot">rubyToHtml ::</span> (<span class="dt">String</span>,[(<span class="dt">String</span>,<span class="dt">String</span>)],<span class="dt">String</span>) <span class="ot">-&gt;</span> <span class="dt">String</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>rubyToHtml (prev,pairs,next) <span class="ot">=</span> prev <span class="op">&lt;&gt;</span> pairsToHtml pairs <span class="op">&lt;&gt;</span> next </span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>    pairsToHtml [] <span class="ot">=</span> <span class="st">&quot;&quot;</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>    pairsToHtml ps <span class="ot">=</span> (wrap <span class="op">.</span> <span class="fu">mconcat</span> <span class="op">.</span> <span class="fu">fmap</span> pairToHtml) ps</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>    pairToHtml (<span class="st">&quot;&quot;</span>,<span class="st">&quot;&quot;</span>) <span class="ot">=</span> <span class="st">&quot;&quot;</span></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>    pairToHtml (<span class="fu">elem</span>,tag) <span class="ot">=</span> <span class="fu">elem</span> <span class="op">&lt;&gt;</span> <span class="st">&quot;&lt;rt&gt;&quot;</span> <span class="op">&lt;&gt;</span> tag <span class="op">&lt;&gt;</span> <span class="st">&quot;&lt;/rt&gt;&quot;</span></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>    wrap x <span class="ot">=</span> <span class="st">&quot;&lt;ruby&gt;&quot;</span> <span class="op">&lt;&gt;</span> x <span class="op">&lt;&gt;</span> <span class="st">&quot;&lt;/ruby&gt;&quot;</span></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a><span class="ot">rubiesToHtml ::</span> [(<span class="dt">String</span>,[(<span class="dt">String</span>,<span class="dt">String</span>)],<span class="dt">String</span>)] <span class="ot">-&gt;</span> <span class="dt">String</span></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>rubiesToHtml <span class="ot">=</span> <span class="fu">mconcat</span> <span class="op">.</span> <span class="fu">fmap</span> rubyToHtml</span></code></pre></div>
+<p>We are using a library called <code>Parsec</code>, which provides us tools to easily handle the parsing. This code uses them to separate the text in 3 parts: the text before our target, the target itself, the text after our target. Because our target should be between braces, we use te <code>between</code> combinator to find it.</p>
+<p>When the target is found, its contents are separated into base elements and their respective ruby tags, so they can be grouped into pairs. It is assumed that the number of elements and tags is equal, otherwise we have to merge them into a single pair to preserve this property.</p>
+<p>Finally, when we have the independent pieces, we can take and arrange them to render the view in the format we like. Pandoc support many formats, but in this case we are using Html.</p>
+<h2 id="some-caveats">Some caveats</h2>
+<p>The current code doesn’t handle some cases well. I’m still working on it to make it work with markdown tables, formatting inside the tags, and other missing bits.</p>
+
+
+<div id="gh-comments-list">
+</div>
+
+<script type="text/javascript">
+    // This is a self executing function
+    var issueId = 2;
+    var url = "https://github.com/rainbyte/rainbyte.github.io/issues/" + issueId;
+    var api_url = "https://api.github.com/repos/rainbyte/rainbyte.github.io/issues/" + issueId + "/comments";
+    (function() {
+        // DOM is already available, now we can handle page elements
+        var ghCommentsList = document.getElementById("gh-comments-list");
+
+        var request = new XMLHttpRequest();
+        request.open('GET', api_url, true);
+        request.onload = function() {
+            if (request.status >= 200 && request.status < 400) {
+                // Request was successful, we can process the raw comments
+                var comments = JSON.parse(request.responseText);
+                var fragment = document.createDocumentFragment();
+                var range = new Range();
+
+                // Render comments section header
+                fragment.appendChild(range.createContextualFragment(`
+                    <div>
+                        <b>Comments section</b> (visit the <b><a href='${url}'>issue</a></b> of this post to add one)
+                    </div>
+                `));
+
+                // Render view of each comment
+                comments.forEach(comment => {
+                    var date = new Date(comment.created_at);
+                    var renderedComment = range.createContextualFragment(`
+                        <div class='gh-comment'>
+                            <div class='gh-comment-header'>
+                                <img src='${comment.user.avatar_url}'>
+                                <div>
+                                    <b><a href='${comment.user.html_url}'>${comment.user.login}</a></b> posted at <em>${date.toDateString()}</em>
+                                </div>
+                            </div>
+                            <div class='gh-comment-body'>
+                                ${comment.body}
+                            </div>
+                        </div>
+                    `);
+                    fragment.appendChild(renderedComment);
+                });
+
+                // Make changes visible by adding rendered nodes
+                ghCommentsList.append(fragment);
+            } else {
+                // Request reached the target server, but it returned an error
+                ghCommentsList.append("Comments are not available now.");
+            }
+        };
+        request.onerror = function() {
+            // There was a connection error of some sort
+            ghCommentsList.append("Comments are not available now.");
+        };
+        request.send();
+    })();
+</script>
+]]></summary>
+</entry>
+<entry>
+    <title>Use GitHub API to implement comments feature</title>
+    <link href="http://rainbyte.github.io/posts/181113-01-use-github-api-to-implement-comments.html" />
+    <id>http://rainbyte.github.io/posts/181113-01-use-github-api-to-implement-comments.html</id>
+    <published>2018-11-16 22:48:00</published>
+    <updated>2018-11-16T22:48:00Z</updated>
+    <summary type="html"><![CDATA[<div class="info">
+    Posted on November 16, 2018
+    
+        by rainbyte
+    
+</div>
+
+<div class="info">
+    
+        Tags: <a title="All pages tagged &#39;blog&#39;." href="/tags/blog.html">blog</a>
+    
+</div>
+
+<p>The comments section of this blog is implemented via standard GitHub issues and given that GitHub provides an API to access the public information of a repository, we can use it. If we have a repository with issues already created, we can access the comments of a certain issue using an URL like this one:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>https://api.github.com/repos/${username}/${repository}/issues/${issueId}/comments</span></code></pre></div>
+<p>Using that endpoint the API provides us the comments as a list of Javascript objects, each one being similar to this:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;body&quot;</span><span class="op">:</span> <span class="st">&quot;comment text&quot;</span><span class="op">,</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;created_at&quot;</span><span class="op">:</span> <span class="st">&quot;when was the comment published&quot;</span><span class="op">,</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;user: {</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;avatar_url&quot;</span><span class="op">:</span> <span class="st">&quot;user image location&quot;</span><span class="op">,</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;html_url&quot;</span><span class="op">:</span> <span class="st">&quot;user profile location&quot;</span><span class="op">,</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;login&quot;</span><span class="op">:</span> <span class="st">&quot;user nickname&quot;</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>Of course there are much more fields available, but these ones are representative enough and using them we can write some Javascript code to render the comments HTML view. This is the code used in this blog to render comments below:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">var</span> issueId <span class="op">=</span> $commentsIssue$<span class="op">;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">var</span> url <span class="op">=</span> <span class="st">&quot;https://github.com/rainbyte/rainbyte.github.io/issues/&quot;</span> <span class="op">+</span> issueId<span class="op">;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="kw">var</span> api_url <span class="op">=</span> <span class="st">&quot;https://api.github.com/repos/rainbyte/rainbyte.github.io/issues/&quot;</span> <span class="op">+</span> issueId <span class="op">+</span> <span class="st">&quot;/comments&quot;</span><span class="op">;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>(<span class="kw">function</span>() {</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">// DOM is already available, now we can handle page elements</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">var</span> ghCommentsList <span class="op">=</span> <span class="bu">document</span><span class="op">.</span><span class="fu">getElementById</span>(<span class="st">&quot;gh-comments-list&quot;</span>)<span class="op">;</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">var</span> request <span class="op">=</span> <span class="kw">new</span> <span class="bu">XMLHttpRequest</span>()<span class="op">;</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    request<span class="op">.</span><span class="fu">open</span>(<span class="st">&#39;GET&#39;</span><span class="op">,</span> api_url<span class="op">,</span> <span class="kw">true</span>)<span class="op">;</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    request<span class="op">.</span><span class="at">onload</span> <span class="op">=</span> <span class="kw">function</span>() {</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (request<span class="op">.</span><span class="at">status</span> <span class="op">&gt;=</span> <span class="dv">200</span> <span class="op">&amp;&amp;</span> request<span class="op">.</span><span class="at">status</span> <span class="op">&lt;</span> <span class="dv">400</span>) {</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>            <span class="co">// Request was successful, we can process the raw comments</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>            <span class="kw">var</span> comments <span class="op">=</span> <span class="bu">JSON</span><span class="op">.</span><span class="fu">parse</span>(request<span class="op">.</span><span class="at">responseText</span>)<span class="op">;</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>            <span class="kw">var</span> fragment <span class="op">=</span> <span class="bu">document</span><span class="op">.</span><span class="fu">createDocumentFragment</span>()<span class="op">;</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>            <span class="kw">var</span> range <span class="op">=</span> <span class="kw">new</span> <span class="bu">Range</span>()<span class="op">;</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>            <span class="co">// Render comments section header</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>            fragment<span class="op">.</span><span class="fu">appendChild</span>(range<span class="op">.</span><span class="fu">createContextualFragment</span>(<span class="vs">`</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="vs">                &lt;div&gt;</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="vs">                    &lt;b&gt;Comments section&lt;/b&gt; (visit the &lt;b&gt;&lt;a href=&#39;</span><span class="sc">${</span>url<span class="sc">}</span><span class="vs">&#39;&gt;issue&lt;/a&gt;&lt;/b&gt; of this post to add one)</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="vs">                &lt;/div&gt;</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="vs">            `</span>))<span class="op">;</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>            <span class="co">// Render view of each comment</span></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>            comments<span class="op">.</span><span class="fu">forEach</span>(comment <span class="kw">=&gt;</span> {</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>                <span class="kw">var</span> date <span class="op">=</span> <span class="kw">new</span> <span class="bu">Date</span>(comment<span class="op">.</span><span class="at">created_at</span>)<span class="op">;</span></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>                <span class="kw">var</span> renderedComment <span class="op">=</span> range<span class="op">.</span><span class="fu">createContextualFragment</span>(<span class="vs">`</span></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a><span class="vs">                    &lt;div class=&#39;gh-comment&#39;&gt;</span></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a><span class="vs">                        &lt;div class=&#39;gh-comment-header&#39;&gt;</span></span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a><span class="vs">                            &lt;img src=&#39;$</span><span class="sc">${</span>comment<span class="op">.</span><span class="at">user</span><span class="op">.</span><span class="at">avatar_url</span><span class="sc">}</span><span class="vs">&#39;&gt;</span></span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a><span class="vs">                            &lt;div&gt;</span></span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a><span class="vs">                                &lt;b&gt;&lt;a href=&#39;</span><span class="sc">${</span>comment<span class="op">.</span><span class="at">user</span><span class="op">.</span><span class="at">html_url</span><span class="sc">}</span><span class="vs">&#39;&gt;</span><span class="sc">${</span>comment<span class="op">.</span><span class="at">user</span><span class="op">.</span><span class="at">login</span><span class="sc">}</span><span class="vs">&lt;/a&gt;&lt;/b&gt; posted at &lt;em&gt;</span><span class="sc">${</span>date<span class="op">.</span><span class="fu">toDateString</span>()<span class="sc">}</span><span class="vs">&lt;/em&gt;</span></span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a><span class="vs">                            &lt;/div&gt;</span></span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a><span class="vs">                        &lt;/div&gt;</span></span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a><span class="vs">                        &lt;div class=&#39;gh-comment-body&#39;&gt;</span></span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a><span class="vs">                            $</span><span class="sc">${</span>comment<span class="op">.</span><span class="at">body</span><span class="sc">}</span></span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a><span class="vs">                        &lt;/div&gt;</span></span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a><span class="vs">                    &lt;/div&gt;</span></span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a><span class="vs">                `</span>)<span class="op">;</span></span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>                fragment<span class="op">.</span><span class="fu">appendChild</span>(renderedComment)<span class="op">;</span></span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a>            })<span class="op">;</span></span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>            <span class="co">// Make changes visible by adding rendered nodes</span></span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a>            ghCommentsList<span class="op">.</span><span class="fu">append</span>(fragment)<span class="op">;</span></span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a>        } <span class="cf">else</span> {</span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>            <span class="co">// Request reached the target server, but it returned an error</span></span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>            ghCommentsList<span class="op">.</span><span class="fu">append</span>(<span class="st">&quot;Comments are not available now.&quot;</span>)<span class="op">;</span></span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a>    }<span class="op">;</span></span>
+<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a>    request<span class="op">.</span><span class="at">onerror</span> <span class="op">=</span> <span class="kw">function</span>() {</span>
+<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a>        <span class="co">// There was a connection error of some sort</span></span>
+<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a>        ghCommentsList<span class="op">.</span><span class="fu">append</span>(<span class="st">&quot;Comments are not available now.&quot;</span>)<span class="op">;</span></span>
+<span id="cb3-53"><a href="#cb3-53" aria-hidden="true" tabindex="-1"></a>    }<span class="op">;</span></span>
+<span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a>    request<span class="op">.</span><span class="fu">send</span>()<span class="op">;</span></span>
+<span id="cb3-55"><a href="#cb3-55" aria-hidden="true" tabindex="-1"></a>})()<span class="op">;</span></span></code></pre></div>
+<p>If code is working ok, you can see a comments section under this text and add a new comment following the provided link.</p>
+
+
+<div id="gh-comments-list">
+</div>
+
+<script type="text/javascript">
+    // This is a self executing function
+    var issueId = 1;
+    var url = "https://github.com/rainbyte/rainbyte.github.io/issues/" + issueId;
+    var api_url = "https://api.github.com/repos/rainbyte/rainbyte.github.io/issues/" + issueId + "/comments";
+    (function() {
+        // DOM is already available, now we can handle page elements
+        var ghCommentsList = document.getElementById("gh-comments-list");
+
+        var request = new XMLHttpRequest();
+        request.open('GET', api_url, true);
+        request.onload = function() {
+            if (request.status >= 200 && request.status < 400) {
+                // Request was successful, we can process the raw comments
+                var comments = JSON.parse(request.responseText);
+                var fragment = document.createDocumentFragment();
+                var range = new Range();
+
+                // Render comments section header
+                fragment.appendChild(range.createContextualFragment(`
+                    <div>
+                        <b>Comments section</b> (visit the <b><a href='${url}'>issue</a></b> of this post to add one)
+                    </div>
+                `));
+
+                // Render view of each comment
+                comments.forEach(comment => {
+                    var date = new Date(comment.created_at);
+                    var renderedComment = range.createContextualFragment(`
+                        <div class='gh-comment'>
+                            <div class='gh-comment-header'>
+                                <img src='${comment.user.avatar_url}'>
+                                <div>
+                                    <b><a href='${comment.user.html_url}'>${comment.user.login}</a></b> posted at <em>${date.toDateString()}</em>
+                                </div>
+                            </div>
+                            <div class='gh-comment-body'>
+                                ${comment.body}
+                            </div>
+                        </div>
+                    `);
+                    fragment.appendChild(renderedComment);
+                });
+
+                // Make changes visible by adding rendered nodes
+                ghCommentsList.append(fragment);
+            } else {
+                // Request reached the target server, but it returned an error
+                ghCommentsList.append("Comments are not available now.");
+            }
+        };
+        request.onerror = function() {
+            // There was a connection error of some sort
+            ghCommentsList.append("Comments are not available now.");
+        };
+        request.send();
+    })();
+</script>
+]]></summary>
+</entry>
+<entry>
+    <title>Set terminal tab title using fish shell</title>
+    <link href="http://rainbyte.github.io/posts/181112-01-set-title-with-fish.html" />
+    <id>http://rainbyte.github.io/posts/181112-01-set-title-with-fish.html</id>
+    <published>2018-11-12 07:28:00</published>
+    <updated>2018-11-12T07:28:00Z</updated>
+    <summary type="html"><![CDATA[<div class="info">
+    Posted on November 12, 2018
+    
+        by rainbyte
+    
+</div>
+
+<div class="info">
+    
+        Tags: <a title="All pages tagged &#39;fish&#39;." href="/tags/fish.html">fish</a>, <a title="All pages tagged &#39;shell&#39;." href="/tags/shell.html">shell</a>
+    
+</div>
+
+<h2 id="approach-1-setting-the-title-by-hand">Approach #1: setting the title by hand</h2>
+<p>When there are many terminal tabs opened, it is really useful to give them meaninful names.</p>
+<p>Fish shell allows setting the current tab’s title creating a <code>fish_title</code> function.</p>
+<p>If we want to name our tab <code>FOO</code>, we could just write this in the terminal:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span><span class="fu"> fish_title</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">echo</span> <span class="st">&quot;FOO&quot;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="ex">end</span></span></code></pre></div>
+<p>After entering the code, the function will be exported and the new title will be used.</p>
+<p>The problem with this way is that writing the function each time is tedious.</p>
+<p>There is an easy way to overcome this problem.</p>
+<h2 id="approach-2-using-a-helper-function">Approach #2: using a helper function</h2>
+<p>We could write a helper which export the <code>fish_title</code> function for us.</p>
+<p>I call this helper <code>set_title</code>, but other name could be used as well.</p>
+<p>First we need to write the helper function:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span><span class="fu"> set_title</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">set</span> <span class="at">-l</span> title <span class="va">$argv</span>[1]</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">function</span><span class="fu"> fish_title</span> <span class="ex">--inherit-variable</span> title</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>        <span class="bu">echo</span> <span class="st">&quot;</span><span class="va">$title</span><span class="st">&quot;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="ex">end</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="ex">end</span></span></code></pre></div>
+<p>Now we can test it, eg. to name our tab <code>BAR</code> we could call it this way: <code>set_title BAR</code></p>
+<p>Finally, to save the function persistently, we execute this: <code>funcsave set_title</code></p>
+<h2 id="how-does-it-work">How does it work?</h2>
+<p>Each time we execute <code>set_title</code>, it will re-export the <code>fish_title</code> function.</p>
+<p>We need to make the <em>title</em> variable available inside <code>fish_title</code> scope.</p>
+<p>The trick is using the <code>--inherit-variable</code> option, which will solve this for us.</p>
+
+
+<div id="gh-comments-list">
+    Comments are not open for this post yet.
+</div>
+]]></summary>
+</entry>
+<entry>
+    <title>Programación de GPU en Haskell usando GPipe - Parte 2</title>
+    <link href="http://rainbyte.github.io/posts/160501-01-gpipe-part-02.html" />
+    <id>http://rainbyte.github.io/posts/160501-01-gpipe-part-02.html</id>
+    <published>2016-10-26 07:29:00</published>
+    <updated>2016-10-26T07:29:00Z</updated>
+    <summary type="html"><![CDATA[<div class="info">
+    Posted on October 26, 2016
+    
+        by rainbyte
+    
+</div>
+
+<div class="info">
+    
+        Tags: <a title="All pages tagged &#39;gpipe&#39;." href="/tags/gpipe.html">gpipe</a>, <a title="All pages tagged &#39;gpu&#39;." href="/tags/gpu.html">gpu</a>, <a title="All pages tagged &#39;haskell&#39;." href="/tags/haskell.html">haskell</a>, <a title="All pages tagged &#39;opengl&#39;." href="/tags/opengl.html">opengl</a>
+    
+</div>
+
+<p>Nota: estas leyendo la traducción al castellano de una serie de tutoriales en ingles sobre GPipe; la versión original, escrita por Tobias Bexelius (creador de GPipe), se encuentra <a href="http://tobbebex.blogspot.com.ar/2015/09/gpu-programming-in-haskell-using-gpipe_11.html">aqui</a>.</p>
+<p><a href="/posts/160426-01-gpipe-part-01.html">< Episodio previo: Hello triangle</a></p>
+<p>¡Bienvenido nuevamente! En la ultima parte obtuviste tu primer triangulo mediante GPipe. Esta vez vamos a examinar <code>Buffer</code> y <code>PrimitiveArray</code> con más detalle.</p>
+<h2 id="buffers">Buffers</h2>
+<p>En el ejemplo “Hello world” que hicimos la ultima vez, usamos un <code>Buffer</code> para almacenar las posiciones y colores del triangulo. A partir de este buffer, creamos un <code>PrimitiveArray</code> que enviamos al shader. Más adelante vamos a ver que un <code>Buffer</code> puede ser usado también para otras cosas.</p>
+<p>Un <code>Buffer</code> en GPipe es un array de datos que esta almacenado en la GPU. Es mutable, así como <code>IOArray</code> o <code>STArray</code>, y así como aquellos también vive en una monada, en este caso la monada <code>ContextT</code>. Veamos primero la función que se encarga de crear buffers:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ot">newBuffer ::</span> (<span class="dt">MonadIO</span> m, <span class="dt">BufferFormat</span> b) <span class="ot">=&gt;</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">ContextT</span> w os f m (<span class="dt">Buffer</span> os b)</span></code></pre></div>
+<p>Un buffer tiene tipo <code>Buffer os b</code>, donde <code>os</code> es el mismo que el de <code>ContextT</code>. Como puedes recordar desde la ultima vez, este parámetro de tipo <code>os</code> es usado para evitar que los objetos asociados a un contexto puedan escapar de la monada, y <code>Buffer</code> es uno de esos objetos.</p>
+<p><code>newBuffer</code> solo toma un argumento: el numero de elementos a crear en el buffer. Un buffer tiene elementos mutables, pero el numero de elementos es inmutable. El tipo de los elementos del buffer se denota con <code>b</code>, y puedes ver que este <code>b</code> esta delimitado por el typeclass <code>BufferFormat b</code>. Antes de mostrarte ese typeclass, miremos la función que vas a usar para llenar el buffer con datos desde el lado de la CPU:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ot">writeBuffer ::</span> <span class="dt">MonadIO</span> m <span class="ot">=&gt;</span> <span class="dt">Buffer</span> os b <span class="ot">-&gt;</span> <span class="dt">BufferStartPos</span> <span class="ot">-&gt;</span> [<span class="dt">HostFormat</span> b] <span class="ot">-&gt;</span> <span class="dt">ContextT</span> w os f m ()</span></code></pre></div>
+<p>Esta función toma un buffer para escribir y una posición de inicio con indice basado en cero, nada extraño en esto, pero luego toma una lista de <code>HostFormat b</code>… ¿Que ocurre con esto? Los contenidos de un buffer no tienen la misma representación en el host que en el buffer, el cual vive en la GPU (desde ahora voy a usar el termino <strong>host</strong> cuando me refiero al entorno normal de Haskell que vive en la CPU, en contraposición al mundo de la GPU). <code>HostFormat b</code> es un tipo al typeclass <code>BufferFormat b</code>. Miremos ese typeclass:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> <span class="dt">BufferFormat</span> f <span class="kw">where</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> <span class="dt">HostFormat</span> f</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="ot">  toBuffer ::</span> <span class="dt">ToBuffer</span> (<span class="dt">HostFormat</span> f) f</span></code></pre></div>
+<p>El único propósito de esta clase, es proveer una representación para el tipo de los elementos del buffer en el host, así como una conversión de la representación del host a la del buffer. Aquí hay algunos ejemplos de instancias de esta clase, y sus representaciones en el host:</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">f</th>
+<th style="text-align: left;">HostFormat f</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">B Float</td>
+<td style="text-align: left;">Float</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">B Int32</td>
+<td style="text-align: left;">Int32</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">B Word32</td>
+<td style="text-align: left;">Word32</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">B2 Float</td>
+<td style="text-align: left;">V2 Float</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">B2 Int32</td>
+<td style="text-align: left;">V2 Int32</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">B2 Word32</td>
+<td style="text-align: left;">V2 Word32</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">B2 Int16</td>
+<td style="text-align: left;">V2 Int16</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">B2 Word16</td>
+<td style="text-align: left;">V2 Word16</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">(a, b)</td>
+<td style="text-align: left;">(HostFormat a, HostFormat b)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">V2 a</td>
+<td style="text-align: left;">V2 (HostFormat a)</td>
+</tr>
+</tbody>
+</table>
+<p>Hay muchas más instancias, incluyendo <code>B3</code>, <code>B4</code> y tuplas mas grandes. Mira la lista completa <a href="https://hackage.haskell.org/package/GPipe-2.0.1/docs/Graphics-GPipe-Buffer.html#t:BufferFormat">en hackage</a>.</p>
+<p>Un <code>Float</code> en el host se convertirá <code>B Float</code> en el <code>Buffer</code>. <code>B a</code> es un tipo opaco de cual no puedes inspeccionar su valor o hacer ningún calculo, por ej. no hay instancia de <code>Num</code> para <code>B Float</code>. Para <code>Buffer</code> no se expone una manera de aplicar funciones en sus elementos de ninguna manera (por ej. <code>Buffer</code> no posee instancia del typeclass <code>Functor</code>), pero vamos a crear pronto un <code>VertexArray</code> a partir de nuestro <code>Buffer</code> y entonces será distinto.</p>
+<p>GPipe también define los tipos <code>B2 a</code>, <code>B3 a</code> y <code>B4 a</code>. Para un conjunto selecto de <code>a</code>, <code>B2 a</code> es la representación en el buffer de un <code>V2 a</code> en el host. <code>V2 a</code> es también una instancia de <code>BufferFormat</code> con <code>V2 (HostFormat a)</code> como representación en el host, lo cual significa que tanto <code>V2 (B Float)</code> como <code>B2 Float</code> tienen la misma representación en el host: <code>V2 Float</code>. Ambos formatos de buffer tienen el mismo tamaño e incluso disposición interna, pero <code>B2 Float</code> puede ser usado de manera más eficiente como vamos a ver luego. Por esta razón, siempre intenta usar tipos B en vez de tipos V en los buffers, cuando sea posible. Entonces, ¿porque hay una instancia de <code>BufferFormat</code> para <code>V2</code>? El caso de uso principal es el de las matrices, por ej. <code>V4 (V4 Float)</code> en el host puede almacenarse en un buffer como <code>V4 (B4 Float)</code>.</p>
+<p>Otra cosa interesante que puedes haber notado al estudiar la lista de instancias de <code>BufferFormat</code>, es que hay instancias de <code>B2 Int16</code> y <code>B2 Word16</code>, pero no de <code>B Int16</code> ni <code>B Word16</code>. Esto es porque los atributos de los vértices tienen que estar alineados a 4 bytes en algunas piezas de hardware, y GPipe respeta esto en sus tipos de datos. <code>Int16</code> y <code>Word16</code> son ambos de 2 bytes, así que necesitas tener un vector de al menos dos de ellos. Hay instancias de <code>B3 Int16</code> y <code>B3 Word16</code>, pero estas poseen un relleno (padding) de 2 bytes extra. La motivación para esto es que siempre podrías usar <code>B Int32</code> en vez de <code>B Int16</code> si existiese, funcionarían con los mismos shaders y serian del mismo tamaño de todas formas si agregamos el relleno para el segundo. Por otra parte, un <code>B3 Int32</code> toma 12 bytes mientras que un <code>B3 Int16</code> con relleno incluido solo ocupa 8 bytes, así que hay un caso distintivo para este ultimo. Un <code>B4 Int16</code> también utiliza 8 bytes, pero no funcionaria con los mismos shaders, como va a ser evidente en la siguiente parte de este tutorial.</p>
+<p>Ahora miremos el miembro <code>toBuffer</code> del typeclass <code>BufferFormat</code>. Posee el tipo <code>ToBuffer (HostFormat f) f</code>. <code>ToBuffer</code> es algo llamado <strong>arrow</strong> en Haskell. Es como una función (en este caso <code>HostFormat f -&gt; f</code>), pero más general. Echemos un vistazo a la instancia <code>BufferFormat (a, b)</code> como ejemplo:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE Arrows #-}</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="kw">instance</span> (<span class="dt">BufferFormat</span> a, <span class="dt">BufferFormat</span> b) <span class="ot">=&gt;</span> <span class="dt">BufferFormat</span> (a, b) <span class="kw">where</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> <span class="dt">HostFormat</span> (a,b) <span class="ot">=</span> (<span class="dt">HostFormat</span> a, <span class="dt">HostFormat</span> b)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  toBuffer <span class="ot">=</span> proc <span class="op">~</span>(a, b) <span class="ot">-&gt;</span> <span class="kw">do</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>                a&#39; <span class="ot">&lt;-</span> toBuffer <span class="op">-&lt;</span> a</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>                b&#39; <span class="ot">&lt;-</span> toBuffer <span class="op">-&lt;</span> b</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>                returnA <span class="op">-&lt;</span> (a&#39;, b&#39;)</span></code></pre></div>
+<p>La notación arrow casi se parece a un lambda (usando el keyword especial <code>proc</code>) retornando una acción monadica. Pero no es una monada. La mayor diferencia con una monada es que no puede seleccionar una acción basándose en los valores de retorno del arrow. Es por esto que las acciones de un arrow poseen una cola (<code>-&lt;</code>); cualquier cosa entre las partes <code>&lt;-</code> y <code>-&lt;</code> de un arrow, no puede referenciar nada fuera de ellas (<code>a</code>, <code>b</code>, <code>a'</code>, <code>b'</code> en este caso). Esto obliga a que toda invocación a <code>toBuffer</code> deba ir a través de la misma serie de acciones de arrow, independientemente de los valores de entrada reales. Otro requerimiento adicional que tiene GPipe, es que necesita ser capaz de producir valores de forma lazy, es por ello el tilde (<code>~</code>) en el patrón <code>proc</code>. Las únicas acciones del arrow <code>ToBuffer</code> que GPipe define para usar en tu propia implementación de <code>toBuffer</code>, son los métodos <code>toBuffer</code> de otras instancias. Vas a ver aparecer este patrón, donde un arrow es usado para definir la conversión entre dos dominios, en varios lugares de GPipe a medida continuemos con el tutorial.</p>
+<h2 id="arrays-de-vértices">Arrays de vértices</h2>
+<p>Bueno, ¡ahora eres un experto en buffers! Vamos a darles algún uso:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ot">newVertexArray ::</span> <span class="dt">Buffer</span> os a <span class="ot">-&gt;</span> <span class="dt">Render</span> os f (<span class="dt">VertexArray</span> t a)</span></code></pre></div>
+<p>Ejecutas esta función en una monada <code>Render</code> para crear un <code>VertexArray t a</code>. Un array de vértices es como la vista de un buffer, y <code>newVertexArray</code> no copia ningún dato. Ya que operamos dentro de la monada <code>Render</code> (que es ejecutada por la función render, la cual no permite valores de retorno), y un <code>Buffer</code> solo puede ser modificado fuera de esta monada (en la monada <code>ContextT</code>), conceptualmente podrías pensar a <code>VertexArray</code> como una copia del <code>Buffer</code>. No lo es realmente, pero puedes tratarlo como una.</p>
+<p><code>VertexArray t a</code> es un array de vértices donde cada vértice es un elemento de tipo <code>a</code>, que es el mismo tipo de los elementos del <code>Buffer</code> a partir del cual lo creaste. No te preocupes por el parámetro <code>T</code> por ahora, vamos a llegar a eso en un momento. El <code>VertexArray</code> posee tantos vértices como elementos pertenecientes al <code>Buffer</code> que lo origina, pero en contraste a este ultimo, puedes recortar un <code>VertexArray</code> usando las funciones <code>dropVertices</code> o <code>takeVertices</code>. Estas funcionan exactamente como <code>drop</code> o <code>take</code> trabajan sobre listas normales:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ot">takeVertices ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">VertexArray</span> t a <span class="ot">-&gt;</span> <span class="dt">VertexArray</span> t a <span class="dt">Source</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="ot">dropVertices ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">VertexArray</span> () a <span class="ot">-&gt;</span> <span class="dt">VertexArray</span> t a <span class="dt">Source</span></span></code></pre></div>
+<p><code>VertexArray</code> también tiene una instancia de <code>Functor</code>, la cual permite aplicar <code>fmap</code> sobre los vértices. ¡Aqui es donde la opacidad de los tipos B entran en juego! Ahora que puedes hacer cosas con tus valores B, vas a notar que las opciones son algo limitadas. Puedes simplemente agarrar elementos de estructuras como tuplas y/o construir nuevas estructuras con los valores que posees. A pesar de esto, hay un par de funciones que operan sobre valores B que puedes usar aquí:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ot">toB22 ::</span> <span class="kw">forall</span> a<span class="op">.</span> (<span class="dt">Storable</span> a, <span class="dt">BufferFormat</span> (<span class="dt">B2</span> a)) <span class="ot">=&gt;</span> <span class="dt">B4</span> a <span class="ot">-&gt;</span> (<span class="dt">B2</span> a, <span class="dt">B2</span> a)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="ot">toB3 ::</span> <span class="kw">forall</span> a<span class="op">.</span> (<span class="dt">Storable</span> a, <span class="dt">BufferFormat</span> (<span class="dt">B3</span> a)) <span class="ot">=&gt;</span> <span class="dt">B4</span> a <span class="ot">-&gt;</span> <span class="dt">B3</span> a</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="ot">toB21 ::</span> <span class="kw">forall</span> a<span class="op">.</span> (<span class="dt">Storable</span> a, <span class="dt">BufferFormat</span> (<span class="dt">B</span> a)) <span class="ot">=&gt;</span> <span class="dt">B3</span> a <span class="ot">-&gt;</span> (<span class="dt">B2</span> a, <span class="dt">B</span> a)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="ot">toB12 ::</span> <span class="kw">forall</span> a<span class="op">.</span> (<span class="dt">Storable</span> a, <span class="dt">BufferFormat</span> (<span class="dt">B</span> a)) <span class="ot">=&gt;</span> <span class="dt">B3</span> a <span class="ot">-&gt;</span> (<span class="dt">B</span> a, <span class="dt">B2</span> a)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="ot">toB11 ::</span> <span class="kw">forall</span> a<span class="op">.</span> (<span class="dt">Storable</span> a, <span class="dt">BufferFormat</span> (<span class="dt">B</span> a)) <span class="ot">=&gt;</span> <span class="dt">B2</span> a <span class="ot">-&gt;</span> (<span class="dt">B</span> a, <span class="dt">B</span> a)</span></code></pre></div>
+<p>Estas permiten separar vectores B en partes mas pequeñas. Fijate que de todos modos no hay funciones que puedan combinarlas nuevamente.</p>
+<p>Puedes también hacer comprimir (zip) dos <code>VertexArray</code> juntos, con la función <code>zipVertices</code>, que funciona exactamente como <code>zipWith</code> para listas normales; provees una función para combinar los elementos de ambos argumentos <code>VertexArray</code> y el resultante sera del tamaño del más pequeño de ambos arrays:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ot">zipVertices ::</span> (a <span class="ot">-&gt;</span> b <span class="ot">-&gt;</span> c) <span class="ot">-&gt;</span> <span class="dt">VertexArray</span> t a <span class="ot">-&gt;</span> <span class="dt">VertexArray</span> t&#39; b <span class="ot">-&gt;</span> <span class="dt">VertexArray</span> (<span class="dt">Combine</span> t t&#39;) c</span></code></pre></div>
+<p><em>(Nuevamente, no te preocupes por el extraño primer parámetro en el VertexArray retornado, lo explicaré más adelante)</em></p>
+<p>Comprimir arrays de vértices es lo que se corresponde con usar arrays no-intercalados (non-interleaved) en OpenGL, mientras que un array de vértices desde un solo buffer de un tipo de elementos compuestos (así como una tupla de dos valores B) corresponde a arrays intercalados (interleaved). ¡Esta es solo la manera funcional y type safe de hacerlo!</p>
+<h2 id="arrays-de-primitivas">Arrays de primitivas</h2>
+<p>Ahora que haz recortado (trim), comprimido (zip) y mapeado (fmap) tus arrays de vértices a la perfección, es hora de crear un array de primitivas. La manera más simple de crear uno es con esta función:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ot">toPrimitiveArray ::</span> <span class="dt">PrimitiveTopology</span> p <span class="ot">-&gt;</span> <span class="dt">VertexArray</span> () a <span class="ot">-&gt;</span> <span class="dt">PrimitiveArray</span> p a</span></code></pre></div>
+<p>Siempre vas a necesitar una topología de primitivas, ademas de tu array de vértices, para crear un <code>PrimitiveArray</code>. La topología de primitivas denota como los vértices deben conectarse para formar primitivas, y es uno de estos constructores:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">PrimitiveTopology</span> p <span class="kw">where</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">TriangleList</span><span class="ot"> ::</span> <span class="dt">PrimitiveTopology</span> <span class="dt">Triangles</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">TriangleStrip</span><span class="ot"> ::</span> <span class="dt">PrimitiveTopology</span> <span class="dt">Triangles</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">TriangleFan</span><span class="ot"> ::</span> <span class="dt">PrimitiveTopology</span> <span class="dt">Triangles</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">LineList</span><span class="ot"> ::</span> <span class="dt">PrimitiveTopology</span> <span class="dt">Lines</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">LineStrip</span><span class="ot"> ::</span> <span class="dt">PrimitiveTopology</span> <span class="dt">Lines</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">LineLoop</span><span class="ot"> ::</span> <span class="dt">PrimitiveTopology</span> <span class="dt">Lines</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">PointList</span><span class="ot"> ::</span> <span class="dt">PrimitiveTopology</span> <span class="dt">Points</span></span></code></pre></div>
+<p>En la mayoría de los casos vas a trabajar con triángulos. Veamos como se ven las tres topologias de triángulos:</p>
+<figure>
+<img src="/images/gpipe-part-02-triangle-topologies.png" alt="               " />
+<figcaption aria-hidden="true">(a) - TriangleStrip, (b) - TriangleFan, (c) - TriangleList<br />
+(Image courtesy of OpenGL specification by Khronos)</figcaption>
+</figure>
+<p>En un <code>TriangleStrip</code>, cada vértice forma un triangulo con los dos vértices previos, alternando el camino de los vértices para cada triangulo. Esto significa que el primer triangulo es formado por los vértices 1-2-3 en ese orden, el siguiente por 2-4-3, luego por 3-4-5, 4-6-5, y así sucesivamente. Para <code>TriangleFan</code>, cada triangulo es formado por el primer vértice en el array junto con cada dos vértices consecutivos, en ese orden. Para <code>TriangleList</code>, cada tres vértices simplemente forman un triangulo; no se comparte ningún vértice entre los triángulos.</p>
+<p>Los vértices siempre vienen en orden antihorario para un triangulo de cara orientada hacia el frente (lo cual significa que todos los triángulos en la imagen de arriba, excepto el de más a la derecha, están orientados con cara hacia el fondo; solo como ejemplo de cuan intuitiva puede ser la especificación de OpenGL). La orientación de la cara de un triangulo va a ser importante luego, cuando lo rastericemos, en ese momento podrás elegir solo rasterizar los triángulos de cara hacia el frente o hacia el fondo.</p>
+<p>Los arrays de primitivas no se pueden recortar como los de vértices, pero poseen una instancia de <code>Functor</code> así que puedes hacer <code>fmap</code> sobre ellos exactamente como con los arrays de vértices. También tienen una instancia de <code>Monoid</code>, que permite concatenar dos <code>PrimitiveArray</code> juntos en uno solo usando <code>mappend</code>. Esto hace posible crea un <code>PrimitiveArray</code> conformado por varias tiras de triángulos disjuntas, pero maneras más eficientes de lograrlo serán presentadas en las siguientes dos secciones.</p>
+<h2 id="arrays-de-indices">Arrays de indices</h2>
+<p>Es común que un vértice sea usado no solo por dos triángulos consecutivos en una tira, sino también por triángulos de otra tira. Seria un desperdicio duplicar para cada tira todos los datos de los vértices compartidos, y por esta razón puedes usar un <code>index array</code> como reemplazo:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ot">toPrimitiveArrayIndexed ::</span> <span class="dt">PrimitiveTopology</span> p <span class="ot">-&gt;</span> <span class="dt">IndexArray</span> <span class="ot">-&gt;</span> <span class="dt">VertexArray</span> () a <span class="ot">-&gt;</span> <span class="dt">PrimitiveArray</span> p a</span></code></pre></div>
+<p>En vez de formas primitivas tomando vértices consecutivos en un <code>VertexArray</code>, esta función va a tomar los indices de un <code>IndexArray</code> y usarlos para referenciar vértices del <code>VertexArray</code>. Múltiples elementos en el <code>IndexArray</code> pueden referirse al mismo vértice. La topología de primitivas funciona de la misma manera para esta función, pero es aplicada al <code>IndexArray</code>. Por ejemplo, si <code>TriangleStrip</code> es usado, el primer triangulo es formado por los vértices referenciados por los primeros tres indices, el siguiente esta formado por el segundo, el cuarto y el tercer indice, y así sucesivamente.</p>
+<p>Puedes crear un <code>IndexArray</code> usando</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ot">newIndexArray ::</span> <span class="kw">forall</span> os f b a<span class="op">.</span> (<span class="dt">BufferFormat</span> b, <span class="dt">Integral</span> a, <span class="dt">IndexFormat</span> b <span class="op">~</span> a) <span class="ot">=&gt;</span> <span class="dt">Buffer</span> os b <span class="ot">-&gt;</span> <span class="dt">Maybe</span> a <span class="ot">-&gt;</span> <span class="dt">Render</span> os f <span class="dt">IndexArray</span></span></code></pre></div>
+<p>Muy parecido a crear un <code>VertexArray</code>, pero el tipo de los elementos del <code>Buffer</code> a partir del cual lo creas, esta también acotado por el siguiente type family:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="kw">family</span> <span class="dt">IndexFormat</span> a <span class="kw">where</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">IndexFormat</span> (<span class="dt">B</span> <span class="dt">Word32</span>) <span class="ot">=</span> <span class="dt">Word32</span>  </span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">IndexFormat</span> (<span class="dt">BPacked</span> <span class="dt">Word16</span>) <span class="ot">=</span> <span class="dt">Word16</span>  </span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">IndexFormat</span> (<span class="dt">BPacked</span> <span class="dt">Word8</span>) <span class="ot">=</span> <span class="dt">Word8</span></span></code></pre></div>
+<p>Esto significa que los indices pueden ser <code>Word32</code>, <code>Word16</code> o <code>Word8</code>. ¿Recuerdas que previamente mencioné que todos los tipos de los elementos del buffer necesitaban tener una alineación de 4-bytes? Los arrays de indices realmente <em>requieren</em> que todos los elementos estén empaquetados, pero todavía soporta indices de tipo <code>Word16</code> y <code>Word8</code>. Esto significa que los buffers de estos dos tipos de elementos <em>no pueden</em> ser usados como arrays de vértices. Esto es por lo que la representación de <code>Word16</code> y <code>Word8</code> es <code>BPacked Word16</code> y <code>BPacked Word8</code>. Estos funcionan exactamente como sus contrapartes <em>B</em>, con la excepción de que no hay instancias de <code>VertexInput</code> para ningun <code>BPacked a</code>. <code>VertexInput</code> es el type class usado en la creación de streams de primitivas desde arrays de primitivas, lo cual vamos a usar en la siguiente parte de este tutorial. Como puedes suponer a esta altura, el type family <code>IndexFormat a</code> evalúa a los mismos tipos que el tipo asociado <code>HostFormat a</code>.</p>
+<p>Además de un buffer de indices, <code>newIndexArray</code> también toma un <code>Maybe a</code> como argumento. Esto denota un indice opcional llamado <em>primitive restart</em>, es decir un valor de indice especial, que si es encontrado en el array de indices mientras se procesan las primitivas, señala que la topología actual debe terminar y el siguiente indice es el comienzo de una nueva topología. Esto hace posible tener múltiples tiras de triángulos en un solo <code>IndexArray</code> con solo separarlos con un indice especial, lo cual es mucho más eficiente que concatenar múltiples <code>PrimitiveStream</code> usando su instancia de <code>Monoid</code>.</p>
+<p>Los arrays de indices pueden ser recortados como cualquier array de vértices, pero siempre usando las funciones <code>takeIndices</code> y <code>dropIndices</code>. No poseen instancia de <code>Functor</code> (lo cual no tiene sentido) ni de <code>Monoid</code>.</p>
+<h2 id="arrays-de-primitivas-instanciados">Arrays de primitivas instanciados</h2>
+<p>La ultima cosa que voy a mostrarte en este episodio son los <em>arrays de primitivas instanciados</em>. Imagina que quieres crear una malla de triángulos de un templo, donde tienes muchos pilares idénticos ubicado en fila. En vez de duplicar los triángulos de cada pilar, o hacer un solo array de primitivas para concatenarlo consigo mismo múltiples veces, puedes crear un array de primitivas instanciado. La función de ve así:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="ot">toPrimitiveArrayInstanced ::</span> <span class="dt">PrimitiveTopology</span> p <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> b <span class="ot">-&gt;</span> c) <span class="ot">-&gt;</span> <span class="dt">VertexArray</span> () a <span class="ot">-&gt;</span> <span class="dt">VertexArray</span> t b <span class="ot">-&gt;</span> <span class="dt">PrimitiveArray</span> p c</span></code></pre></div>
+<p>Es muy similar a la función <code>zipVertices</code> en que toma dos <code>VertexArray</code> y una función binaria para combinar los vértices de estos arrays, pero <code>toPrimitiveArrayInstanced</code> no junta los dos arrays. En cambio, va a crear un array de primitivas desde el primer array de vértices para cada vértice del segundo array, y concatenar los resultados. En nuestro ejemplo de los pilares del templo, el primer array contiene entonces la tira para un solo pilar, mientras que el segundo array contiene una posición para instanciar cada pilar, resultado en un array de primitivas donde cada vértice contiene su posición individual dentro del pilar, asi como la posición de la instancia dentro del templo. Necesitarias entonces un shader que combine estas dos posiciones juntas en la posición final. Esta es la manera más eficiente de renderizar múltiples instancias de un mismo objeto.</p>
+<p>Si quieres usar un arrays de primitivas instanciados y array de primitivas indexados al mismo tiempo, hay una función para hacer eso también:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ot">toPrimitiveArrayIndexedInstanced ::</span> <span class="dt">PrimitiveTopology</span> p <span class="ot">-&gt;</span> <span class="dt">IndexArray</span> <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> b <span class="ot">-&gt;</span> c) <span class="ot">-&gt;</span> <span class="dt">VertexArray</span> () a <span class="ot">-&gt;</span> <span class="dt">VertexArray</span> t b <span class="ot">-&gt;</span> <span class="dt">PrimitiveArray</span> p c</span></code></pre></div>
+<p>Para hacer la instanciación aun más poderosa, puedes replicar los vértices en un array un numero fijo de veces cada uno y luego comprimirlo con otro array y usar el resultado como instancias en <code>toPrimitiveArrayInstanced</code>. Por ejemplo, podrías tener un array de vértices con tres diferentes colores, replicar cada color 5 veces, luego comprimirlo con un array de 15 posiciones, y usar esto como instancias de nuestro templo para tener 15 pilares de colores en tres diferentes graduaciones para variar. La función que usarías para hacer esto es:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="ot">replicateEach ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">VertexArray</span> t a <span class="ot">-&gt;</span> <span class="dt">VertexArray</span> <span class="dt">Instances</span> a</span></code></pre></div>
+<p>Esto va a replicar cada vértice en el array de argumento tantas veces como sea dictado por el primer argumento. Fijate que el tipo de <code>Instances</code> en el primer parámetro de tipo del resultante <code>VertexArray</code>. Quizás hayas notado que este parámetro había sido previamente <code>()</code> o solamente <code>t</code>. Si este parámetro de <code>VertexArray</code> es <code>Instances</code> entonces el <code>VertexArray</code> solo puede ser usado para instancias, es decir como ultimo argumento en una llamada a <code>toPrimitiveArrayInstanced</code> o <code>toPrimitiveArrayIndexedInstanced</code>. Si vas hacia atrás y miras los tipos de las funciones que toman o retornan <code>VertexArray</code> más arriba, vas a notar que:</p>
+<ul>
+<li><code>replicateEach</code> retorna un <code>VertexArray</code> que debe ser usado como instancia.</li>
+<li><code>dropVertices</code> no puede ser usado en ningún <code>VertexArray</code> que deba ser usado como instancia.</li>
+<li><code>zipVertices</code> retorna un <code>VertexArray</code> que debe ser usado como instancia si alguno de los arrays de entrada debe ser usado como instancia.</li>
+</ul>
+<p>Fui un poco injusto ahora, porque esto ultimo no era algo que pudieses notar solo mirando el tipo de la la función, necesitabas esta definición también:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="kw">family</span> <span class="dt">Combine</span> t t&#39; <span class="kw">where</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Combine</span> () <span class="dt">Instances</span> <span class="ot">=</span> <span class="dt">Instances</span>  </span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Combine</span> <span class="dt">Instances</span> () <span class="ot">=</span> <span class="dt">Instances</span>  </span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Combine</span> <span class="dt">Instances</span> <span class="dt">Instances</span> <span class="ot">=</span> <span class="dt">Instances</span>  </span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Combine</span> () () <span class="ot">=</span> ()</span></code></pre></div>
+<p>Cuando tienes tu <code>PrimitiveArray</code>, la información de tipo ya sea si fue instanciado, indexado o ambos, se ha ido. Esto significa que puedes usar <code>mappend</code> sobre un array de primitivas instanciado junto con uno no instanciado, y que el shader al cual envías un array de primitivas no le importa si era instanciado o indexado.</p>
+<p>Esta vez no hay ejemplos de código, así que voy a dejar como ejercicio aplicar lo que aprendiste esta vez en el ejemplo de <a href="(/posts/160426-01-gpipe-part-01.html)">la parte anterior</a>. La próxima vez finalmente vamos a abordar <code>Shader</code>!</p>
+
+
+<div id="gh-comments-list">
+    Comments are not open for this post yet.
+</div>
+]]></summary>
+</entry>
+<entry>
+    <title>Programación de GPU en Haskell usando GPipe - Parte 1</title>
+    <link href="http://rainbyte.github.io/posts/160426-01-gpipe-part-01.html" />
+    <id>http://rainbyte.github.io/posts/160426-01-gpipe-part-01.html</id>
+    <published>2016-04-27 03:23:00</published>
+    <updated>2016-04-27T03:23:00Z</updated>
+    <summary type="html"><![CDATA[<div class="info">
+    Posted on April 27, 2016
+    
+        by rainbyte
+    
+</div>
+
+<div class="info">
+    
+        Tags: <a title="All pages tagged &#39;gpipe&#39;." href="/tags/gpipe.html">gpipe</a>, <a title="All pages tagged &#39;gpu&#39;." href="/tags/gpu.html">gpu</a>, <a title="All pages tagged &#39;haskell&#39;." href="/tags/haskell.html">haskell</a>, <a title="All pages tagged &#39;opengl&#39;." href="/tags/opengl.html">opengl</a>
+    
+</div>
+
+<p>Nota: estas leyendo la traducción al castellano de una serie de tutoriales en ingles sobre GPipe; la versión original, escrita por Tobias Bexelius (creador de GPipe), se encuentra <a href="http://tobbebex.blogspot.com.ar/2015/09/gpu-programming-in-haskell-using-gpipe.html">aqui</a>.</p>
+<p>Bienvenidos a la primera parte de una serie de tutoriales sobre programación de GPU en Haskell! Vamos a usar <a href="https://hackage.haskell.org/package/GPipe">GPipe 2.1</a>, el cual fue <a href="http://tobbebex.blogspot.se/2015/09/gpipe-is-dead-long-live-gpipe.html">recientemente publicado</a>. GPipe 2 es un API funcional basada en OpenGl 3.3, pero este tutorial no requiere conocimiento previo sobre OpenGl, asi que si sabes Haskell (lo cual <em>es</em> un prerequisito), y alguna vez quisiste aprender programación grafica, ahora es el momento!</p>
+<h2 id="hello-triangle">Hello triangle</h2>
+<p>Comencemos con un pequeño ejemplo, el programa “Hello world!”:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE ScopedTypeVariables, PackageImports, TypeFamilies #-}</span>   </span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="dt">Main</span> <span class="kw">where</span>   </span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>   </span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Graphics.GPipe</span>   </span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">qualified</span> &quot;<span class="dt">GPipe</span>-<span class="dt">GLFW</span>&quot; <span class="dt">Graphics.GPipe.Context.GLFW</span> <span class="kw">as</span> <span class="dt">GLFW</span>  </span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Control.Monad</span> (unless)  </span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span>    </span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  runContextT GLFW.newContext (<span class="dt">ContextFormatColor</span> <span class="dt">RGB8</span>) <span class="op">$</span> <span class="kw">do</span>  </span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="ot">    vertexBuffer ::</span> <span class="dt">Buffer</span> os (<span class="dt">B4</span> <span class="dt">Float</span>, <span class="dt">B3</span> <span class="dt">Float</span>) <span class="ot">&lt;-</span> newBuffer <span class="dv">3</span>  </span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    writeBuffer vertexBuffer <span class="dv">0</span> [ (<span class="dt">V4</span> (<span class="op">-</span><span class="dv">1</span>) <span class="dv">1</span> <span class="dv">0</span> <span class="dv">1</span>, <span class="dt">V3</span> <span class="dv">1</span> <span class="dv">0</span> <span class="dv">0</span>)  </span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>                               , (<span class="dt">V4</span> <span class="dv">0</span> (<span class="op">-</span><span class="dv">1</span>) <span class="dv">0</span> <span class="dv">1</span>, <span class="dt">V3</span> <span class="dv">0</span> <span class="dv">1</span> <span class="dv">0</span>)  </span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>                               , (<span class="dt">V4</span> <span class="dv">1</span> <span class="dv">1</span> <span class="dv">0</span> <span class="dv">1</span>,  <span class="dt">V3</span> <span class="dv">0</span> <span class="dv">0</span> <span class="dv">1</span>)  </span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>                               ]  </span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>                        </span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    shader <span class="ot">&lt;-</span> compileShader <span class="op">$</span> <span class="kw">do</span>  </span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>      primitiveStream <span class="ot">&lt;-</span> toPrimitiveStream <span class="fu">id</span>  </span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>      fragmentStream <span class="ot">&lt;-</span> rasterize (<span class="fu">const</span> (<span class="dt">FrontAndBack</span>, <span class="dt">ViewPort</span> (<span class="dt">V2</span> <span class="dv">0</span> <span class="dv">0</span>) (<span class="dt">V2</span> <span class="dv">500</span> <span class="dv">500</span>), <span class="dt">DepthRange</span> <span class="dv">0</span> <span class="dv">1</span>)) primitiveStream   </span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>      drawContextColor (<span class="fu">const</span> (<span class="dt">ContextColorOption</span> <span class="dt">NoBlending</span> (<span class="dt">V3</span> <span class="dt">True</span> <span class="dt">True</span> <span class="dt">True</span>))) fragmentStream  </span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    loop vertexBuffer shader   </span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>loop vertexBuffer shader <span class="ot">=</span> <span class="kw">do</span>    </span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>  render <span class="op">$</span> <span class="kw">do</span>   </span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    clearContextColor (<span class="dt">V3</span> <span class="dv">0</span> <span class="dv">0</span> <span class="dv">0</span>)   </span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    vertexArray <span class="ot">&lt;-</span> newVertexArray vertexBuffer  </span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> primitiveArray <span class="ot">=</span> toPrimitiveArray <span class="dt">TriangleList</span> vertexArray  </span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>    shader primitiveArray   </span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>  swapContextBuffers  </span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>  closeRequested <span class="ot">&lt;-</span> GLFW.windowShouldClose   </span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>  unless closeRequested <span class="op">$</span>  </span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>    loop vertexBuffer shader </span></code></pre></div>
+<p>Como puedes ver en la lista de <code>import</code>, se requiere un paquete opcional: <a href="https://hackage.haskell.org/package/GPipe-GLFW">GPipe-GLFW</a> (version 1.1 o superior). Este paquete provee la funcionalidad necesaria para crear ventanas, en las cuales GPipe puede dibujar, asi como las funciones para obtener entrada de teclado y mouse. Esta funcionalidad solia ser parte de las versiones anteriores de GPipe pero, ya que muchos querian ser capaces de elegir libremente que gestor de ventanas usar, se movio a su propio paquete. Al momento de escribir este articulo solo existen bindings para GLFW, pero seguramente apareceran otros más.</p>
+<p>Cuando realizas <code>import Graphics.GPipe</code> tambien obtienes los paquetes <a href="https://hackage.haskell.org/package/linear">linear</a> y <a href="https://hackage.haskell.org/package/Boolean">Boolean</a> completos, ya que son utilizados constantemente en aplicaciones GPipe.</p>
+<p>Ahora estamos listos para compilar (usa <code>-threaded</code> como parametro para GHC, ya que GPipe-GLFW lo requiere) y ejecutar nuestro programa, el cual nos mostrará un triangulo bastante colorido en la esquina inferior izquierda de la ventana:</p>
+<figure>
+<img src="/images/gpipe-part-01-triangle.png" alt="  " />
+<figcaption aria-hidden="true">Un triangulo colorido</figcaption>
+</figure>
+<h2 id="el-contexto">El contexto</h2>
+<p>Lo primero que hacemos en la función <code>main</code> es ejecutar <code>runContextT</code>. Un <em>contexto</em> posee dos cosas: una <em>ventana</em>, y un <em>espacio de objetos</em>. La ventana es donde tus graficos renderizados se mostraran en pantalla, y el espacio de objetos es lo que va a contener todos los datos para la GPU que tu programa define, muy parecido a lo que es un proceso para los datos usados por la CPU. <code>runContextT</code> crea un nuevo contexto para nostros. Toma tres argumentos: una <em>fabrica</em>, un <em>formato</em>, y una <em>acción monadica</em>.</p>
+<p>La fabrica es lo que le damos a GPipe asi sabe que ventana usar. Para utilizar el paquete GPipe-GLFW, que importamos previamente, pasamos <code>GLFW.newContext</code> como fabrica.</p>
+<p>El formato describe que clase de imagenes vamos a estar dibujando en la ventana, por ej. cuantos canales de color va a tener y cuantos bit por color. Tambien describe si vamos a tener un <strong>depth buffer</strong> o un <strong>stencil buffer</strong> asociado a la ventana (voy a discutir que son más adelante en este tutorial, cuando detalle como dibujar). Puedes incluso crear un contexto que no posee una ventana, por ej. si quieres usar la GPU para generar imagenes y guardarlas a disco, en vez de mostrarlas en la pantalla. Ahora vamos a quedarnos con un formato de color RGB de 8 bits por cada uno de sus tres canales, sin <em>depth buffer</em> ni <em>stencil buffer</em>. El valor que describe este formato es <code>ContextFormatColor RGB8</code>.</p>
+<p>El ultimo parametro para <code>runContextT</code> es la acción monadica en la cual todo nuestro programa ocurre. Cuando esta acción retorna, la ventana es cerrada. Esta acción monadica tiene el tipo <code>ContextT w os f m a</code>. Esto es un <em>monad transformer</em>, es decir una monada que hereda las capacidades de otra monada de tipo <code>m</code>. Para <code>ContextT</code>, <code>m</code> es el tipo de la monada en la cual ejecutamos <code>runContextT</code>. En este, y muchos otros casos, es simplemente la monada <code>IO</code>. Dentro de un monad transformer puedes usar la función <code>lift</code> para ejecutar una acción en la monada heredada.</p>
+<p>GPipe usa algunos trucos con los tipos de datos, para asegurar que las variables que retornan sus acciones dentro del contexto, no salen de el. Este es el mismo mecanismo que usa la monada <code>ST</code> para asegurarse que ninguna <code>STRef</code> es retornada ni usada en otra invocación a <code>runST</code>. El truco es que <code>runContextT</code> usa algo llamado <code>rank-2 type</code>:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ot">runContextT ::</span> (<span class="dt">MonadIO</span> m, <span class="dt">MonadAsyncException</span> m)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>            <span class="ot">=&gt;</span> <span class="dt">ContextFactory</span> c ds w </span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>            <span class="ot">-&gt;</span> <span class="dt">ContextFormat</span> c ds </span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>            <span class="ot">-&gt;</span> (<span class="kw">forall</span> os<span class="op">.</span> <span class="dt">ContextT</span> w os (<span class="dt">ContextFormat</span> c ds) m a) </span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>            <span class="ot">-&gt;</span> m a</span></code></pre></div>
+<p>Fijate que hay un modificador <code>forall</code> para <code>os</code>, local al argumento de la acción monadica <code>ContextT</code>. Esto hace que cualquier objeto que referencie a <code>os</code> este limitado a esta acción monadica.</p>
+<p>Es posible ejecutar otro <code>runContextT</code> dentro de una monada <code>ContextT</code>, el cual va a crear una segunda ventana con su propio contexto. Ya que estos contextos poseen su propio espacio de objetos, no pueden compartir entre ellos objetos que referencien al parametro de tipo <code>os</code>. Esto es una limitación bastante grande y, la mayor parte de la veces que trabajes con varias ventanas, vas a querer dejarlos usar el mismo espacio de objetos. Esto se logra usando <code>runSharedContextT</code>. Esta acción debe ser utilizada dentro de otro <code>ContextT</code>, y la acción monadica que se pasa a esta función va a usar el mismo espacio de objetos que el <code>ContextT</code> que la rodea, pero va a tener una ventana propia.</p>
+<p>El parametro <code>w</code> en el tipo <code>ContextT</code> es algo definido por la fabrica del contexto. Cuando usamos <code>GLFW.newContext</code>, <code>w</code> va a ser <code>GLFWWindow</code>. Esto es un tipo opaco, asi que no puede usarlo directamente. A pesar de esto, nos permite usar <code>windowShouldClose</code> y otras acciones del paquete GPipe-GLFW dentro de nuestro contexto. En nuestro programa <em>hello world</em>, <code>windowShouldClose</code> es usado para salir del <code>loop</code> cuando el usuario cierra la ventana, al hacer click sobre la X en la esquina superior.</p>
+<h2 id="renderizado---de-eso-se-trata-realmente">Renderizado - De eso se trata realmente</h2>
+<p>Ahora que tenemos nuestro contexto, hagamos algo de renderizado. Cualquier renderizado que haga en GPipe, va a seguir esta secuencia de operaciones:</p>
+<figure>
+<img src="/images/gpipe-part-01-sequence.svg" alt="    " />
+<figcaption aria-hidden="true">Secuencia de operaciones de GPipe</figcaption>
+</figure>
+<p>Por lo pronto, todo renderizado de GPipe va a crear, a partir de un buffer de datos, un array de <em>vertices</em> que serán ensamblados en un array de <em>primitivas</em>. Hay tres clases de primitivas: puntos, lineas, y triangulos; pero vamos a trabajar casi exclusivamente con triangulos. El array de primitivas entonces se transforma en un stream de primitivas dentro de un <em>shader</em>, permitiendonos aplicar transformaciones a esos vertices. Las primitivas luego son rasterizadas, es decir son cortadas en <em>fragmentos</em> medidos en pixels, formando un stream de fragmentos. Este stream es luego dibujado en la ventana del contexto, o en una imagen fuera de pantalla.</p>
+<p>En la monada <code>ContextT</code>, comenzamos creando un buffer de datos que es almacenado en la GPU. En nuestro ejemplo <em>hello world</em> de más arriba, nuestro buffer es llamado <code>vertexBuffer</code> y tiene 3 elementos, siendo cada uno una tupla <code>(B4 Float, B3 Float)</code>. <code>B4</code> y <code>B3</code> son para un buffer las <em>“representaciones”</em> de <code>V4</code> y <code>V3</code>, los tipos vectoriales del paquete <em>linear</em>. Voy a dar más detalles sobre que son estas <em>“representaciones”</em> en la siguiente parte de este tutorial, pero por ahora puedes pensar a <code>B4</code> como otro nombre para <code>V4</code> cuando lo usamos en un <code>Buffer</code>. Despues de crear el buffer, escribimos tres valores dentro de él, a partir de una lista comun.</p>
+<p>Con una función llamada <code>render</code> ejecutamos otra monada, convenientemente llamada… <code>Render</code>. En esta monada usamos nuestro <code>Buffer</code> para crear un <code>VertexArray</code> con la función <code>newVertexArray</code>. Viniendo de nuestro <code>vertexBuffer</code>, <code>vertexArray</code> tendrá 3 vertices, cada uno de los cuales tiene una tupla <code>(B4 Float, B3 Float)</code>. Ahora debes preguntarte cual es la diferencia entre un <code>VertexArray</code> y una <code>Buffer</code>. Una pregunta verdaderamente razonable, pero me temo que vamos a tener que esperar hasta la siguiente parte de este tutorial para responderla, lo siento.</p>
+<p>Ahora que tenemos un <code>VertexArray</code>, vamos a usarlo para crear un <code>PrimitiveArray</code> de triangulos, usando la función <code>toPrimitiveArray</code>. El argumento <code>TriangleList</code>, que pasamos a la función, indica que queremos formar triangulos a partir de cada tres vertices consecutivos en un <code>vertexArray</code>. Como solo hay tres vertices, <code>primitiveArray</code> va a contener un solo triangulo.</p>
+<p>Mirando el grafico de arriba, tenemos que convertir este <code>PrimitiveArray</code> en un <code>PrimitiveStream</code> (estaras pensando, ¿otro nombre más para la misma cosa?) pero, ¿porque en el código solo vemos <code>shader primitiveArray</code>?</p>
+<h2 id="shaders---un-pequeño-acercamiento">Shaders - Un pequeño acercamiento</h2>
+<p>La caja gris en el grafico de arriba es llamada <code>Shader</code>. Supongo que será poco sorprendente a esta altura pero, ¡tambien es una monada! La diferencia con ambas monadas, <code>ContextT</code> y <code>Render</code>, es que no podemos ejecutarla directamente, tiene que ser primero <em>compilada</em>. Esta compilación es distinta a la que haces cuando ejecutas ghc, cabal, stack, o cualquier acceso directo que tengas en emacs. Esta compilación ocurre durante el tiempo de ejecución del programa, y usa un compilador que provee tu controlador grafico. La compilación puede tomar varios segundos, definitivamente no es algo que quieres hacer durante cada frame en por ej. un juego creado con GPipe.</p>
+<p>Una monada <code>Shader</code> es compilada mediante la función <code>compileShader</code>, que es ejecutada en tu monada <code>ContextT</code>. <code>compileShader</code> retornará una función que luego puedes ejecutar en una monada <code>Render</code>. En nuestro ejemplo de arriba, compilamos el shader en una función a la que llamamos simplemente <code>shader</code>. Este <code>shader</code> es lo que vemos ejecutarse como ultima acción en la monada <code>Render</code>, pasandole <code>primitiveArray</code> como argumento.</p>
+<p>Demos ahora una mirada al <code>Shader</code> en nuestro ejemplo. La primera acción que ejecutamos es <code>toPrimitiveStream</code>. Esto cargará un <code>PrimitiveArray</code> en algo llamado <code>PrimitiveStream</code>. El <code>PrimitiveArray</code> a cargar es seleccionado mediante la función pasada como argumento a <code>toPrimitiveStream</code>, en este caso <code>id</code>. Una monada <code>Shader</code> es casi como una monada <code>Reader</code>, ya que es cerrada sobre un entorno. Pero a diferencia de la monada <code>Reader</code>, no hay una acción <code>ask</code> por la cual puedes recuperar el entorno. En vez de esto, otras acciones, como <code>toPrimitiveStream</code>, van a tomar una función que extrae valores de este entorno. Cada valor del entorno no es definido hasta que el shader es <em>ejecutado</em>, es decir ni siquiera cuando es compilado. ¿Recuedas que pasamos <code>primitiveArray</code> como argumento a nuestra función <code>shader</code> compilada? Ese es el entorno que usamos en nuestro programa. Ya que la función pasada a <code>toPrimitiveStream</code> quiere extraer un <code>PrimitiveArray</code> del entorno, y nuestro entorno es un <code>PrimitiveArray</code>, simplemente usamos <code>id</code>.</p>
+<p>Un <code>PrimitiveStream</code> es tambien una secuencia de primitivas, pero vive dentro del shader y por lo tanto podriamos mapear funciones sobre él, las cuales correran sobre la GPU. <code>PrimitiveStream</code> implementa el typeclass <code>Functor</code>, y <code>fmap f primitiveStream</code> retornará un nuevo <code>PrimitiveStream</code> que es resultado de aplicar la función <code>f</code> a cada vertice de cada primitiva en <code>primitiveStream</code>. Mapear funciones sobre streams con <code>fmap</code> en shaders es muchas veces más rapido que hacer la misma clase de operación en listas ordinarias, ya que estamos usando la GPU en vez del CPU. En nuestro ejemplo “Hello world”, no estamos realmente haciendo nada con las primitivas en nuestro <code>primitiveStream</code> antes de pasarla a la función <code>rasterize</code>. Pero antes de entrar en ese tema, dejame mencionar cual es el tipo de datos inferido de <code>primitiveStream</code>:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ot">primitiveStream ::</span> <span class="dt">PrimitiveStream</span> <span class="dt">Triangles</span> (<span class="dt">V4</span> <span class="dt">VFloat</span>, <span class="dt">V3</span> <span class="dt">VFloat</span>)</span></code></pre></div>
+<p>Como puedes ver, los tipos <code>B4</code> y <code>B3</code> que teniamos en nuestro buffer (y nuestros vertex array y primitive array), fueron transformados nuevamente en <code>V4</code> y <code>V3</code>, pero ¡los <code>Float</code> dentro de ellos fueron aparentemente transformados en <code>VFloat</code>! <code>VFloat</code> es en realidad un sinonimo para el tipo <code>S V Float</code>, el cual representa un <code>Float</code> desplazado a un stream de vertices en la GPU, es decir ya no es más un <code>Float</code> ordinario que puedes usar en cualquier función, solo puedes hacer con el cosas que la GPU soporta. Voy a discutir este tipo de datos con más detalle cuando revisemos los shaders con mayor profundidad en una parte posterior de este tutorial.</p>
+<h2 id="rasterización">Rasterización</h2>
+<p>Incluso aunque nunca mapeemos ninguna función a nuestro <code>primitiveStream</code> para ejecutarla en la GPU, ni tampoco al <code>fragmentShader</code> que estamos por crear, todavia hay una operación que siempre hacemos en un shader la cual aprovecha el paralelismo masivo de la GPU: rasterización.</p>
+<p>Rasterización es el proceso de mapear una primitiva, por ej. un triangulo, a una grilla y generar fragmentos medidos en pixels. Los vertices de las primitivas de entrada son usados de dos maneras: primero, todos deben proveer una posición del vertice, asi el rasterizador sabe cuantos fragmentos generar; y segundo, proveer valores que seran interpolados linealmente entre todos los vertices de la primitiva, para crear valores unicos en cada fragmento generado.</p>
+<p>El primer argumento para <code>rasterize</code>, es una función que extrae tres parametros del entorno del shader: que lado de la primitiva rasterizar, las posición y el tamaño del <em>view port</em>, y el rango de profundidad (<em>depth range</em>) del fragmento. En nuestro ejemplo, sabemos todos los parametros de antemano y no necesitamos obtenerlos del entorno del shader, por eso es que usamos la función <code>const</code>. Los parametros que proveemos a <code>rasterize</code> le dicen que debe rasterizar ambos lados de cada triangulo, que el view port tiene (0,0) como coordenada inferior izquierda y tanto altura como ancho de 500 pixels, y finalmente que el rango de profundidad es [0,1]. Más sobre esto en un momento.</p>
+<p>Las posiciones de los vertices son coordenadas 3D en un espacio de vista canonico (<em>canonical view space</em>). Durante la rasterización, estos van a ser transformados en el view port en espacio de pantalla en pixels, donde la posición (-1,-1,z) en el espacio de vista canonico va a ser mapeado a la esquina inferior izquierda del view port (en nuestro caso (0,0)), y (1,1,z) va a ser mapeado a la esquina superior derecha (en nuestro caso (500,500)). Para ser más precisos, el fragmento en la esquina inferior izquierda en nuestro caso va a tener realmente la coordenada de pixel (0.5,0.5), y el fragmento superior derecho que generaremos tendrá coordenada (499.5,499.5).</p>
+<p>Todo fragmento tambien tiene un valor de profundidad en el rango [0,1]. En la rasterización nosotros especificamos, con el parametro <code>DepthRange</code>, como mapear la coordenada canonica z a este rango. Una coordenada z con valor -1 será mapeada al primer parametro de <code>DepthRange</code>, y una coordenada z con valor 1 será mapeada al segundo parametro de <code>DepthRange</code>. En nuestro ejemplo, nosotros mapeamos las coordenadas z en el espacio de vista canonico de rango [0,1] al rango de profundidad [0,1]. La convencion usada por <a href="https://hackage.haskell.org/package/linear-1.19.1.3/docs/Linear-Projection.html">Linear.Projection</a>, y muchas otras librerias matemáticas para OpenGl, es que la coordenada z de 1 en el espacio de vista canonico es considerada la mas alejada y -1 la mas cercana, pero en realidad eres libre de usar cualquier combinacion que gustes. Cualquier fragmento con un valor fuera del rango de profundidad [0,1] será descartado, asi cualquier parte de las primitivas que intersectan la caja [(-1,-1,-1),(1,1,1)] en el espacio de vista canonico se convertirá en fragmentos en el view port. Esta caja es normalmente conocida como volumen de vista canonica (<em>canonical view volume</em>).</p>
+<p>La posición de un vertice en el espacio de vista canonico se provee en realidad como un <code>V4 VFloat</code>, conocido como una coordenada 3D homogenea, donde <code>V4 x y z w</code> posee la posición 3D (x/w,y/w,z/w). Los tres vertices del triangulo en nuestro ejemplo usan 1 para la componente w, asi en este caso son simplemente coordenadas 3D comunes. Cuando se aplica “proyeccion perspectiva” (donde los objetos aparecen más pequeños cuanto más lejos estan, lo cual es standard en la mayoria de las aplicaciones 3D), la componente w no será 1. La razon por la cual el rasterizador quiere que w sea pasada de forma explicita en vez de hacer que dividamos los componentes por nuestra cuenta (mapeando una función de esa indole sobre el stream de primitivas), es que esta componente w es tambien usada cuando se realiza la interpolación de todos los demas valores del vertice. Voy a demostrar como funciona esta interpolación con corrección de perspectiva en una parte posterior, cuando veamos textures y samplers.</p>
+<p>Ahora que hemos calculado que fragmentos generar para cada primitiva, y cuales posiciones de pantalla y valores de profundidad van a tener, podemos interpolar los demas valores de los vertices. El segundo argumento de la función <code>rasterize</code> es un stream de primitivas con tipo</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="dt">FragmentInput</span> a <span class="ot">=&gt;</span> <span class="dt">PrimitiveStream</span> p (<span class="dt">V4</span> <span class="dt">VFloat</span>, a)</span></code></pre></div>
+<p>Y retorna un stream de fragmentos con tipo</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="dt">FragmentInput</span> a <span class="ot">=&gt;</span> <span class="dt">FragmentStream</span> (<span class="dt">FragmentFormat</span> a)</span></code></pre></div>
+<p>Esto significa que cada vertice tiene una posición homogenea como hemos discutido recien, pero tambien algun valor extra de tipo <code>a</code> que va a ser transformado en un valor de tipo <code>FragmentFormat a</code> en cada fragmento. Estos valores son producidos interpolando linealmente los valores de los vertices sobre toda la primitiva para cada fragmento. En nuestro ejemplo, <code>a</code> es <code>V3 VFloat</code>, representando el color de cada vertice. <code>FragmentFormat a</code> es un tipo asociado en la clase <code>FragmentInput</code>, y <code>FragmentFormat (V3 VFloat)</code> evalua a <code>V3 FFloat</code>. <code>FFloat</code> es como <code>VFloat</code>, una versión desplazada de <code>Float</code>, pero esta vez a un stream de fragmentos. Distinguimos los valores desplazados a un stream de vertices, de los valores desplazados a un stream de fragmentos, ya que la GPU no soporta exactamente el mismo conjunto de operaciones sobre ellos.</p>
+<h2 id="dibujando-e-intercambiando">Dibujando e intercambiando</h2>
+<p>Lo ultimo que hacemos en nuestro shader, ahora que tenemos el <code>fragmentStream</code>, es dibujar los fragmentos en la ventana. <code>drawContextColor</code> toma como argumento a <code>fragmentStream</code>, pero tambien, asi como la mayoria de las demas acciones en la monada <code>Shader</code>, toma una función que extrae parametros del entorno del shader. En este caso el parametro extraido es un valor de tipo <code>ContextColorOption</code>, el cual especifica como los fragmentos deden ser combinados con los valores previos en la ventana. El valor que proveemos en nuestro ejemplo (nuevamente usando <code>const</code>, ya que no depende del entorno del shader), esta especificando que cada fragmento debe sobreescribir completamente el valor previo en la ventana. Voy a dedicar una parte completa de este tutorial a como dibujar, asi estos parametros seran explicados en detalle más adelante.</p>
+<p>Ya que nuestra ventana fue creada con formato <code>RGB8</code>, el stream de fragmentos necesita contener valores de color de tipo <code>V3 FFloat</code>. Convenientemente, es el tipo exacto que tiene nuestro <code>fragmentStream</code> como resultado de la rasterización. Sin embargo, en la mayoria de los programas basados en GPipe vas a mapear funciones via <code>fmap</code> sobre el stream de fragmentos, para transformar los valores interpolados de la rasterizacion en el formato de color que es requerido por la ventana.</p>
+<p>Dibujar es la unica acción en el shader que posee un efecto secundario: en este caso el buffer trasero de la ventana es alterado. Una ventana tiene (al menos) dos buffers, uno llamado buffer frontal que es mostrado en la pantalla, y otro que llamamos buffer trasero donde los shaders estan dibujando. Cuando la acción <code>shader primitiveArray</code> en la monada <code>Render</code> retorna, el buffer trasero sera actualizado. Para presentar en la pantalla esta nueva imagen renderizada, necesitamos llamar a <code>swapContextBuffers</code> dentro de nuestra monada <code>ContextT</code>. Esto le va a indicar al hardware grafico que intercambie los buffers frontal y trasero. No se va a realizar ninguna copia de memoria, sino solamente un intercambio de valores de punteros, asi que es bastante efectivo. Sin embargo, <code>swapContextBuffers</code> puede bloquearse momentaneamente si tratas de presentar imagenes mas rapido que la pantalla pueda actualizarse, pero esto es usualmente algo bueno, ya que de otra forma estarias gastando ciclos de GPU y CPU produciendo más imagenes de las que pueden presentarse.</p>
+<p>Hay una linea en la acción <code>Render</code> de nuestro ejemplo, que omití antes descaradamente: <code>clearContextColor (V3 0 0 0)</code>. Esta acción ocurre antes de ejecutar el shader, y es usada para setear cada pixel en los contenidos previos del buffer trasero a un valor constante, en este caso <code>V3 0 0 0</code>, es decir, color negro. Luego de un intercambio, los contenidos del buffer trasero son indefinidos, asi que es siempre una buena idea comenzar cada frame haciendo limpieza luego de <code>swapContextBuffers</code>. Limpiar y ejecutar shaders son dos acciones de la monada <code>Render</code> que tienen efectos secundarios.</p>
+<p>Esto concluye la primer parte de este tutorial. La proxima vez voy a escribir detalladamente sobre <code>Buffer</code> y <code>PrimitiveArray</code>.</p>
+
+
+<div id="gh-comments-list">
+    Comments are not open for this post yet.
+</div>
+]]></summary>
+</entry>
+<entry>
+    <title>Enviroment variables using fish shell</title>
+    <link href="http://rainbyte.github.io/posts/160207-01-env-vars-with-fish.html" />
+    <id>http://rainbyte.github.io/posts/160207-01-env-vars-with-fish.html</id>
+    <published>2016-02-07 02:46:00</published>
+    <updated>2016-02-07T02:46:00Z</updated>
+    <summary type="html"><![CDATA[<div class="info">
+    Posted on February  7, 2016
+    
+        by rainbyte
+    
+</div>
+
+<div class="info">
+    
+        Tags: <a title="All pages tagged &#39;fish&#39;." href="/tags/fish.html">fish</a>, <a title="All pages tagged &#39;shell&#39;." href="/tags/shell.html">shell</a>
+    
+</div>
+
+<h2 id="overview">Overview</h2>
+<p>Sometimes we need to <em>export</em> some value as an <code>env var</code> (eg. android sdk path).
+It is important to know how to do this well for smooth system administration.</p>
+<p>Each shell has its own way to manage environment, I’m using fish shell.</p>
+<p>In order to list current vars, standard <code>env</code> command is available.</p>
+<h2 id="local-env-vars">Local env vars</h2>
+<p>We could run an app with custom enviroment vars, like this:</p>
+<pre><code>env LALA=&#39;foo bar&#39; some_cmd</code></pre>
+<p>This does not always work, because <code>env</code> bypasses our shell.</p>
+<p>In those situations, we could use <code>set</code> instead:</p>
+<pre><code>set -lx LALA=&#39;foo bar&#39;; some_cmd</code></pre>
+<p>The <code>-l</code> switch means <em>local scope</em>, the variable is temporal.</p>
+<h2 id="persistent-env-vars">Persistent env vars</h2>
+<p>When we need env vars to be <em>persistent</em> only across a session, we use <code>global</code> ones (<code>-g</code> switch):</p>
+<pre><code>set -gx LALA=&#39;foo bar&#39;
+some_cmd
+other_cmd</code></pre>
+<p>Finally, we could use <code>universal</code> env vars, which are <em>fully persistent</em> across multiple sessions (<code>-U</code> switch).</p>
+<p>For example, I used them in order to configure android sdk, like this:</p>
+<pre><code>set -U ANDROID_HOME /path/to/android/sdk</code></pre>
+<p><code>Universal</code> env vars are <em>persistent</em> across reboots, you can inspect them using <code>set -U</code> cmd.</p>
+<h2 id="path-management">Path management</h2>
+<p>Changing the <code>PATH</code> env var is an special case. We cannot modify it directly, because it could be overwritten by the shell.</p>
+<p>In order to overcome this situation, fish provides the <code>fish_user_paths</code> variable, which is automatically merged to <code>PATH</code>.</p>
+<p>We could add some custom bin directory (e.g. node_modules bin dir), like this:</p>
+<pre><code>set -U fish_user_paths $fish_user_paths /path/to/node_modules/bin</code></pre>
+<p>In this way we preserve previously added paths, and the new dir is only appended to <code>fish_user_paths</code>.</p>
+<p>The shell automatically adds the custom paths to the <code>PATH</code> var each time a session is started.</p>
+
+
+<div id="gh-comments-list">
+    Comments are not open for this post yet.
+</div>
+]]></summary>
+</entry>
+<entry>
+    <title>How-to update a git submodule</title>
+    <link href="http://rainbyte.github.io/posts/150702-02-how-to-update-a-git-submodule.html" />
+    <id>http://rainbyte.github.io/posts/150702-02-how-to-update-a-git-submodule.html</id>
+    <published>2015-07-02 04:29:59</published>
+    <updated>2015-07-02T04:29:59Z</updated>
+    <summary type="html"><![CDATA[<div class="info">
+    Posted on July  2, 2015
+    
+        by rainbyte
+    
+</div>
+
+<div class="info">
+    
+        Tags: <a title="All pages tagged &#39;workflow&#39;." href="/tags/workflow.html">workflow</a>, <a title="All pages tagged &#39;git&#39;." href="/tags/git.html">git</a>
+    
+</div>
+
+<p>I do not use git submodules too often, so I’ll write this recipe here, for future reference.</p>
+<!-- more -->
+<p>When we have a git repo with a submodule inside, some steps are needed to update both in sync.<br />
+This occurs because, the parent repo and the submodule, are actually two independent repos.</p>
+<p>This is the workflow I use to update a submodule:</p>
+<ol type="1">
+<li><p>Work inside the submodule:</p>
+<p><code>$ # edit &lt;some files&gt;</code></p>
+<p><code>$ git add &lt;some files&gt;</code></p></li>
+<li><p>Now we have some changes ready to commit and push them:</p>
+<p><code>$ git commit -m "Edited &lt;some files&gt;</code></p>
+<p><code>$ git push</code></p></li>
+<li><p>Finally, we tell the parent repo that the submodule has changed:</p>
+<p><code>$ cd the/parent/repo/path</code></p>
+<p><code>$ git add the/submodule/repo/path</code></p>
+<p><code>$ git commit -m "Updated the submodule"</code></p>
+<p><code>$ git push</code></p></li>
+</ol>
+<p>Syncing everytime a change is made to the submodule <strong>is not advisable</strong>, think carefully before doing it.<br />
+Sometimes we should <strong>NOT do it</strong> at all (e.g. there are
+compatibility breaking changes).</p>
+<p>The parent repo could point to a previous (<em>and safe</em>) version of the submodule all the required time.<br />
+At least while is being adapted to assimilate the submodule updates.</p>
+
+
+<div id="gh-comments-list">
+    Comments are not open for this post yet.
+</div>
+]]></summary>
+</entry>
+
+</feed>
