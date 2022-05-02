@@ -1,7 +1,9 @@
 body {
-    color: black;
+    background-color: black;
+    color: lightgray;
     display: flex;
     flex-direction: column;
+    font-family: serif;
     font-size: 28px;
     margin: 0px auto 0px auto;
     width: 90%;
@@ -10,14 +12,30 @@ body {
 header {
     align-items: center;
     display: flex;
-    border-bottom: 2px solid black;
+    border-bottom: 2px solid lightgray;
     justify-content: space-between;
     margin-bottom: 2em;
     padding: 12px 0px 12px 0px;
 }
 
+a:link {
+    color: cyan;
+}
+
+a:visited {
+    color: darkcyan;
+}
+
+a:hover {
+    color: yellow;
+}
+
+a:active {
+    color: pink;
+}
+
 div#logo a {
-    color: black;
+    color: magenta;
     float: left;
     font-size: 1.6em;
     font-weight: bold;
@@ -30,7 +48,7 @@ header nav {
 }
 
 header nav a {
-    color: black;
+    color: lightgray;
     font-size: 1em;
     font-weight: bold;
     margin: 0.2em 0.4em;
@@ -43,7 +61,7 @@ header nav a {
 }
 
 footer {
-    border-top: solid 2px black;
+    border-top: solid 2px lightgray;
     color: #555;
     font-size: 0.8em;
     flex: none;
@@ -65,13 +83,13 @@ li {
 }
 
 div.info {
-    color: #555;
+    color: lightgray;
     font-size: 0.8em;
     font-style: italic;
 }
 
 #gh-comments-list {
-    border: solid 1px #ccc;
+    border: solid 2px #ccc;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -86,8 +104,7 @@ div.info {
 }
 
 .gh-comment {
-    border: solid 1px #ccc;
-    background-color: #eee;
+    border: solid 2px #ccc;
     padding: 1em;
     align-self: stretch;
     border-radius: 5px;
