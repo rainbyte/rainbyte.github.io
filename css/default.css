@@ -71,11 +71,14 @@ footer {
 }
 
 h1 {
+    color: gold;
     font-size: 1.4em;
 }
 
 h2 {
+    color: gold;
     font-size: 1.2em;
+    margin-top: 2em;
 }
 
 #posts li {
