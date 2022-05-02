@@ -8,8 +8,70 @@
         <name>rainbyte</name>
         <email>rainbyte@tuta.io</email>
     </author>
-    <updated>2020-08-29 06:42:00</updated>
+    <updated>2022-05-01T23:41:00Z</updated>
     <entry>
+    <title>Android folder backup via Rsync</title>
+    <link href="http://rainbyte.github.io/posts/220501-01-android-rsync-backup.html" />
+    <id>http://rainbyte.github.io/posts/220501-01-android-rsync-backup.html</id>
+    <published>2022-05-01 23:41:00</published>
+    <updated>2022-05-01T23:41:00Z</updated>
+    <summary type="html"><![CDATA[<div class="info">
+    Posted on May  1, 2022
+    
+        by rainbyte
+    
+</div>
+
+<div class="info">
+    
+        Tags: <a title="All pages tagged &#39;android&#39;." href="/tags/android.html">android</a>, <a title="All pages tagged &#39;backup&#39;." href="/tags/backup.html">backup</a>, <a title="All pages tagged &#39;rsync&#39;." href="/tags/rsync.html">rsync</a>
+    
+</div>
+
+<p>This post describes how to backup a folder from an Android phone to a PC and restore it on a 2nd phone.</p>
+<h2 id="backup-procedure">Backup procedure</h2>
+<ol type="1">
+<li><p>Download simplesshd on the 1st phone (<a href="https://play.google.com/store/apps/details?id=org.galexander.sshd">play store</a> link)</p></li>
+<li><p>Open simplesshd and click <code>start</code>. The log will show some relevant information:</p>
+<ul>
+<li>host: something like ip <strong>192.168.x.y</strong></li>
+<li>port: default is <strong>2222</strong></li>
+</ul></li>
+<li><p>Run rsync backup command on the PC. Replace <code>&lt;host&gt;</code> and <code>&lt;port&gt;</code> with the correct values for 1st phone!</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rsync</span> <span class="at">-auv</span> <span class="at">--delete</span> <span class="at">-e</span> <span class="st">&#39;ssh -p &lt;port&gt;&#39;</span> <span class="op">&lt;</span>host<span class="op">&gt;</span>:<span class="st">&#39;/sdcard/orig-dir/&#39;</span> <span class="st">&#39;/path/to/backup-dir/&#39;</span></span></code></pre></div>
+<ul>
+<li>Rsync will copy files from 1st phone <code>orig-dir</code> folder to PC <code>backup-dir</code> folder</li>
+<li><code>delete</code> removes from PC folder the files not in the 1st phone</li>
+<li><u>Note</u>: final <code>/</code> on each folder are required!</li>
+</ul></li>
+</ol>
+<h2 id="restore-procedure">Restore procedure</h2>
+<ol type="1">
+<li><p>Download simplesshd on the 2nd phone (<a href="https://play.google.com/store/apps/details?id=org.galexander.sshd">play store</a> link)</p></li>
+<li><p>Open simplesshd and click <code>start</code>. The log will show some relevant information:</p>
+<ul>
+<li>host: something like ip <strong>192.168.x.y</strong></li>
+<li>port: default is <strong>2222</strong></li>
+</ul></li>
+<li><p>Run rsync restore command on the PC. Replace <code>&lt;host&gt;</code> and <code>&lt;port&gt;</code> with the correct values for 2nd phone!</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rsync</span> <span class="at">-uv</span> <span class="at">--omit-dir-times</span> <span class="at">--no-perms</span> <span class="at">--recursive</span> <span class="at">--inplace</span> <span class="at">--delete</span> <span class="at">-e</span> <span class="st">&#39;ssh -p &lt;port&gt;&#39;</span> <span class="st">&#39;/path/to/backup-dir/&#39;</span> <span class="op">&lt;</span>host<span class="op">&gt;</span>:<span class="st">&#39;/sdcard/dest-dir/&#39;</span></span></code></pre></div>
+<ul>
+<li>Rsync will copy files from PC <code>backup-dir</code> folder to 2nd phone <code>dest-dir</code> folder</li>
+<li><code>inplace</code> avoids double sdcard write (caused by copy and rename)</li>
+<li><code>no-perms</code> is useful when perms are not supported, eg.: mtp mounts</li>
+<li><code>omit-dir-times</code> ignores timestamps</li>
+<li><code>delete</code> removes from 2nd phone folder the files not in the PC folder</li>
+<li><u>Note</u>: final <code>/</code> on each folder are required!</li>
+</ul></li>
+</ol>
+
+
+<div id="gh-comments-list">
+    Comments are not open for this post yet.
+</div>
+]]></summary>
+</entry>
+<entry>
     <title>Haskell from 0 to IO (Maybe Hero)</title>
     <link href="http://rainbyte.github.io/posts/200828-01-haskell-0-to-io.html" />
     <id>http://rainbyte.github.io/posts/200828-01-haskell-0-to-io.html</id>
@@ -1511,55 +1573,6 @@ other_cmd</code></pre>
 <pre><code>set -U fish_user_paths $fish_user_paths /path/to/node_modules/bin</code></pre>
 <p>In this way we preserve previously added paths, and the new dir is only appended to <code>fish_user_paths</code>.</p>
 <p>The shell automatically adds the custom paths to the <code>PATH</code> var each time a session is started.</p>
-
-
-<div id="gh-comments-list">
-    Comments are not open for this post yet.
-</div>
-]]></summary>
-</entry>
-<entry>
-    <title>How-to update a git submodule</title>
-    <link href="http://rainbyte.github.io/posts/150702-02-how-to-update-a-git-submodule.html" />
-    <id>http://rainbyte.github.io/posts/150702-02-how-to-update-a-git-submodule.html</id>
-    <published>2015-07-02 04:29:59</published>
-    <updated>2015-07-02T04:29:59Z</updated>
-    <summary type="html"><![CDATA[<div class="info">
-    Posted on July  2, 2015
-    
-        by rainbyte
-    
-</div>
-
-<div class="info">
-    
-        Tags: <a title="All pages tagged &#39;workflow&#39;." href="/tags/workflow.html">workflow</a>, <a title="All pages tagged &#39;git&#39;." href="/tags/git.html">git</a>
-    
-</div>
-
-<p>I do not use git submodules too often, so I’ll write this recipe here, for future reference.</p>
-<!-- more -->
-<p>When we have a git repo with a submodule inside, some steps are needed to update both in sync.<br />
-This occurs because, the parent repo and the submodule, are actually two independent repos.</p>
-<p>This is the workflow I use to update a submodule:</p>
-<ol type="1">
-<li><p>Work inside the submodule:</p>
-<p><code>$ # edit &lt;some files&gt;</code></p>
-<p><code>$ git add &lt;some files&gt;</code></p></li>
-<li><p>Now we have some changes ready to commit and push them:</p>
-<p><code>$ git commit -m "Edited &lt;some files&gt;</code></p>
-<p><code>$ git push</code></p></li>
-<li><p>Finally, we tell the parent repo that the submodule has changed:</p>
-<p><code>$ cd the/parent/repo/path</code></p>
-<p><code>$ git add the/submodule/repo/path</code></p>
-<p><code>$ git commit -m "Updated the submodule"</code></p>
-<p><code>$ git push</code></p></li>
-</ol>
-<p>Syncing everytime a change is made to the submodule <strong>is not advisable</strong>, think carefully before doing it.<br />
-Sometimes we should <strong>NOT do it</strong> at all (e.g. there are
-compatibility breaking changes).</p>
-<p>The parent repo could point to a previous (<em>and safe</em>) version of the submodule all the required time.<br />
-At least while is being adapted to assimilate the submodule updates.</p>
 
 
 <div id="gh-comments-list">
