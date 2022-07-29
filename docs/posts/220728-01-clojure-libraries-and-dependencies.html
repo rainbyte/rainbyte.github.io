@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" /> 
+        <title>(λblog.rainbyte) - Clojure libraries and dependencies</title>
+        <link rel="stylesheet" type="text/css" href="../css/default.css?v=" />
+        <link rel="stylesheet" type="text/css" href="../css/highlight.css?v=" />
+    </head>
+    <body>
+        <header>
+            <div id="logo">
+                <a href="../">(λblog.rainbyte)</a>
+            </div>
+            <nav id="navigation">
+                <a href="../">Home</a>
+                <a href="../about.html">About</a>
+                <a href="../cheatsheet.html">Cheatsheet</a>
+                <a href="../posts.html">Archive</a>
+                <a href="../atom.xml">Feed</a>
+            </nav>
+        </header>
+
+        <section id="content">
+            <h1>Clojure libraries and dependencies</h1>
+            <div class="info">
+    Posted on July 28, 2022
+    
+        by rainbyte
+    
+</div>
+
+<div class="info">
+    
+        Tags: <a title="All pages tagged 'clojure'." href="../tags/clojure.html">clojure</a>
+    
+</div>
+
+<p>The Clojure language provides some keywords to handle libraries in each file:</p>
+<ul>
+<li><code>:require</code> loads a Clojure library so it can be used in the current file or
+in the REPL</li>
+<li><code>:use</code> brings definitions to current namespace via aliases</li>
+<li><code>:import</code> gives access to native Java classes and interfaces</li>
+</ul>
+<p>Note: in ClojureScript the native JavaScript code can be usually accessed using
+<code>:require</code>, but sometimes <code>:import</code> is needed (eg. for Google Closure library).</p>
+<h2 id="how-to-use-these-keywords">How to use these keywords</h2>
+<p>Load <code>foo.bar</code> and invoke a function from that library with the
+full namespace:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode clojure"><code class="sourceCode clojure"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>(<span class="kw">ns</span> user</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  (<span class="at">:require</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    [foo.bar]</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    [foo.baz]))</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>(foo.bar/a-function)</span></code></pre></div>
+<p>Load a library making an alias to simplify access to a function:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode clojure"><code class="sourceCode clojure"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>(<span class="kw">ns</span> user</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  (<span class="at">:require</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    [foo.bar <span class="at">:as</span> bar]</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    [foo.baz <span class="at">:as</span> baz]))</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>(bar/a-function)</span></code></pre></div>
+<p>Load with <code>:refer</code> only the definitions we are interested in:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode clojure"><code class="sourceCode clojure"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>(<span class="kw">ns</span> user</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  (<span class="at">:require</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    [foo.bar <span class="at">:refer</span> [a-function]]))</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>(a-function)</span></code></pre></div>
+<p>Load with <code>:refer</code> only some definitions and also make aliases with <code>:rename</code>
+for our convenience:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode clojure"><code class="sourceCode clojure"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>(<span class="kw">ns</span> user</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  (<span class="at">:require</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    [foo.bar <span class="at">:refer</span> [a-function]</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>             <span class="at">:rename</span> [a-function func]]))</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>(func)</span></code></pre></div>
+<p>The <code>:use</code> keyword can be applied with <code>:only</code> to indicate which definitions
+will be provided:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode clojure"><code class="sourceCode clojure"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>(<span class="kw">ns</span> user</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  (<span class="at">:use</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    [foo.bar <span class="at">:only</span> [a-function]]))</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>(a-function)</span></code></pre></div>
+<p>The <code>:use</code> keyword can also be applied without <code>:only</code>, but <strong>beware! It can cause
+conflicts</strong>, eg. the following snippet will have a problem if <code>foo.bar</code> and
+<code>foo.baz</code> namespaces provide definitions with the same name:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode clojure"><code class="sourceCode clojure"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>(<span class="kw">ns</span> user</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  (<span class="at">:use</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    [foo.bar]   <span class="co">;; avoid :use without :only, it can cause conflicts!</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    [foo.baz]))</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>(a-function)</span></code></pre></div>
+<p>Import a native Java class of <code>java.util</code> package and invoke the <code>Date.</code> method:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode clojure"><code class="sourceCode clojure"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>(<span class="kw">ns</span> user</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  (<span class="at">:import</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    (java.util Date)))</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>(Date.) <span class="co">; call a Java method to get the current date</span></span></code></pre></div>
+
+
+<div id="gh-comments-list">
+    Comments are not open for this post yet.
+</div>
+
+        </section>
+        <footer>
+            Site proudly generated by
+            <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+        </footer>
+    </body>
+</html>

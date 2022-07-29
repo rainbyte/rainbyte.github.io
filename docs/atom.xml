@@ -8,8 +8,95 @@
         <name>rainbyte</name>
         <email>rainbyte@tuta.io</email>
     </author>
-    <updated>2022-05-11T23:41:00Z</updated>
+    <updated>2022-07-28T21:49:00Z</updated>
     <entry>
+    <title>Clojure libraries and dependencies</title>
+    <link href="http://rainbyte.github.io/posts/220728-01-clojure-libraries-and-dependencies.html" />
+    <id>http://rainbyte.github.io/posts/220728-01-clojure-libraries-and-dependencies.html</id>
+    <published>2022-07-28 21:49:00</published>
+    <updated>2022-07-28T21:49:00Z</updated>
+    <summary type="html"><![CDATA[<div class="info">
+    Posted on July 28, 2022
+    
+        by rainbyte
+    
+</div>
+
+<div class="info">
+    
+        Tags: <a title="All pages tagged &#39;clojure&#39;." href="/tags/clojure.html">clojure</a>
+    
+</div>
+
+<p>The Clojure language provides some keywords to handle libraries in each file:</p>
+<ul>
+<li><code>:require</code> loads a Clojure library so it can be used in the current file or
+in the REPL</li>
+<li><code>:use</code> brings definitions to current namespace via aliases</li>
+<li><code>:import</code> gives access to native Java classes and interfaces</li>
+</ul>
+<p>Note: in ClojureScript the native JavaScript code can be usually accessed using
+<code>:require</code>, but sometimes <code>:import</code> is needed (eg. for Google Closure library).</p>
+<h2 id="how-to-use-these-keywords">How to use these keywords</h2>
+<p>Load <code>foo.bar</code> and invoke a function from that library with the
+full namespace:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode clojure"><code class="sourceCode clojure"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>(<span class="kw">ns</span> user</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  (<span class="at">:require</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    [foo.bar]</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    [foo.baz]))</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>(foo.bar/a-function)</span></code></pre></div>
+<p>Load a library making an alias to simplify access to a function:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode clojure"><code class="sourceCode clojure"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>(<span class="kw">ns</span> user</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  (<span class="at">:require</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    [foo.bar <span class="at">:as</span> bar]</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    [foo.baz <span class="at">:as</span> baz]))</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>(bar/a-function)</span></code></pre></div>
+<p>Load with <code>:refer</code> only the definitions we are interested in:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode clojure"><code class="sourceCode clojure"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>(<span class="kw">ns</span> user</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  (<span class="at">:require</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    [foo.bar <span class="at">:refer</span> [a-function]]))</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>(a-function)</span></code></pre></div>
+<p>Load with <code>:refer</code> only some definitions and also make aliases with <code>:rename</code>
+for our convenience:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode clojure"><code class="sourceCode clojure"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>(<span class="kw">ns</span> user</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  (<span class="at">:require</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    [foo.bar <span class="at">:refer</span> [a-function]</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>             <span class="at">:rename</span> [a-function func]]))</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>(func)</span></code></pre></div>
+<p>The <code>:use</code> keyword can be applied with <code>:only</code> to indicate which definitions
+will be provided:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode clojure"><code class="sourceCode clojure"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>(<span class="kw">ns</span> user</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  (<span class="at">:use</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    [foo.bar <span class="at">:only</span> [a-function]]))</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>(a-function)</span></code></pre></div>
+<p>The <code>:use</code> keyword can also be applied without <code>:only</code>, but <strong>beware! It can cause
+conflicts</strong>, eg. the following snippet will have a problem if <code>foo.bar</code> and
+<code>foo.baz</code> namespaces provide definitions with the same name:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode clojure"><code class="sourceCode clojure"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>(<span class="kw">ns</span> user</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  (<span class="at">:use</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    [foo.bar]   <span class="co">;; avoid :use without :only, it can cause conflicts!</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    [foo.baz]))</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>(a-function)</span></code></pre></div>
+<p>Import a native Java class of <code>java.util</code> package and invoke the <code>Date.</code> method:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode clojure"><code class="sourceCode clojure"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>(<span class="kw">ns</span> user</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  (<span class="at">:import</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    (java.util Date)))</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>(Date.) <span class="co">; call a Java method to get the current date</span></span></code></pre></div>
+
+
+<div id="gh-comments-list">
+    Comments are not open for this post yet.
+</div>
+]]></summary>
+</entry>
+<entry>
     <title>Autenticación en GitHub usando SSH</title>
     <link href="http://rainbyte.github.io/posts/220511-01-github-ssh-auth.html" />
     <id>http://rainbyte.github.io/posts/220511-01-github-ssh-auth.html</id>
@@ -1472,126 +1559,6 @@ Exec=${comando}</code></pre>
 <span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Combine</span> () () <span class="ot">=</span> ()</span></code></pre></div>
 <p>Cuando tienes tu <code>PrimitiveArray</code>, la información de tipo ya sea si fue instanciado, indexado o ambos, se ha ido. Esto significa que puedes usar <code>mappend</code> sobre un array de primitivas instanciado junto con uno no instanciado, y que el shader al cual envías un array de primitivas no le importa si era instanciado o indexado.</p>
 <p>Esta vez no hay ejemplos de código, así que voy a dejar como ejercicio aplicar lo que aprendiste esta vez en el ejemplo de <a href="(/posts/160426-01-gpipe-part-01.html)">la parte anterior</a>. La próxima vez finalmente vamos a abordar <code>Shader</code>!</p>
-
-
-<div id="gh-comments-list">
-    Comments are not open for this post yet.
-</div>
-]]></summary>
-</entry>
-<entry>
-    <title>Programación de GPU en Haskell usando GPipe - Parte 1</title>
-    <link href="http://rainbyte.github.io/posts/160426-01-gpipe-part-01.html" />
-    <id>http://rainbyte.github.io/posts/160426-01-gpipe-part-01.html</id>
-    <published>2016-04-27 03:23:00</published>
-    <updated>2016-04-27T03:23:00Z</updated>
-    <summary type="html"><![CDATA[<div class="info">
-    Posted on April 27, 2016
-    
-        by rainbyte
-    
-</div>
-
-<div class="info">
-    
-        Tags: <a title="All pages tagged &#39;gpipe&#39;." href="/tags/gpipe.html">gpipe</a>, <a title="All pages tagged &#39;gpu&#39;." href="/tags/gpu.html">gpu</a>, <a title="All pages tagged &#39;haskell&#39;." href="/tags/haskell.html">haskell</a>, <a title="All pages tagged &#39;opengl&#39;." href="/tags/opengl.html">opengl</a>
-    
-</div>
-
-<p>Nota: estas leyendo la traducción al castellano de una serie de tutoriales en ingles sobre GPipe; la versión original, escrita por Tobias Bexelius (creador de GPipe), se encuentra <a href="http://tobbebex.blogspot.com.ar/2015/09/gpu-programming-in-haskell-using-gpipe.html">aqui</a>.</p>
-<p>Bienvenidos a la primera parte de una serie de tutoriales sobre programación de GPU en Haskell! Vamos a usar <a href="https://hackage.haskell.org/package/GPipe">GPipe 2.1</a>, el cual fue <a href="http://tobbebex.blogspot.se/2015/09/gpipe-is-dead-long-live-gpipe.html">recientemente publicado</a>. GPipe 2 es un API funcional basada en OpenGl 3.3, pero este tutorial no requiere conocimiento previo sobre OpenGl, asi que si sabes Haskell (lo cual <em>es</em> un prerequisito), y alguna vez quisiste aprender programación grafica, ahora es el momento!</p>
-<h2 id="hello-triangle">Hello triangle</h2>
-<p>Comencemos con un pequeño ejemplo, el programa “Hello world!”:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ot">{-# LANGUAGE ScopedTypeVariables, PackageImports, TypeFamilies #-}</span>   </span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="dt">Main</span> <span class="kw">where</span>   </span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>   </span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Graphics.GPipe</span>   </span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">qualified</span> &quot;<span class="dt">GPipe</span>-<span class="dt">GLFW</span>&quot; <span class="dt">Graphics.GPipe.Context.GLFW</span> <span class="kw">as</span> <span class="dt">GLFW</span>  </span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Control.Monad</span> (unless)  </span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span>    </span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  runContextT GLFW.newContext (<span class="dt">ContextFormatColor</span> <span class="dt">RGB8</span>) <span class="op">$</span> <span class="kw">do</span>  </span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="ot">    vertexBuffer ::</span> <span class="dt">Buffer</span> os (<span class="dt">B4</span> <span class="dt">Float</span>, <span class="dt">B3</span> <span class="dt">Float</span>) <span class="ot">&lt;-</span> newBuffer <span class="dv">3</span>  </span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    writeBuffer vertexBuffer <span class="dv">0</span> [ (<span class="dt">V4</span> (<span class="op">-</span><span class="dv">1</span>) <span class="dv">1</span> <span class="dv">0</span> <span class="dv">1</span>, <span class="dt">V3</span> <span class="dv">1</span> <span class="dv">0</span> <span class="dv">0</span>)  </span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>                               , (<span class="dt">V4</span> <span class="dv">0</span> (<span class="op">-</span><span class="dv">1</span>) <span class="dv">0</span> <span class="dv">1</span>, <span class="dt">V3</span> <span class="dv">0</span> <span class="dv">1</span> <span class="dv">0</span>)  </span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>                               , (<span class="dt">V4</span> <span class="dv">1</span> <span class="dv">1</span> <span class="dv">0</span> <span class="dv">1</span>,  <span class="dt">V3</span> <span class="dv">0</span> <span class="dv">0</span> <span class="dv">1</span>)  </span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>                               ]  </span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>                        </span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    shader <span class="ot">&lt;-</span> compileShader <span class="op">$</span> <span class="kw">do</span>  </span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>      primitiveStream <span class="ot">&lt;-</span> toPrimitiveStream <span class="fu">id</span>  </span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>      fragmentStream <span class="ot">&lt;-</span> rasterize (<span class="fu">const</span> (<span class="dt">FrontAndBack</span>, <span class="dt">ViewPort</span> (<span class="dt">V2</span> <span class="dv">0</span> <span class="dv">0</span>) (<span class="dt">V2</span> <span class="dv">500</span> <span class="dv">500</span>), <span class="dt">DepthRange</span> <span class="dv">0</span> <span class="dv">1</span>)) primitiveStream   </span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>      drawContextColor (<span class="fu">const</span> (<span class="dt">ContextColorOption</span> <span class="dt">NoBlending</span> (<span class="dt">V3</span> <span class="dt">True</span> <span class="dt">True</span> <span class="dt">True</span>))) fragmentStream  </span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    loop vertexBuffer shader   </span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>loop vertexBuffer shader <span class="ot">=</span> <span class="kw">do</span>    </span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>  render <span class="op">$</span> <span class="kw">do</span>   </span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    clearContextColor (<span class="dt">V3</span> <span class="dv">0</span> <span class="dv">0</span> <span class="dv">0</span>)   </span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    vertexArray <span class="ot">&lt;-</span> newVertexArray vertexBuffer  </span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> primitiveArray <span class="ot">=</span> toPrimitiveArray <span class="dt">TriangleList</span> vertexArray  </span>
-<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>    shader primitiveArray   </span>
-<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>  swapContextBuffers  </span>
-<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>  closeRequested <span class="ot">&lt;-</span> GLFW.windowShouldClose   </span>
-<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>  unless closeRequested <span class="op">$</span>  </span>
-<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>    loop vertexBuffer shader </span></code></pre></div>
-<p>Como puedes ver en la lista de <code>import</code>, se requiere un paquete opcional: <a href="https://hackage.haskell.org/package/GPipe-GLFW">GPipe-GLFW</a> (version 1.1 o superior). Este paquete provee la funcionalidad necesaria para crear ventanas, en las cuales GPipe puede dibujar, asi como las funciones para obtener entrada de teclado y mouse. Esta funcionalidad solia ser parte de las versiones anteriores de GPipe pero, ya que muchos querian ser capaces de elegir libremente que gestor de ventanas usar, se movio a su propio paquete. Al momento de escribir este articulo solo existen bindings para GLFW, pero seguramente apareceran otros más.</p>
-<p>Cuando realizas <code>import Graphics.GPipe</code> tambien obtienes los paquetes <a href="https://hackage.haskell.org/package/linear">linear</a> y <a href="https://hackage.haskell.org/package/Boolean">Boolean</a> completos, ya que son utilizados constantemente en aplicaciones GPipe.</p>
-<p>Ahora estamos listos para compilar (usa <code>-threaded</code> como parametro para GHC, ya que GPipe-GLFW lo requiere) y ejecutar nuestro programa, el cual nos mostrará un triangulo bastante colorido en la esquina inferior izquierda de la ventana:</p>
-<figure>
-<img src="/images/gpipe-part-01-triangle.png" alt="  " />
-<figcaption aria-hidden="true">Un triangulo colorido</figcaption>
-</figure>
-<h2 id="el-contexto">El contexto</h2>
-<p>Lo primero que hacemos en la función <code>main</code> es ejecutar <code>runContextT</code>. Un <em>contexto</em> posee dos cosas: una <em>ventana</em>, y un <em>espacio de objetos</em>. La ventana es donde tus graficos renderizados se mostraran en pantalla, y el espacio de objetos es lo que va a contener todos los datos para la GPU que tu programa define, muy parecido a lo que es un proceso para los datos usados por la CPU. <code>runContextT</code> crea un nuevo contexto para nostros. Toma tres argumentos: una <em>fabrica</em>, un <em>formato</em>, y una <em>acción monadica</em>.</p>
-<p>La fabrica es lo que le damos a GPipe asi sabe que ventana usar. Para utilizar el paquete GPipe-GLFW, que importamos previamente, pasamos <code>GLFW.newContext</code> como fabrica.</p>
-<p>El formato describe que clase de imagenes vamos a estar dibujando en la ventana, por ej. cuantos canales de color va a tener y cuantos bit por color. Tambien describe si vamos a tener un <strong>depth buffer</strong> o un <strong>stencil buffer</strong> asociado a la ventana (voy a discutir que son más adelante en este tutorial, cuando detalle como dibujar). Puedes incluso crear un contexto que no posee una ventana, por ej. si quieres usar la GPU para generar imagenes y guardarlas a disco, en vez de mostrarlas en la pantalla. Ahora vamos a quedarnos con un formato de color RGB de 8 bits por cada uno de sus tres canales, sin <em>depth buffer</em> ni <em>stencil buffer</em>. El valor que describe este formato es <code>ContextFormatColor RGB8</code>.</p>
-<p>El ultimo parametro para <code>runContextT</code> es la acción monadica en la cual todo nuestro programa ocurre. Cuando esta acción retorna, la ventana es cerrada. Esta acción monadica tiene el tipo <code>ContextT w os f m a</code>. Esto es un <em>monad transformer</em>, es decir una monada que hereda las capacidades de otra monada de tipo <code>m</code>. Para <code>ContextT</code>, <code>m</code> es el tipo de la monada en la cual ejecutamos <code>runContextT</code>. En este, y muchos otros casos, es simplemente la monada <code>IO</code>. Dentro de un monad transformer puedes usar la función <code>lift</code> para ejecutar una acción en la monada heredada.</p>
-<p>GPipe usa algunos trucos con los tipos de datos, para asegurar que las variables que retornan sus acciones dentro del contexto, no salen de el. Este es el mismo mecanismo que usa la monada <code>ST</code> para asegurarse que ninguna <code>STRef</code> es retornada ni usada en otra invocación a <code>runST</code>. El truco es que <code>runContextT</code> usa algo llamado <code>rank-2 type</code>:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ot">runContextT ::</span> (<span class="dt">MonadIO</span> m, <span class="dt">MonadAsyncException</span> m)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>            <span class="ot">=&gt;</span> <span class="dt">ContextFactory</span> c ds w </span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>            <span class="ot">-&gt;</span> <span class="dt">ContextFormat</span> c ds </span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>            <span class="ot">-&gt;</span> (<span class="kw">forall</span> os<span class="op">.</span> <span class="dt">ContextT</span> w os (<span class="dt">ContextFormat</span> c ds) m a) </span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>            <span class="ot">-&gt;</span> m a</span></code></pre></div>
-<p>Fijate que hay un modificador <code>forall</code> para <code>os</code>, local al argumento de la acción monadica <code>ContextT</code>. Esto hace que cualquier objeto que referencie a <code>os</code> este limitado a esta acción monadica.</p>
-<p>Es posible ejecutar otro <code>runContextT</code> dentro de una monada <code>ContextT</code>, el cual va a crear una segunda ventana con su propio contexto. Ya que estos contextos poseen su propio espacio de objetos, no pueden compartir entre ellos objetos que referencien al parametro de tipo <code>os</code>. Esto es una limitación bastante grande y, la mayor parte de la veces que trabajes con varias ventanas, vas a querer dejarlos usar el mismo espacio de objetos. Esto se logra usando <code>runSharedContextT</code>. Esta acción debe ser utilizada dentro de otro <code>ContextT</code>, y la acción monadica que se pasa a esta función va a usar el mismo espacio de objetos que el <code>ContextT</code> que la rodea, pero va a tener una ventana propia.</p>
-<p>El parametro <code>w</code> en el tipo <code>ContextT</code> es algo definido por la fabrica del contexto. Cuando usamos <code>GLFW.newContext</code>, <code>w</code> va a ser <code>GLFWWindow</code>. Esto es un tipo opaco, asi que no puede usarlo directamente. A pesar de esto, nos permite usar <code>windowShouldClose</code> y otras acciones del paquete GPipe-GLFW dentro de nuestro contexto. En nuestro programa <em>hello world</em>, <code>windowShouldClose</code> es usado para salir del <code>loop</code> cuando el usuario cierra la ventana, al hacer click sobre la X en la esquina superior.</p>
-<h2 id="renderizado---de-eso-se-trata-realmente">Renderizado - De eso se trata realmente</h2>
-<p>Ahora que tenemos nuestro contexto, hagamos algo de renderizado. Cualquier renderizado que haga en GPipe, va a seguir esta secuencia de operaciones:</p>
-<figure>
-<img src="/images/gpipe-part-01-sequence.svg" alt="    " />
-<figcaption aria-hidden="true">Secuencia de operaciones de GPipe</figcaption>
-</figure>
-<p>Por lo pronto, todo renderizado de GPipe va a crear, a partir de un buffer de datos, un array de <em>vertices</em> que serán ensamblados en un array de <em>primitivas</em>. Hay tres clases de primitivas: puntos, lineas, y triangulos; pero vamos a trabajar casi exclusivamente con triangulos. El array de primitivas entonces se transforma en un stream de primitivas dentro de un <em>shader</em>, permitiendonos aplicar transformaciones a esos vertices. Las primitivas luego son rasterizadas, es decir son cortadas en <em>fragmentos</em> medidos en pixels, formando un stream de fragmentos. Este stream es luego dibujado en la ventana del contexto, o en una imagen fuera de pantalla.</p>
-<p>En la monada <code>ContextT</code>, comenzamos creando un buffer de datos que es almacenado en la GPU. En nuestro ejemplo <em>hello world</em> de más arriba, nuestro buffer es llamado <code>vertexBuffer</code> y tiene 3 elementos, siendo cada uno una tupla <code>(B4 Float, B3 Float)</code>. <code>B4</code> y <code>B3</code> son para un buffer las <em>“representaciones”</em> de <code>V4</code> y <code>V3</code>, los tipos vectoriales del paquete <em>linear</em>. Voy a dar más detalles sobre que son estas <em>“representaciones”</em> en la siguiente parte de este tutorial, pero por ahora puedes pensar a <code>B4</code> como otro nombre para <code>V4</code> cuando lo usamos en un <code>Buffer</code>. Despues de crear el buffer, escribimos tres valores dentro de él, a partir de una lista comun.</p>
-<p>Con una función llamada <code>render</code> ejecutamos otra monada, convenientemente llamada… <code>Render</code>. En esta monada usamos nuestro <code>Buffer</code> para crear un <code>VertexArray</code> con la función <code>newVertexArray</code>. Viniendo de nuestro <code>vertexBuffer</code>, <code>vertexArray</code> tendrá 3 vertices, cada uno de los cuales tiene una tupla <code>(B4 Float, B3 Float)</code>. Ahora debes preguntarte cual es la diferencia entre un <code>VertexArray</code> y una <code>Buffer</code>. Una pregunta verdaderamente razonable, pero me temo que vamos a tener que esperar hasta la siguiente parte de este tutorial para responderla, lo siento.</p>
-<p>Ahora que tenemos un <code>VertexArray</code>, vamos a usarlo para crear un <code>PrimitiveArray</code> de triangulos, usando la función <code>toPrimitiveArray</code>. El argumento <code>TriangleList</code>, que pasamos a la función, indica que queremos formar triangulos a partir de cada tres vertices consecutivos en un <code>vertexArray</code>. Como solo hay tres vertices, <code>primitiveArray</code> va a contener un solo triangulo.</p>
-<p>Mirando el grafico de arriba, tenemos que convertir este <code>PrimitiveArray</code> en un <code>PrimitiveStream</code> (estaras pensando, ¿otro nombre más para la misma cosa?) pero, ¿porque en el código solo vemos <code>shader primitiveArray</code>?</p>
-<h2 id="shaders---un-pequeño-acercamiento">Shaders - Un pequeño acercamiento</h2>
-<p>La caja gris en el grafico de arriba es llamada <code>Shader</code>. Supongo que será poco sorprendente a esta altura pero, ¡tambien es una monada! La diferencia con ambas monadas, <code>ContextT</code> y <code>Render</code>, es que no podemos ejecutarla directamente, tiene que ser primero <em>compilada</em>. Esta compilación es distinta a la que haces cuando ejecutas ghc, cabal, stack, o cualquier acceso directo que tengas en emacs. Esta compilación ocurre durante el tiempo de ejecución del programa, y usa un compilador que provee tu controlador grafico. La compilación puede tomar varios segundos, definitivamente no es algo que quieres hacer durante cada frame en por ej. un juego creado con GPipe.</p>
-<p>Una monada <code>Shader</code> es compilada mediante la función <code>compileShader</code>, que es ejecutada en tu monada <code>ContextT</code>. <code>compileShader</code> retornará una función que luego puedes ejecutar en una monada <code>Render</code>. En nuestro ejemplo de arriba, compilamos el shader en una función a la que llamamos simplemente <code>shader</code>. Este <code>shader</code> es lo que vemos ejecutarse como ultima acción en la monada <code>Render</code>, pasandole <code>primitiveArray</code> como argumento.</p>
-<p>Demos ahora una mirada al <code>Shader</code> en nuestro ejemplo. La primera acción que ejecutamos es <code>toPrimitiveStream</code>. Esto cargará un <code>PrimitiveArray</code> en algo llamado <code>PrimitiveStream</code>. El <code>PrimitiveArray</code> a cargar es seleccionado mediante la función pasada como argumento a <code>toPrimitiveStream</code>, en este caso <code>id</code>. Una monada <code>Shader</code> es casi como una monada <code>Reader</code>, ya que es cerrada sobre un entorno. Pero a diferencia de la monada <code>Reader</code>, no hay una acción <code>ask</code> por la cual puedes recuperar el entorno. En vez de esto, otras acciones, como <code>toPrimitiveStream</code>, van a tomar una función que extrae valores de este entorno. Cada valor del entorno no es definido hasta que el shader es <em>ejecutado</em>, es decir ni siquiera cuando es compilado. ¿Recuedas que pasamos <code>primitiveArray</code> como argumento a nuestra función <code>shader</code> compilada? Ese es el entorno que usamos en nuestro programa. Ya que la función pasada a <code>toPrimitiveStream</code> quiere extraer un <code>PrimitiveArray</code> del entorno, y nuestro entorno es un <code>PrimitiveArray</code>, simplemente usamos <code>id</code>.</p>
-<p>Un <code>PrimitiveStream</code> es tambien una secuencia de primitivas, pero vive dentro del shader y por lo tanto podriamos mapear funciones sobre él, las cuales correran sobre la GPU. <code>PrimitiveStream</code> implementa el typeclass <code>Functor</code>, y <code>fmap f primitiveStream</code> retornará un nuevo <code>PrimitiveStream</code> que es resultado de aplicar la función <code>f</code> a cada vertice de cada primitiva en <code>primitiveStream</code>. Mapear funciones sobre streams con <code>fmap</code> en shaders es muchas veces más rapido que hacer la misma clase de operación en listas ordinarias, ya que estamos usando la GPU en vez del CPU. En nuestro ejemplo “Hello world”, no estamos realmente haciendo nada con las primitivas en nuestro <code>primitiveStream</code> antes de pasarla a la función <code>rasterize</code>. Pero antes de entrar en ese tema, dejame mencionar cual es el tipo de datos inferido de <code>primitiveStream</code>:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ot">primitiveStream ::</span> <span class="dt">PrimitiveStream</span> <span class="dt">Triangles</span> (<span class="dt">V4</span> <span class="dt">VFloat</span>, <span class="dt">V3</span> <span class="dt">VFloat</span>)</span></code></pre></div>
-<p>Como puedes ver, los tipos <code>B4</code> y <code>B3</code> que teniamos en nuestro buffer (y nuestros vertex array y primitive array), fueron transformados nuevamente en <code>V4</code> y <code>V3</code>, pero ¡los <code>Float</code> dentro de ellos fueron aparentemente transformados en <code>VFloat</code>! <code>VFloat</code> es en realidad un sinonimo para el tipo <code>S V Float</code>, el cual representa un <code>Float</code> desplazado a un stream de vertices en la GPU, es decir ya no es más un <code>Float</code> ordinario que puedes usar en cualquier función, solo puedes hacer con el cosas que la GPU soporta. Voy a discutir este tipo de datos con más detalle cuando revisemos los shaders con mayor profundidad en una parte posterior de este tutorial.</p>
-<h2 id="rasterización">Rasterización</h2>
-<p>Incluso aunque nunca mapeemos ninguna función a nuestro <code>primitiveStream</code> para ejecutarla en la GPU, ni tampoco al <code>fragmentShader</code> que estamos por crear, todavia hay una operación que siempre hacemos en un shader la cual aprovecha el paralelismo masivo de la GPU: rasterización.</p>
-<p>Rasterización es el proceso de mapear una primitiva, por ej. un triangulo, a una grilla y generar fragmentos medidos en pixels. Los vertices de las primitivas de entrada son usados de dos maneras: primero, todos deben proveer una posición del vertice, asi el rasterizador sabe cuantos fragmentos generar; y segundo, proveer valores que seran interpolados linealmente entre todos los vertices de la primitiva, para crear valores unicos en cada fragmento generado.</p>
-<p>El primer argumento para <code>rasterize</code>, es una función que extrae tres parametros del entorno del shader: que lado de la primitiva rasterizar, las posición y el tamaño del <em>view port</em>, y el rango de profundidad (<em>depth range</em>) del fragmento. En nuestro ejemplo, sabemos todos los parametros de antemano y no necesitamos obtenerlos del entorno del shader, por eso es que usamos la función <code>const</code>. Los parametros que proveemos a <code>rasterize</code> le dicen que debe rasterizar ambos lados de cada triangulo, que el view port tiene (0,0) como coordenada inferior izquierda y tanto altura como ancho de 500 pixels, y finalmente que el rango de profundidad es [0,1]. Más sobre esto en un momento.</p>
-<p>Las posiciones de los vertices son coordenadas 3D en un espacio de vista canonico (<em>canonical view space</em>). Durante la rasterización, estos van a ser transformados en el view port en espacio de pantalla en pixels, donde la posición (-1,-1,z) en el espacio de vista canonico va a ser mapeado a la esquina inferior izquierda del view port (en nuestro caso (0,0)), y (1,1,z) va a ser mapeado a la esquina superior derecha (en nuestro caso (500,500)). Para ser más precisos, el fragmento en la esquina inferior izquierda en nuestro caso va a tener realmente la coordenada de pixel (0.5,0.5), y el fragmento superior derecho que generaremos tendrá coordenada (499.5,499.5).</p>
-<p>Todo fragmento tambien tiene un valor de profundidad en el rango [0,1]. En la rasterización nosotros especificamos, con el parametro <code>DepthRange</code>, como mapear la coordenada canonica z a este rango. Una coordenada z con valor -1 será mapeada al primer parametro de <code>DepthRange</code>, y una coordenada z con valor 1 será mapeada al segundo parametro de <code>DepthRange</code>. En nuestro ejemplo, nosotros mapeamos las coordenadas z en el espacio de vista canonico de rango [0,1] al rango de profundidad [0,1]. La convencion usada por <a href="https://hackage.haskell.org/package/linear-1.19.1.3/docs/Linear-Projection.html">Linear.Projection</a>, y muchas otras librerias matemáticas para OpenGl, es que la coordenada z de 1 en el espacio de vista canonico es considerada la mas alejada y -1 la mas cercana, pero en realidad eres libre de usar cualquier combinacion que gustes. Cualquier fragmento con un valor fuera del rango de profundidad [0,1] será descartado, asi cualquier parte de las primitivas que intersectan la caja [(-1,-1,-1),(1,1,1)] en el espacio de vista canonico se convertirá en fragmentos en el view port. Esta caja es normalmente conocida como volumen de vista canonica (<em>canonical view volume</em>).</p>
-<p>La posición de un vertice en el espacio de vista canonico se provee en realidad como un <code>V4 VFloat</code>, conocido como una coordenada 3D homogenea, donde <code>V4 x y z w</code> posee la posición 3D (x/w,y/w,z/w). Los tres vertices del triangulo en nuestro ejemplo usan 1 para la componente w, asi en este caso son simplemente coordenadas 3D comunes. Cuando se aplica “proyeccion perspectiva” (donde los objetos aparecen más pequeños cuanto más lejos estan, lo cual es standard en la mayoria de las aplicaciones 3D), la componente w no será 1. La razon por la cual el rasterizador quiere que w sea pasada de forma explicita en vez de hacer que dividamos los componentes por nuestra cuenta (mapeando una función de esa indole sobre el stream de primitivas), es que esta componente w es tambien usada cuando se realiza la interpolación de todos los demas valores del vertice. Voy a demostrar como funciona esta interpolación con corrección de perspectiva en una parte posterior, cuando veamos textures y samplers.</p>
-<p>Ahora que hemos calculado que fragmentos generar para cada primitiva, y cuales posiciones de pantalla y valores de profundidad van a tener, podemos interpolar los demas valores de los vertices. El segundo argumento de la función <code>rasterize</code> es un stream de primitivas con tipo</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="dt">FragmentInput</span> a <span class="ot">=&gt;</span> <span class="dt">PrimitiveStream</span> p (<span class="dt">V4</span> <span class="dt">VFloat</span>, a)</span></code></pre></div>
-<p>Y retorna un stream de fragmentos con tipo</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="dt">FragmentInput</span> a <span class="ot">=&gt;</span> <span class="dt">FragmentStream</span> (<span class="dt">FragmentFormat</span> a)</span></code></pre></div>
-<p>Esto significa que cada vertice tiene una posición homogenea como hemos discutido recien, pero tambien algun valor extra de tipo <code>a</code> que va a ser transformado en un valor de tipo <code>FragmentFormat a</code> en cada fragmento. Estos valores son producidos interpolando linealmente los valores de los vertices sobre toda la primitiva para cada fragmento. En nuestro ejemplo, <code>a</code> es <code>V3 VFloat</code>, representando el color de cada vertice. <code>FragmentFormat a</code> es un tipo asociado en la clase <code>FragmentInput</code>, y <code>FragmentFormat (V3 VFloat)</code> evalua a <code>V3 FFloat</code>. <code>FFloat</code> es como <code>VFloat</code>, una versión desplazada de <code>Float</code>, pero esta vez a un stream de fragmentos. Distinguimos los valores desplazados a un stream de vertices, de los valores desplazados a un stream de fragmentos, ya que la GPU no soporta exactamente el mismo conjunto de operaciones sobre ellos.</p>
-<h2 id="dibujando-e-intercambiando">Dibujando e intercambiando</h2>
-<p>Lo ultimo que hacemos en nuestro shader, ahora que tenemos el <code>fragmentStream</code>, es dibujar los fragmentos en la ventana. <code>drawContextColor</code> toma como argumento a <code>fragmentStream</code>, pero tambien, asi como la mayoria de las demas acciones en la monada <code>Shader</code>, toma una función que extrae parametros del entorno del shader. En este caso el parametro extraido es un valor de tipo <code>ContextColorOption</code>, el cual especifica como los fragmentos deden ser combinados con los valores previos en la ventana. El valor que proveemos en nuestro ejemplo (nuevamente usando <code>const</code>, ya que no depende del entorno del shader), esta especificando que cada fragmento debe sobreescribir completamente el valor previo en la ventana. Voy a dedicar una parte completa de este tutorial a como dibujar, asi estos parametros seran explicados en detalle más adelante.</p>
-<p>Ya que nuestra ventana fue creada con formato <code>RGB8</code>, el stream de fragmentos necesita contener valores de color de tipo <code>V3 FFloat</code>. Convenientemente, es el tipo exacto que tiene nuestro <code>fragmentStream</code> como resultado de la rasterización. Sin embargo, en la mayoria de los programas basados en GPipe vas a mapear funciones via <code>fmap</code> sobre el stream de fragmentos, para transformar los valores interpolados de la rasterizacion en el formato de color que es requerido por la ventana.</p>
-<p>Dibujar es la unica acción en el shader que posee un efecto secundario: en este caso el buffer trasero de la ventana es alterado. Una ventana tiene (al menos) dos buffers, uno llamado buffer frontal que es mostrado en la pantalla, y otro que llamamos buffer trasero donde los shaders estan dibujando. Cuando la acción <code>shader primitiveArray</code> en la monada <code>Render</code> retorna, el buffer trasero sera actualizado. Para presentar en la pantalla esta nueva imagen renderizada, necesitamos llamar a <code>swapContextBuffers</code> dentro de nuestra monada <code>ContextT</code>. Esto le va a indicar al hardware grafico que intercambie los buffers frontal y trasero. No se va a realizar ninguna copia de memoria, sino solamente un intercambio de valores de punteros, asi que es bastante efectivo. Sin embargo, <code>swapContextBuffers</code> puede bloquearse momentaneamente si tratas de presentar imagenes mas rapido que la pantalla pueda actualizarse, pero esto es usualmente algo bueno, ya que de otra forma estarias gastando ciclos de GPU y CPU produciendo más imagenes de las que pueden presentarse.</p>
-<p>Hay una linea en la acción <code>Render</code> de nuestro ejemplo, que omití antes descaradamente: <code>clearContextColor (V3 0 0 0)</code>. Esta acción ocurre antes de ejecutar el shader, y es usada para setear cada pixel en los contenidos previos del buffer trasero a un valor constante, en este caso <code>V3 0 0 0</code>, es decir, color negro. Luego de un intercambio, los contenidos del buffer trasero son indefinidos, asi que es siempre una buena idea comenzar cada frame haciendo limpieza luego de <code>swapContextBuffers</code>. Limpiar y ejecutar shaders son dos acciones de la monada <code>Render</code> que tienen efectos secundarios.</p>
-<p>Esto concluye la primer parte de este tutorial. La proxima vez voy a escribir detalladamente sobre <code>Buffer</code> y <code>PrimitiveArray</code>.</p>
 
 
 <div id="gh-comments-list">
