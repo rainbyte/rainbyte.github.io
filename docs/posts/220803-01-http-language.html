@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" /> 
+        <title>(λblog.rainbyte) - The HTTP Language</title>
+        <link rel="stylesheet" type="text/css" href="../css/default.css?v=" />
+        <link rel="stylesheet" type="text/css" href="../css/highlight.css?v=" />
+    </head>
+    <body>
+        <header>
+            <div id="logo">
+                <a href="../">(λblog.rainbyte)</a>
+            </div>
+            <nav id="navigation">
+                <a href="../">Home</a>
+                <a href="../about.html">About</a>
+                <a href="../cheatsheet.html">Cheatsheet</a>
+                <a href="../posts.html">Archive</a>
+                <a href="../atom.xml">Feed</a>
+            </nav>
+        </header>
+
+        <section id="content">
+            <h1>The HTTP Language</h1>
+            <div class="info">
+    Posted on August  3, 2022
+    
+        by rainbyte
+    
+</div>
+
+<div class="info">
+    
+        Tags: <a title="All pages tagged 'api'." href="../tags/api.html">api</a>, <a title="All pages tagged 'http'." href="../tags/http.html">http</a>, <a title="All pages tagged 'request'." href="../tags/request.html">request</a>, <a title="All pages tagged 'vscode'." href="../tags/vscode.html">vscode</a>
+    
+</div>
+
+<p>It is typical to see the situation where a developer has to work with services which provide an HTTP api.</p>
+<p>Suppose we are implementing the following common endpoints:</p>
+<ul>
+<li><code>GET /todos</code>: list all the Todos</li>
+<li><code>POST /todos</code>: create a new Todo</li>
+<li><code>PUT /todos/:id</code>: update a Todo indicated by :id</li>
+<li><code>DELETE /todos/:id</code>: remove a Todo indicated by :id</li>
+</ul>
+<p>After using a particular programming language to achieve the task, it is
+possible that we would like to communicate with it to test it works fine.</p>
+<p>There are many tools in the market which allows us to make requests, even
+in a graphical point and click way, but I have found more confortable to
+have a text representation.</p>
+<p>There is a file format called <code>HTTP language</code> which can represent requests
+in an standardized fashion and it is supported by CLI tools like <code>httpYac</code>
+and editor extensions like <code>vscode-restclient</code>.</p>
+<p>The <code>httpYac</code> tool can be installed using <code>npm</code> with the following command:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> <span class="at">-g</span> install httpyac</span></code></pre></div>
+<p>I wrote a few examples about how to make requests to the proposed HTTP api
+using the <code>HTTP language</code> format. It can be seen in the following snippet
+that the syntax is very simple and complies with IETF request line spec.</p>
+<h2 id="http-language-examples">HTTP language examples</h2>
+<p>We can obtain a single Todo using the <code>GET</code> verb followed by the host and
+the port where server is running, the HTTP version is optional:</p>
+<pre class="http"><code>GET http://localhost:4000/todos HTTP/1.1</code></pre>
+<p>To create a new Todo task we can follow the example and use <code>POST</code> verb, and
+in this case the <code>Content-Type</code> header should be specified, given that we
+are attaching a JSON data structure as body of the request:</p>
+<pre class="http"><code>POST http://localhost:4000/todos HTTP/1.1
+Content-Type: application/json
+
+{
+    &quot;text&quot;: &quot;blabla&quot;,
+    &quot;completed&quot;: false
+}</code></pre>
+<p>If we want to obtain a single Todo task then a variable could be used to
+indicate the <code>:id</code>, and the value can be accessed using brackets:</p>
+<pre class="http"><code>@get-todo-id = a0804e5f-a849-4920-9023-557ecdd790d1
+GET http://localhost:4000/todos/{{get-todo-id}} HTTP/1.1</code></pre>
+<p>To modify a Todo task we use the <code>PUT</code> verb as appears on the proposed API.
+It is important to have the <code>Content-Type</code> header defined as we use JSON:</p>
+<pre class="http"><code>@put-todo-id = a0804e5f-a849-4920-9023-557ecdd790d1
+PUT http://localhost:4000/todos/{{put-todo-id}} HTTP/1.1
+Content-Type: application/json
+
+{
+    &quot;text&quot;: &quot;foobar&quot;,
+    &quot;completed&quot;: false
+}</code></pre>
+<p>The format can also be used with the <code>DELETE</code> verb, and in this case we use
+a variable one more time, but with different name to avoid conflicts:</p>
+<pre class="http"><code>@del-todo-id = a0804e5f-a849-4920-9023-557ecdd790d1
+DELETE http://localhost:4000/todos/{{del-todo-id}} HTTP/1.1</code></pre>
+<p>These snippets can be copied to a file with
+<code>.rest</code> or <code>.http</code> extension, eg. <code>todo-requests.http</code>, and executed this way:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">httpyac</span> todo-requests.http</span></code></pre></div>
+<p>Happy hacking! 🐱</p>
+
+
+<div id="gh-comments-list">
+    Comments are not open for this post yet.
+</div>
+
+        </section>
+        <footer>
+            Site proudly generated by
+            <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+        </footer>
+    </body>
+</html>
