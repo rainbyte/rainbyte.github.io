@@ -8,8 +8,75 @@
         <name>rainbyte</name>
         <email>rainbyte@tuta.io</email>
     </author>
-    <updated>2022-08-03T14:30:00Z</updated>
+    <updated>2022-08-23T22:43:30Z</updated>
     <entry>
+    <title>VSCode C# setup</title>
+    <link href="http://rainbyte.github.io/posts/220824-01-vscode-csharp-setup.html" />
+    <id>http://rainbyte.github.io/posts/220824-01-vscode-csharp-setup.html</id>
+    <published>2022-08-23 22:43:30</published>
+    <updated>2022-08-23T22:43:30Z</updated>
+    <summary type="html"><![CDATA[<div class="info">
+    Posted on August 23, 2022
+    
+        by rainbyte
+    
+</div>
+
+<div class="info">
+    
+        Tags: <a title="All pages tagged &#39;c#&#39;." href="/tags/c%23.html">c#</a>, <a title="All pages tagged &#39;vscode&#39;." href="/tags/vscode.html">vscode</a>
+    
+</div>
+
+<p>Follow these steps to configure a C# development environment using
+VSCode (Code-OSS variant) with the Free OmniSharp extension.</p>
+<p>This setup has been tested on <strong>Arch Linux</strong> with the following package versions:</p>
+<ul>
+<li><strong>code</strong> 1.70.2-1</li>
+<li><strong>dotnet-sdk</strong> 6.0.8.sdk108-1</li>
+</ul>
+<h2 id="step-by-step-procedure">Step-by-step procedure</h2>
+<ol type="1">
+<li><p>Install <code>dotnet</code> sdk and runtime</p>
+<ul>
+<li><p>Arch Linux setup:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> pacman <span class="at">-S</span> dotnet-sdk</span></code></pre></div></li>
+</ul></li>
+<li><p>Make a directory anywhere you like. Go inside and use <code>dotnet</code> tool
+to create a sample project with <code>console</code> template:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="op">&lt;</span>project_name<span class="op">&gt;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> <span class="op">&lt;</span>project_name<span class="op">&gt;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="ex">dotnet</span> new console</span></code></pre></div>
+<p>Note: this folder can be deleted later, it is just an example
+to test if the extension is working</p></li>
+<li><p>Open the editor inside the project folder</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">code</span> .</span></code></pre></div></li>
+<li><p>Install <a href="https://open-vsx.org/extension/muhammad-sammy/csharp">free-omnisharp-vscode extension</a> for C# development</p></li>
+<li><p>Open <code>Program.cs</code> file</p>
+<ul>
+<li>Note: this step is just to force extension to download OmniSharp implementation</li>
+</ul></li>
+<li><p>Wait until <strong>OmniSharp</strong> dependencies get installed (it takes time)</p></li>
+<li><p>If editor asks about adding <code>build &amp; run</code> targets, say <code>yes</code></p>
+<ul>
+<li>It can also be enabled later inside <strong>Run & Debug</strong> tab</li>
+</ul></li>
+<li><p>Press <code>F5</code> to build and execute the example code</p>
+<ul>
+<li><strong>Breakpoints</strong> are supported, add them to the left of the code</li>
+<li>Open <strong>Run & Debug</strong> tab to see variables and watch expressions</li>
+</ul></li>
+<li><p>Now the editor is configured and new projects can be created using <code>dotnet</code> tool (like in step 2)</p></li>
+</ol>
+<p><code>Happy hacking!</code> 🐱</p>
+
+
+<div id="gh-comments-list">
+    Comments are not open for this post yet.
+</div>
+]]></summary>
+</entry>
+<entry>
     <title>The HTTP Language</title>
     <link href="http://rainbyte.github.io/posts/220803-01-http-language.html" />
     <id>http://rainbyte.github.io/posts/220803-01-http-language.html</id>
@@ -1415,58 +1482,6 @@ Exec=${comando}</code></pre>
         request.send();
     })();
 </script>
-]]></summary>
-</entry>
-<entry>
-    <title>Set terminal tab title using fish shell</title>
-    <link href="http://rainbyte.github.io/posts/181112-01-set-title-with-fish.html" />
-    <id>http://rainbyte.github.io/posts/181112-01-set-title-with-fish.html</id>
-    <published>2018-11-12 07:28:00</published>
-    <updated>2018-11-12T07:28:00Z</updated>
-    <summary type="html"><![CDATA[<div class="info">
-    Posted on November 12, 2018
-    
-        by rainbyte
-    
-</div>
-
-<div class="info">
-    
-        Tags: <a title="All pages tagged &#39;fish&#39;." href="/tags/fish.html">fish</a>, <a title="All pages tagged &#39;shell&#39;." href="/tags/shell.html">shell</a>
-    
-</div>
-
-<h2 id="approach-1-setting-the-title-by-hand">Approach #1: setting the title by hand</h2>
-<p>When there are many terminal tabs opened, it is really useful to give them meaninful names.</p>
-<p>Fish shell allows setting the current tab’s title creating a <code>fish_title</code> function.</p>
-<p>If we want to name our tab <code>FOO</code>, we could just write this in the terminal:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span><span class="fu"> fish_title</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">echo</span> <span class="st">&quot;FOO&quot;</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="ex">end</span></span></code></pre></div>
-<p>After entering the code, the function will be exported and the new title will be used.</p>
-<p>The problem with this way is that writing the function each time is tedious.</p>
-<p>There is an easy way to overcome this problem.</p>
-<h2 id="approach-2-using-a-helper-function">Approach #2: using a helper function</h2>
-<p>We could write a helper which export the <code>fish_title</code> function for us.</p>
-<p>I call this helper <code>set_title</code>, but other name could be used as well.</p>
-<p>First we need to write the helper function:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span><span class="fu"> set_title</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">set</span> <span class="at">-l</span> title <span class="va">$argv</span>[1]</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">function</span><span class="fu"> fish_title</span> <span class="ex">--inherit-variable</span> title</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>        <span class="bu">echo</span> <span class="st">&quot;</span><span class="va">$title</span><span class="st">&quot;</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="ex">end</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="ex">end</span></span></code></pre></div>
-<p>Now we can test it, eg. to name our tab <code>BAR</code> we could call it this way: <code>set_title BAR</code></p>
-<p>Finally, to save the function persistently, we execute this: <code>funcsave set_title</code></p>
-<h2 id="how-does-it-work">How does it work?</h2>
-<p>Each time we execute <code>set_title</code>, it will re-export the <code>fish_title</code> function.</p>
-<p>We need to make the <em>title</em> variable available inside <code>fish_title</code> scope.</p>
-<p>The trick is using the <code>--inherit-variable</code> option, which will solve this for us.</p>
-
-
-<div id="gh-comments-list">
-    Comments are not open for this post yet.
-</div>
 ]]></summary>
 </entry>
 
