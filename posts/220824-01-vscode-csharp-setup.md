@@ -2,7 +2,8 @@
 title: VSCode C# setup
 author: rainbyte
 published: 2022-08-23 22:43:30
-tags: c#, vscode
+updated: 2022-08-24 23:28:00
+tags: c#, dotnet, vscode
 language: en
 ---
 
@@ -27,8 +28,8 @@ This setup has been tested on **Arch Linux** with the following package versions
    to create a sample project with `console` template:
 
    ```sh
-   mkdir <project_name>
-   cd <project_name>
+   mkdir <ProjectName>
+   cd <ProjectName>
    dotnet new console
    ```
 
