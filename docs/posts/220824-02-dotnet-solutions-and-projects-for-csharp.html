@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" /> 
+        <title>(λblog.rainbyte) - .NET Solutions and Projects for C#</title>
+        <link rel="stylesheet" type="text/css" href="../css/default.css?v=" />
+        <link rel="stylesheet" type="text/css" href="../css/highlight.css?v=" />
+    </head>
+    <body>
+        <header>
+            <div id="logo">
+                <a href="../">(λblog.rainbyte)</a>
+            </div>
+            <nav id="navigation">
+                <a href="../">Home</a>
+                <a href="../about.html">About</a>
+                <a href="../cheatsheet.html">Cheatsheet</a>
+                <a href="../posts.html">Archive</a>
+                <a href="../atom.xml">Feed</a>
+            </nav>
+        </header>
+
+        <section id="content">
+            <h1>.NET Solutions and Projects for C#</h1>
+            <div class="info">
+    Posted on August 24, 2022
+    
+        by rainbyte
+    
+</div>
+
+<div class="info">
+    
+        Tags: <a title="All pages tagged 'c#'." href="../tags/c%23.html">c#</a>, <a title="All pages tagged 'dotnet'." href="../tags/dotnet.html">dotnet</a>, <a title="All pages tagged 'vscode'." href="../tags/vscode.html">vscode</a>
+    
+</div>
+
+<h3 id="this-publication-is-a-follow-up-of-the-vscode-c-setup-post">This publication is a follow up of the <a href="220824-01-vscode-csharp-setup.html">VSCode C# setup</a> post</h3>
+<h2 id="net-solutions">.NET Solutions</h2>
+<p>The <code>dotnet</code> tool allows us to create projects with the <code>dotnet new</code> subcommand,
+and because of that it is easy to end up with many projects mixed everywhere.</p>
+<p>It is a common practice in C# to group related projects inside a <strong>Solution</strong>
+folder to have them well organized.</p>
+<p>This workflow can also be handled by the <code>dotnet</code> tool in this way:</p>
+<ol type="1">
+<li><p>Create a new Solution inside <code>&lt;SolutionName&gt;</code> folder to contain a group
+of related .NET projects</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">dotnet</span> new sln <span class="at">--output</span> <span class="op">&lt;</span>SolutionName<span class="op">&gt;</span></span></code></pre></div>
+<p>Note: <a href="https://en.wikipedia.org/wiki/Camel_case">PascalCase</a> (initial uppercase letters) is preferred for Solution names</p></li>
+<li><p>Go inside the Solution folder</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> <span class="op">&lt;</span>SolutionName<span class="op">&gt;</span></span></code></pre></div></li>
+<li><p>Verify that there is a <code>.sln</code> file (eg. using the <code>ls</code> command)</p></li>
+<li><p>Create a new project inside <code>&lt;ProjectName&gt;</code> subfolder:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">dotnet</span> new console <span class="at">--output</span> <span class="op">&lt;</span>ProjectName<span class="op">&gt;</span></span></code></pre></div>
+<p>Also add the project to the <code>.sln</code> config:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">dotnet</span> sln add <span class="op">&lt;</span>ProjectName<span class="op">&gt;</span></span></code></pre></div>
+<p>Note: this should be done for each project we want to create</p></li>
+<li><p>Modify the project code as needed</p></li>
+<li><p>Build and execute the project using the following command</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">dotnet</span> run <span class="at">--project</span> <span class="op">&lt;</span>ProjectName<span class="op">&gt;</span></span></code></pre></div></li>
+<li><p>A project can also be removed from the Solution:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">dotnet</span> sln remove <span class="op">&lt;</span>ProjectName<span class="op">&gt;</span></span></code></pre></div>
+<p>The remaining files should be removed by hand:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span> <span class="at">-rf</span> <span class="op">&lt;</span>ProjectName<span class="op">&gt;</span></span></code></pre></div>
+<p>Note: <strong>be careful</strong> with <code>rm</code>, deleted files will disappear forever! 😱</p></li>
+</ol>
+<h2 id="vscode-and-.net-solutions">VSCode and .NET Solutions</h2>
+<p>This editor also has support for .NET Solutions if the correct extension is installed</p>
+<ol type="1">
+<li><p>Go inside the Solution folder and start a VSCode instance</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> <span class="op">&lt;</span>SolutionName<span class="op">&gt;</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ex">code</span> .</span></code></pre></div></li>
+<li><p>If VSCode asks about <strong>adding assets</strong>, just <strong>ignore</strong> the message!</p>
+<ul>
+<li>Note: the next section will show how to generate the assets for each specific project</li>
+</ul></li>
+<li><p>Click the <strong>Extensions</strong> tab on the left toolbar</p></li>
+<li><p>Look for the <a href="https://open-vsx.org/extension/fernandoescolar/vscode-solution-explorer">vscode-solution-explorer</a> extension and install it</p></li>
+<li><p>A new <strong>Solution</strong> tab should appear on the left toolbar</p></li>
+<li><p>Click the <strong>Solution</strong> tab, a list of projects will be shown</p></li>
+<li><p>Right-click any project in the list to see the context menu</p></li>
+<li><p>Select <code>SolutionExplorer: Run</code> to build and execute that project</p></li>
+<li><p>The context menues also allow other options:</p>
+<ul>
+<li>Add a new project</li>
+<li>Create a file (ie. class, interface, etc)</li>
+<li>Remove a project from the Solution</li>
+<li>etc …</li>
+</ul></li>
+</ol>
+<h2 id="run-debug-a-single-project">Run & Debug a single Project</h2>
+<p>To use <code>Run &amp; Debug</code> features the easiest option is to open a single Project
+subfolder instead of a Solution folder.</p>
+<ol type="1">
+<li><p>Go inside a Project folder and start a VSCode instance</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> <span class="op">&lt;</span>SolutionName<span class="op">&gt;</span>/<span class="op">&lt;</span>ProjectName<span class="op">&gt;</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">code</span> .</span></code></pre></div></li>
+<li><p>If VSCode asks about <strong>adding assets</strong>, this time say <strong>yes</strong> and jump to step 6</p>
+<ul>
+<li>Note: this creates a <code>.vscode</code> subfolder with the required configurations</li>
+</ul></li>
+<li><p>Otherwise open a <code>.cs</code> file to launch C# extension</p></li>
+<li><p>Go to <strong>Run & Debug</strong> tab on the left toolbar</p></li>
+<li><p>Click on <code>Generate C# Assets for Build and Debug</code></p>
+<ul>
+<li>Note: this option only appears if <code>.vscode</code> assets were not created yet</li>
+</ul></li>
+<li><p>Press <code>F5</code> or the <code>Start Debugging</code> button in the <strong>Run & Debug</strong> tab</p>
+<ul>
+<li>Note: this step requires the assets to be already inside the <code>.vscode</code>
+subdirectory</li>
+</ul></li>
+</ol>
+<p><code>Happy hacking!</code> 🐱</p>
+
+
+<div id="gh-comments-list">
+    Comments are not open for this post yet.
+</div>
+
+        </section>
+        <footer>
+            Site proudly generated by
+            <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+        </footer>
+    </body>
+</html>
