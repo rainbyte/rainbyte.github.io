@@ -8,8 +8,79 @@
         <name>rainbyte</name>
         <email>rainbyte@tuta.io</email>
     </author>
-    <updated>2022-09-03T15:02:00Z</updated>
+    <updated>2022-09-08T21:25:00Z</updated>
     <entry>
+    <title>VSCode column rulers</title>
+    <link href="http://rainbyte.github.io/posts/220908-01-vscode-column-rulers.html" />
+    <id>http://rainbyte.github.io/posts/220908-01-vscode-column-rulers.html</id>
+    <published>2022-09-08 21:25:00</published>
+    <updated>2022-09-08T21:25:00Z</updated>
+    <summary type="html"><![CDATA[<div class="info">
+    Posted on September  8, 2022
+    
+        by rainbyte
+    
+</div>
+
+<div class="info">
+    
+        Tags: <a title="All pages tagged &#39;colors&#39;." href="/tags/colors.html">colors</a>, <a title="All pages tagged &#39;customization&#39;." href="/tags/customization.html">customization</a>, <a title="All pages tagged &#39;vscode&#39;." href="/tags/vscode.html">vscode</a>
+    
+</div>
+
+<p>Today we will configure VSCode to add custom <strong>column rulers</strong> to measure text
+width. This feature doesn’t require any 3rd party extension. Rulers are useful
+to indicate us when a line of code is getting <strong>too large</strong>.</p>
+<p>I recommend a width of maximum 74 or 80 columns for programming code. That
+setup is convenient to allow showing files side-by-side.</p>
+<p>VSCode provides <code>color</code> and <code>column</code> attributes to customize each ruler. The
+colors are expressed by name or as hexadecimal values, and the columns are
+just numbers.</p>
+<h2 id="configuration-steps">Configuration steps</h2>
+<p>Follow these steps to create as many column rulers as you want:</p>
+<ol type="1">
+<li><p>Open VSCode</p></li>
+<li><p>Launch command palette (press <code>ctrl+shift+p</code>)</p></li>
+<li><p>Enter <strong>one</strong> of the following commands to edit config:</p>
+<ul>
+<li><code>Open User Settings (JSON)</code>
+<ul>
+<li>This one affects all VSCode instances (global config)</li>
+</ul></li>
+<li><code>Open Workspace Settings (JSON)</code>
+<ul>
+<li>This one affects only the current project (folder config)</li>
+<li>Config will be saved in <strong>.vscode/settings.json</strong></li>
+</ul></li>
+</ul></li>
+<li><p>To set 2 custom column rulers add a section similar to this:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;editor.rulers&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>        <span class="dv">60</span><span class="ot">,</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;column&quot;</span><span class="fu">:</span> <span class="dv">80</span><span class="fu">,</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;color&quot;</span><span class="fu">:</span> <span class="st">&quot;#f008&quot;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p>Notes:</p>
+<ul>
+<li>This config creates a 1st ruler at column <code>60</code> with default color,
+and a 2nd ruler with explicit <code>column</code> and <code>color</code> fields.</li>
+<li>All the values can be changed as wanted, and even more rulers can
+be added.</li>
+</ul></li>
+<li><p>Save the config to apply the changes each time is modified.</p></li>
+</ol>
+<p><code>Happy hacking</code> 🐱</p>
+
+
+<div id="gh-comments-list">
+    Comments are not open for this post yet.
+</div>
+]]></summary>
+</entry>
+<entry>
     <title>VSCode title-bar colors</title>
     <link href="http://rainbyte.github.io/posts/220903-01-vscode-titlebar-colors.html" />
     <id>http://rainbyte.github.io/posts/220903-01-vscode-titlebar-colors.html</id>
@@ -1129,107 +1200,6 @@ function without blocking app UI:</p>
 <script type="text/javascript">
     // This is a self executing function
     var issueId = 5;
-    var url = "https://github.com/rainbyte/rainbyte.github.io/issues/" + issueId;
-    var api_url = "https://api.github.com/repos/rainbyte/rainbyte.github.io/issues/" + issueId + "/comments";
-    (function() {
-        // DOM is already available, now we can handle page elements
-        var ghCommentsList = document.getElementById("gh-comments-list");
-
-        var request = new XMLHttpRequest();
-        request.open('GET', api_url, true);
-        request.onload = function() {
-            if (request.status >= 200 && request.status < 400) {
-                // Request was successful, we can process the raw comments
-                var comments = JSON.parse(request.responseText);
-                var fragment = document.createDocumentFragment();
-                var range = new Range();
-
-                // Render comments section header
-                fragment.appendChild(range.createContextualFragment(`
-                    <div>
-                        <b>Comments section</b> (visit the <b><a href='${url}'>issue</a></b> of this post to add one)
-                    </div>
-                `));
-
-                // Render view of each comment
-                comments.forEach(comment => {
-                    var date = new Date(comment.created_at);
-                    var renderedComment = range.createContextualFragment(`
-                        <div class='gh-comment'>
-                            <div class='gh-comment-header'>
-                                <img src='${comment.user.avatar_url}'>
-                                <div>
-                                    <b><a href='${comment.user.html_url}'>${comment.user.login}</a></b> posted at <em>${date.toDateString()}</em>
-                                </div>
-                            </div>
-                            <div class='gh-comment-body'>
-                                ${comment.body}
-                            </div>
-                        </div>
-                    `);
-                    fragment.appendChild(renderedComment);
-                });
-
-                // Make changes visible by adding rendered nodes
-                ghCommentsList.append(fragment);
-            } else {
-                // Request reached the target server, but it returned an error
-                ghCommentsList.append("Comments are not available now.");
-            }
-        };
-        request.onerror = function() {
-            // There was a connection error of some sort
-            ghCommentsList.append("Comments are not available now.");
-        };
-        request.send();
-    })();
-</script>
-]]></summary>
-</entry>
-<entry>
-    <title>Plantillas de Gnome</title>
-    <link href="http://rainbyte.github.io/posts/191207-01-plantillas.html" />
-    <id>http://rainbyte.github.io/posts/191207-01-plantillas.html</id>
-    <published>2019-12-07 02:51:00</published>
-    <updated>2019-12-07T02:51:00Z</updated>
-    <summary type="html"><![CDATA[<div class="info">
-    Posted on December  7, 2019
-    
-        by rainbyte
-    
-</div>
-
-<div class="info">
-    
-        Tags: <a title="All pages tagged &#39;gnome&#39;." href="/tags/gnome.html">gnome</a>
-    
-</div>
-
-<h2 id="plantillas-de-gnome">Plantillas de Gnome</h2>
-<p>Gnome posee una carpeta <code>~/Plantillas</code> en la cual es posible agregar archivos como base para crear nuevos documentos de forma automática.</p>
-<p>Muchas veces se da el caso de crear documentos con cierto contenido que se repite en cada uno de ellos, por ejemplo los archivos .desktop:</p>
-<pre class="desktop"><code>[Desktop Entry]
-
-Type=Application
-Name=Firefox
-Exec=/usr/bin/firefox</code></pre>
-<p>Como puede verse, estos documentos siempre tienen la misma cabecera y algunas opciones que deben estar allí siempre (ej. <code>Type</code> y <code>Name</code>).</p>
-<p>Como solución podríamos crear un archivo <code>~/Plantillas/Nuevo Desktop Entry.desktop</code>, para evitar tipear esas cosas, algo asi:</p>
-<pre class="desktop"><code>[Desktop Entry]
-
-Type=Application
-Name=${nombre}
-Exec=${comando}</code></pre>
-<p>Luego desde Nautilus podemos hacer click derecho e ir al menú <code>Nuevo documento...</code> y allí ver nuestra plantilla.</p>
-<p>Finalmente es cuestión de cambiar el nombre y rellenar los campos (ej. <code>${nombre}</code> y <code>${comando}</code>).</p>
-
-
-<div id="gh-comments-list">
-</div>
-
-<script type="text/javascript">
-    // This is a self executing function
-    var issueId = 3;
     var url = "https://github.com/rainbyte/rainbyte.github.io/issues/" + issueId;
     var api_url = "https://api.github.com/repos/rainbyte/rainbyte.github.io/issues/" + issueId + "/comments";
     (function() {
