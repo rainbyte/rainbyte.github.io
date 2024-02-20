@@ -1,5 +1,7 @@
 use std::{collections::HashSet, fs::{self, File}, io::Write, path::PathBuf};
 
+use atom_syndication::{Entry, FeedBuilder, Link, Person, Text};
+use chrono::DateTime;
 use fronma::parser::parse;
 use glob::glob;
 use sailfish::TemplateOnce;
@@ -113,6 +115,8 @@ fn main() {
     let mut sites: Vec<PostItem> = Vec::new();
     let mut tags_set: HashSet<String> = HashSet::new();
 
+    let mut feed_entries = Vec::new();
+
     for post in glob("posts/**/*.md").expect("Failed to read posts") {
         match post {
             Ok(path) => {
@@ -126,7 +130,7 @@ fn main() {
                     .map(|s| s.to_string())
                     .collect();
                 let ctx_post = PostTemplate {
-                    author: Some(fronma.headers.author),
+                    author: Some(fronma.headers.author.to_owned()),
                     date: fronma.headers.published.to_owned(),
                     tags: tags
                         .iter()
@@ -135,9 +139,10 @@ fn main() {
                     body: body_html,
                     commentsIssue: fronma.headers.commentsIssue
                 };
+                let body_post = ctx_post.render_once().unwrap();
                 let ctx_default = DefaultTemplate {
                     title: fronma.headers.title.to_owned(),
-                    body: ctx_post.render_once().unwrap()
+                    body: body_post.to_owned(),
                 };
                 let stem = path.file_stem().unwrap().to_str().unwrap();
                 sites.push(PostItem {
@@ -151,6 +156,23 @@ fn main() {
                 }
                 let mut file = File::create(format!("docs/posts/{stem}.html")).unwrap();
                 let _ = file.write_all(ctx_default.render_once().unwrap().as_bytes());
+                feed_entries.push(Entry {
+                    title: Text::plain(fronma.headers.title),
+                    published: DateTime::parse_from_str(&format!("{} -03", fronma.headers.published), "%Y-%m-%d %H:%M:%S %#z").ok(),
+                    updated: DateTime::parse_from_str(&format!("{} -03", fronma.headers.published), "%Y-%m-%d %H:%M:%S %#z").unwrap(),
+                    authors: vec![Person {
+                        name: fronma.headers.author,
+                        email: None,
+                        uri: None
+                    }],
+                    summary: Some(Text::html(body_post)),
+                    links: vec![Link {
+                        href: format!("https://rainbyte.net.ar/posts/{stem}.html"),
+                        ..Default::default()
+                    }],
+                    id: format!("https://rainbyte.net.ar/posts/{stem}.html"),
+                    ..Default::default()
+                });
             },
             Err(e) => println!("{:?}", e),
         }
@@ -233,4 +255,34 @@ fn main() {
         let mut file = File::create(format!("docs/tags/{tag}.html")).unwrap();
         let _ = file.write_all(ctx_default.render_once().unwrap().as_bytes());
     }
+
+    feed_entries.sort_by(|a, b| b.updated.cmp(&a.updated));
+    let feed_updated = feed_entries.first().unwrap().updated;
+
+    let feed_file = File::create("docs/atom.xml").unwrap();
+    let feed = FeedBuilder::default()
+        .title("(λblog.rainbyte)")
+        .subtitle(Text::plain("A site about things I enjoy and would like to share"))
+        .authors([Person {
+            name: "rainbyte".to_string(),
+            email: None,
+            uri: None
+        }])
+        .base("https://rainbyte.net.ar".to_string())
+        .entries(feed_entries)
+        .id("https://rainbyte.net.ar/atom.xml")
+        .updated(feed_updated)
+        .links(vec![
+            Link {
+                href: "https://rainbyte.net.ar".to_string(),
+                ..Default::default()
+            },
+            Link {
+                href: "https://rainbyte.net.ar/atom.xml".to_string(),
+                rel: "self".to_string(),
+                ..Default::default()
+            },
+        ])
+        .build();
+    feed.write_to(feed_file).unwrap();
 }
