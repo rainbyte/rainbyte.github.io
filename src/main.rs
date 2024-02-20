@@ -1,4 +1,4 @@
-use std::{fs::{self, File}, io::Write};
+use std::{fs::{self, File}, io::Write, path::PathBuf};
 
 use fronma::parser::parse;
 use glob::glob;
@@ -39,6 +39,24 @@ struct PostHeaders {
 }
 
 fn main() {
+    let patterns_copy = ["CNAME", "images/*", "css/*"];
+    let globs_copy = patterns_copy
+        .iter()
+        .map(|p| glob(p).expect("Failed to read file to copy"))
+        .flatten();
+
+    for x in globs_copy {
+        match x {
+            Ok(path) => {
+                let dest = PathBuf::from("docs");
+                fs::copy(&path, dest.join(&path))
+                    .expect("Couldn't copy file");
+            },
+            Err(e) => println!("{:?}", e),
+
+        }
+    }
+
     for page in glob("*.md").expect("Failed to read root pages") {
         match page {
             Ok(path) => {
