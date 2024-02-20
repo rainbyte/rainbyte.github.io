@@ -83,9 +83,11 @@ fn main() {
     for x in globs_copy {
         match x {
             Ok(path) => {
-                let dest = PathBuf::from("docs");
-                fs::copy(&path, dest.join(&path))
-                    .expect("Couldn't copy file");
+                let dest = PathBuf::from("docs").join(&path);
+                if let Some(parent) = dest.parent() {
+                    fs::create_dir_all(parent).expect("Couldn't create dir");
+                }
+                fs::copy(&path, dest).expect("Couldn't copy file");
             },
             Err(e) => println!("{:?}", e),
 
@@ -117,6 +119,8 @@ fn main() {
 
     let mut feed_entries = Vec::new();
 
+    let posts_dir = PathBuf::from("docs/posts");
+    fs::create_dir_all(posts_dir).expect("Couldn't create posts dir");
     for post in glob("posts/**/*.md").expect("Failed to read posts") {
         match post {
             Ok(path) => {
@@ -231,6 +235,8 @@ fn main() {
         let _ = file.write_all(ctx_default.render_once().unwrap().as_bytes());
     }
 
+    let tags_dir = PathBuf::from("docs/tags");
+    fs::create_dir_all(tags_dir).expect("Couldn't create tags dir");
     for tag in tags_set {
         let ctx_post_list = PostListTemplate {
             posts: sites
