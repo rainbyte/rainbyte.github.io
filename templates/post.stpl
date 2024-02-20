@@ -1,25 +1,25 @@
 <div class="info">
-    Posted on $date$
-    $if(author)$
-        by $author$
-    $endif$
+    Posted on <%= date %>
+    <% if let Some(author) = author { %>
+        by <%= author %>
+    <% } %>
 </div>
 
 <div class="info">
-    $if(tags)$
-        Tags: $tags$
-    $endif$
+    <% if !tags.is_empty() { %>
+        Tags:<% for tag in tags { %>&nbsp;<%- tag %><% } %>
+    <% } %>
 </div>
 
-$body$
+<%- body %>
 
-$if(commentsIssue)$
+<% if let Some(issueId) = &commentsIssue { %>
 <div id="gh-comments-list">
 </div>
 
 <script type="text/javascript">
     // This is a self executing function
-    var issueId = $commentsIssue$;
+    var issueId = <%= issueId %>;
     var url = "https://github.com/rainbyte/rainbyte.github.io/issues/" + issueId;
     var api_url = "https://api.github.com/repos/rainbyte/rainbyte.github.io/issues/" + issueId + "/comments";
     (function() {
@@ -38,7 +38,7 @@ $if(commentsIssue)$
                 // Render comments section header
                 fragment.appendChild(range.createContextualFragment(`
                     <div>
-                        <b>Comments section</b> (visit the <b><a href='$${url}'>issue</a></b> of this post to add one)
+                        <b>Comments section</b> (visit the <b><a href='${url}'>issue</a></b> of this post to add one)
                     </div>
                 `));
 
@@ -48,13 +48,13 @@ $if(commentsIssue)$
                     var renderedComment = range.createContextualFragment(`
                         <div class='gh-comment'>
                             <div class='gh-comment-header'>
-                                <img src='$${comment.user.avatar_url}'>
+                                <img src='${comment.user.avatar_url}'>
                                 <div>
-                                    <b><a href='$${comment.user.html_url}'>$${comment.user.login}</a></b> posted at <em>$${date.toDateString()}</em>
+                                    <b><a href='${comment.user.html_url}'>${comment.user.login}</a></b> posted at <em>${date.toDateString()}</em>
                                 </div>
                             </div>
                             <div class='gh-comment-body'>
-                                $${comment.body}
+                                ${comment.body}
                             </div>
                         </div>
                     `);
@@ -75,8 +75,8 @@ $if(commentsIssue)$
         request.send();
     })();
 </script>
-$else$
+<% } else { %>
 <div id="gh-comments-list">
     Comments are not open for this post yet.
 </div>
-$endif$
+<% } %>

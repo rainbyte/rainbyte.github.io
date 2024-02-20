@@ -11,3 +11,9 @@ site.o
 
 .ionide
 .stack-work
+
+# rust & cargo
+/target
+
+# vscode
+.vscode/
