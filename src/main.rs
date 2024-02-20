@@ -152,6 +152,31 @@ fn main() {
 
     sites.sort_by(|a, b| b.date.cmp(&a.date));
 
+    // Archive page
+    {
+        let ctx_post_list = PostListTemplate {
+            posts: sites
+                .iter()
+                .map(|t| PostItemTemplate {
+                    url: t.url.to_owned(),
+                    title: t.title.to_owned(),
+                    date: t.date.to_owned(),
+                    tags: t.tags
+                        .iter()
+                        .map(|s| TagTemplate { tag: s.clone() }.render_once().unwrap())
+                        .collect(),
+                })
+                .map(|t| t.render_once().unwrap())
+                .collect()
+        };
+        let ctx_default = DefaultTemplate {
+            title: "All posts".to_string(),
+            body: ctx_post_list.render_once().unwrap()
+        };
+        let mut file = File::create(format!("docs/posts.html")).unwrap();
+        let _ = file.write_all(ctx_default.render_once().unwrap().as_bytes());
+    }
+
     for tag in tags_set {
         let ctx_post_list = PostListTemplate {
             posts: sites
