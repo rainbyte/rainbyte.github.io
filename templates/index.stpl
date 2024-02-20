@@ -8,7 +8,7 @@
 <div id="posts">
     <h2>Recent Posts</h2>
     <ul>
-        $posts$
+        <% for post in posts { %><%- post %><% } %>
     </ul>
     <p>…you can find more in the <a href="/posts.html">archive</a>.</p>
 </div>

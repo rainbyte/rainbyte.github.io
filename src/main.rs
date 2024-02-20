@@ -43,6 +43,12 @@ struct PostListTemplate {
     posts: Vec<String>,
 }
 
+#[derive(TemplateOnce)]
+#[template(path = "../templates/index.stpl")]
+struct IndexTemplate {
+    posts: Vec<String>,
+}
+
 #[derive(Deserialize)]
 struct PageHeaders {
     title: String,
@@ -151,6 +157,32 @@ fn main() {
     }
 
     sites.sort_by(|a, b| b.date.cmp(&a.date));
+
+    // Index page
+    {
+        let ctx_index = IndexTemplate {
+            posts: sites
+                .iter()
+                .take(5)
+                .map(|t| PostItemTemplate {
+                    url: t.url.to_owned(),
+                    title: t.title.to_owned(),
+                    date: t.date.to_owned(),
+                    tags: t.tags
+                        .iter()
+                        .map(|s| TagTemplate { tag: s.clone() }.render_once().unwrap())
+                        .collect(),
+                })
+                .map(|t| t.render_once().unwrap())
+                .collect()
+        };
+        let ctx_default = DefaultTemplate {
+            title: "Home".to_string(),
+            body: ctx_index.render_once().unwrap()
+        };
+        let mut file = File::create(format!("docs/index.html")).unwrap();
+        let _ = file.write_all(ctx_default.render_once().unwrap().as_bytes());
+    }
 
     // Archive page
     {
