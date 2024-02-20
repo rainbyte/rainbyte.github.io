@@ -1,0 +1,5 @@
+<div id="posts">
+    <ul>
+        <% for post in posts { %><%- post %><% } %>
+    </ul>
+</div>
