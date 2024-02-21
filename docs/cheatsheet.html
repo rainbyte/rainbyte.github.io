@@ -1,32 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <meta charset="utf-8" /> 
+        <meta charset="utf-8"/> 
         <title>(λblog.rainbyte) - Useful commands and snippets cheatsheet</title>
-        <link rel="stylesheet" type="text/css" href="./css/default.css?v=" />
-        <link rel="stylesheet" type="text/css" href="./css/highlight.css?v=" />
+        <link rel="stylesheet" type="text/css" href="/css/default.css?v=" />
+        <link rel="stylesheet" type="text/css" href="/css/highlight.css?v=" />
     </head>
     <body>
         <header>
             <div id="logo">
-                <a href="./">(λblog.rainbyte)</a>
+                <a href="/">(λblog.rainbyte)</a>
             </div>
             <nav id="navigation">
-                <a href="./">Home</a>
-                <a href="./about.html">About</a>
-                <a href="./cheatsheet.html">Cheatsheet</a>
-                <a href="./posts.html">Archive</a>
-                <a href="./atom.xml">Feed</a>
+                <a href="/">Home</a>
+                <a href="/about.html">About</a>
+                <a href="/cheatsheet.html">Cheatsheet</a>
+                <a href="/posts.html">Archive</a>
+                <a href="/atom.xml">Feed</a>
             </nav>
         </header>
 
         <section id="content">
             <h1>Useful commands and snippets cheatsheet</h1>
-            <h2 id="awk">awk</h2>
+            <h2>awk</h2>
 <ul>
 <li>AndroidSdk installed pkgs: <code>sdkmanager --list | awk '/Installed/{flag=1; next} /Available/{flag=0} flag'</code></li>
 </ul>
-<h2 id="common-terminal-tasks">common terminal tasks</h2>
+<h2>common terminal tasks</h2>
 <ul>
 <li>Backup via ssh: <code>rsync -auv -e 'ssh -p $port' $hostname:'"/orig/"' '/dest/'</code></li>
 <li>Cmd info (detailed): <code>man $command</code></li>
@@ -38,14 +38,14 @@
 <li>Sed delete line: <code>sed -i "${line-number}d" $file</code></li>
 <li>Sed replace str: <code>sed -i "s/$before/$after/g" $file</code></li>
 </ul>
-<h2 id="dbus-interaction">dbus interaction</h2>
+<h2>dbus interaction</h2>
 <ul>
 <li>Inspect notifications: <code>dbus-monitor interface='org.freedesktop.Notifications'</code></li>
 <li>Inspect notifications: <code>dbus-monitor interface='org.gtk.Notifications'</code></li>
-<li>Show <span class="math inline">$BUS_NAME PID (1): `dbus-send --session --print-reply --dest=org.freedesktop.DBus / org.freedesktop.DBus.GetConnectionUnixProcessID string:$</span>BUS_NAME`</li>
+<li>Show $BUS_NAME PID (1): <code>dbus-send --session --print-reply --dest=org.freedesktop.DBus / org.freedesktop.DBus.GetConnectionUnixProcessID string:$BUS_NAME</code></li>
 <li>Show $BUS_NAME PID (2): <code>gdbus call --session --dest org.freedesktop.DBus --object-path / --method org.freedesktop.DBus.GetConnectionUnixProcessID $BUS_NAME</code></li>
 </ul>
-<h2 id="downloads-from-terminal">downloads from terminal</h2>
+<h2>downloads from terminal</h2>
 <ul>
 <li>Common: <code>aria2c $url</code></li>
 <li>Magnet: <code>aria2c $magnet-uri</code></li>
@@ -55,12 +55,12 @@
 <li>Youtube video: <code>youtube-dl -k -x --prefer-free-formats --all-subs -f bestvideo[height&lt;=720]+bestaudio/best --rm-cache $url</code>
 `</li>
 </ul>
-<h2 id="fish">fish</h2>
+<h2>fish</h2>
 <ul>
 <li>Create cmd shortcut: <code>alias -s $name "$command"</code></li>
 <li>Save function: <code>funcsave $function</code></li>
 </ul>
-<h2 id="flatpak">flatpak</h2>
+<h2>flatpak</h2>
 <ul>
 <li>App info (installed): <code>flatpak info $app</code></li>
 <li>App info (remote): <code>flatpak remote-info $repo --app $app</code></li>
@@ -70,11 +70,11 @@
 <li>Remove unneeded deps: <code>flatpak remove --unused</code></li>
 <li>Show running apps: <code>flatpak ps</code></li>
 </ul>
-<h2 id="git">git</h2>
+<h2>git</h2>
 <ul>
 <li>List previous states for recovery: <code>git reflog show</code></li>
 </ul>
-<h2 id="haskell-stack">haskell stack</h2>
+<h2>haskell stack</h2>
 <ul>
 <li>Custom cache: <code>stack --work-dir $cache $cmd</code></li>
 <li>Docs build: <code>stack haddock</code></li>
@@ -82,48 +82,49 @@
 <li>Profiling build: <code>stack build --profile</code></li>
 <li>Profiling exec: <code>stack exec --profile -- $executable +RTS $options</code></li>
 </ul>
-<h2 id="image-processing">image processing</h2>
+<h2>image processing</h2>
 <ul>
 <li>Get img size: <code>identify -format "%wx%h" $img-file</code></li>
 <li>Resize img: <code>convert $img-orig -resize $wx$h $img-dest</code></li>
 </ul>
-<h2 id="javascript">javascript</h2>
+<h2>javascript</h2>
 <ul>
 <li>Parse number before a dot: <code>content.split('.', 1)[0]</code></li>
 </ul>
-<h2 id="gnome-extensions">gnome extensions</h2>
+<h2>gnome extensions</h2>
 <ul>
 <li>Reload: <code>gnome-shell-extension-tool -r $extension-uuid</code></li>
 <li>Enable: <code>gnome-extensions enable $extension-uuid</code></li>
-<li>Disable: <code>gnome-extensions disable $extension-uuid</code></li>
+<li>Disable:  <code>gnome-extensions disable $extension-uuid</code></li>
 <li>Paths:
 <ul>
 <li>System: <code>/usr/share/gnome-shell/extensions/</code></li>
 <li>User: <code>$HOME/.local/share/gnome-shell/extensions/</code></li>
-</ul></li>
 </ul>
-<h2 id="mariadb-mysql">mariadb / mysql</h2>
+</li>
+</ul>
+<h2>mariadb / mysql</h2>
 <ul>
 <li>Connect: <code>mysql -D $db-name -u $db-user -p</code></li>
 <li>Dump: <code>mysqldump -u $db-user $db-name &gt; $file</code></li>
 </ul>
-<h2 id="package-management-arch">package management (arch)</h2>
+<h2>package management (arch)</h2>
 <ul>
 <li>Gen checksums: <code>makepkg -g</code></li>
 <li>Gen .SRCINFO: <code>makepkg --printsrcinfo &gt; .SRCINFO</code></li>
 </ul>
-<h2 id="python">python</h2>
+<h2>python</h2>
 <ul>
 <li>Avoid Conda autostart: <code>conda config --set auto_activate_base False</code></li>
 </ul>
-<h2 id="systemd">systemd</h2>
+<h2>systemd</h2>
 <ul>
 <li>Follow logs: <code>journalctl -f -n0</code></li>
 </ul>
+
         </section>
         <footer>
-            Site proudly generated by
-            <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+            Site proudly generated with Rust
         </footer>
     </body>
 </html>

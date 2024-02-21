@@ -1,29 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <meta charset="utf-8" /> 
+        <meta charset="utf-8"/> 
         <title>(λblog.rainbyte) - VSCode column rulers</title>
-        <link rel="stylesheet" type="text/css" href="../css/default.css?v=" />
-        <link rel="stylesheet" type="text/css" href="../css/highlight.css?v=" />
+        <link rel="stylesheet" type="text/css" href="/css/default.css?v=" />
+        <link rel="stylesheet" type="text/css" href="/css/highlight.css?v=" />
     </head>
     <body>
         <header>
             <div id="logo">
-                <a href="../">(λblog.rainbyte)</a>
+                <a href="/">(λblog.rainbyte)</a>
             </div>
             <nav id="navigation">
-                <a href="../">Home</a>
-                <a href="../about.html">About</a>
-                <a href="../cheatsheet.html">Cheatsheet</a>
-                <a href="../posts.html">Archive</a>
-                <a href="../atom.xml">Feed</a>
+                <a href="/">Home</a>
+                <a href="/about.html">About</a>
+                <a href="/cheatsheet.html">Cheatsheet</a>
+                <a href="/posts.html">Archive</a>
+                <a href="/atom.xml">Feed</a>
             </nav>
         </header>
 
         <section id="content">
             <h1>VSCode column rulers</h1>
             <div class="info">
-    Posted on September  8, 2022
+    Posted on 2022-09-08 21:25:00
     
         by rainbyte
     
@@ -31,55 +31,69 @@
 
 <div class="info">
     
-        Tags: <a title="All pages tagged 'colors'." href="../tags/colors.html">colors</a>, <a title="All pages tagged 'customization'." href="../tags/customization.html">customization</a>, <a title="All pages tagged 'vscode'." href="../tags/vscode.html">vscode</a>
+        Tags:&nbsp;<a title="All pages tagged 'colors'." href="../tags/colors.html">colors</a>&nbsp;<a title="All pages tagged 'customization'." href="../tags/customization.html">customization</a>&nbsp;<a title="All pages tagged 'vscode'." href="../tags/vscode.html">vscode</a>
     
 </div>
 
 <p>Today we will configure VSCode to add custom <strong>column rulers</strong> to measure text
-width. This feature doesn’t require any 3rd party extension. Rulers are useful
+width. This feature doesn't require any 3rd party extension. Rulers are useful
 to indicate us when a line of code is getting <strong>too large</strong>.</p>
 <p>I recommend a width of maximum 74 or 80 columns for programming code. That
 setup is convenient to allow showing files side-by-side.</p>
 <p>VSCode provides <code>color</code> and <code>column</code> attributes to customize each ruler. The
 colors are expressed by name or as hexadecimal values, and the columns are
 just numbers.</p>
-<h2 id="configuration-steps">Configuration steps</h2>
+<h2>Configuration steps</h2>
 <p>Follow these steps to create as many column rulers as you want:</p>
-<ol type="1">
-<li><p>Open VSCode</p></li>
-<li><p>Launch command palette (press <code>ctrl+shift+p</code>)</p></li>
-<li><p>Enter <strong>one</strong> of the following commands to edit config:</p>
+<ol>
+<li>
+<p>Open VSCode</p>
+</li>
+<li>
+<p>Launch command palette (press <code>ctrl+shift+p</code>)</p>
+</li>
+<li>
+<p>Enter <strong>one</strong> of the following commands to edit config:</p>
 <ul>
 <li><code>Open User Settings (JSON)</code>
 <ul>
 <li>This one affects all VSCode instances (global config)</li>
-</ul></li>
+</ul>
+</li>
 <li><code>Open Workspace Settings (JSON)</code>
 <ul>
 <li>This one affects only the current project (folder config)</li>
 <li>Config will be saved in <strong>.vscode/settings.json</strong></li>
-</ul></li>
-</ul></li>
-<li><p>To set 2 custom column rulers add a section similar to this:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;editor.rulers&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>        <span class="dv">60</span><span class="ot">,</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;column&quot;</span><span class="fu">:</span> <span class="dv">80</span><span class="fu">,</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;color&quot;</span><span class="fu">:</span> <span class="st">&quot;#f008&quot;</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span><span class="ot">,</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>To set 2 custom column rulers add a section similar to this:</p>
+<pre><code class="language-json">{
+    "editor.rulers": [
+        60,
+        {
+            "column": 80,
+            "color": "#f008"
+        },
+    ],
+}
+</code></pre>
 <p>Notes:</p>
 <ul>
 <li>This config creates a 1st ruler at column <code>60</code> with default color,
 and a 2nd ruler with explicit <code>column</code> and <code>color</code> fields.</li>
 <li>All the values can be changed as wanted, and even more rulers can
 be added.</li>
-</ul></li>
-<li><p>Save the config to apply the changes each time is modified.</p></li>
+</ul>
+</li>
+<li>
+<p>Save the config to apply the changes each time is modified.</p>
+</li>
 </ol>
 <p><code>Happy hacking</code> 🐱</p>
+
 
 
 <div id="gh-comments-list">
@@ -88,8 +102,7 @@ be added.</li>
 
         </section>
         <footer>
-            Site proudly generated by
-            <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+            Site proudly generated with Rust
         </footer>
     </body>
 </html>

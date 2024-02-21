@@ -1,29 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <meta charset="utf-8" /> 
+        <meta charset="utf-8"/> 
         <title>(λblog.rainbyte) - Autenticación en GitHub usando SSH</title>
-        <link rel="stylesheet" type="text/css" href="../css/default.css?v=" />
-        <link rel="stylesheet" type="text/css" href="../css/highlight.css?v=" />
+        <link rel="stylesheet" type="text/css" href="/css/default.css?v=" />
+        <link rel="stylesheet" type="text/css" href="/css/highlight.css?v=" />
     </head>
     <body>
         <header>
             <div id="logo">
-                <a href="../">(λblog.rainbyte)</a>
+                <a href="/">(λblog.rainbyte)</a>
             </div>
             <nav id="navigation">
-                <a href="../">Home</a>
-                <a href="../about.html">About</a>
-                <a href="../cheatsheet.html">Cheatsheet</a>
-                <a href="../posts.html">Archive</a>
-                <a href="../atom.xml">Feed</a>
+                <a href="/">Home</a>
+                <a href="/about.html">About</a>
+                <a href="/cheatsheet.html">Cheatsheet</a>
+                <a href="/posts.html">Archive</a>
+                <a href="/atom.xml">Feed</a>
             </nav>
         </header>
 
         <section id="content">
             <h1>Autenticación en GitHub usando SSH</h1>
             <div class="info">
-    Posted on May 11, 2022
+    Posted on 2022-05-11 23:41:00
     
         by rainbyte
     
@@ -31,57 +31,76 @@
 
 <div class="info">
     
-        Tags: <a title="All pages tagged 'git'." href="../tags/git.html">git</a>, <a title="All pages tagged 'github'." href="../tags/github.html">github</a>, <a title="All pages tagged 'ssh'." href="../tags/ssh.html">ssh</a>
+        Tags:&nbsp;<a title="All pages tagged 'git'." href="../tags/git.html">git</a>&nbsp;<a title="All pages tagged 'github'." href="../tags/github.html">github</a>&nbsp;<a title="All pages tagged 'ssh'." href="../tags/ssh.html">ssh</a>
     
 </div>
 
 <p>Este post se muestra cómo autenticarse en GitHub mediante llaves SSH para poder interactuar con repositorios Git.</p>
 <p>SSH (Secure SHell) es un protocolo que permite acceso remoto trabajando con pares de llaves (o claves) para generar canales seguros de comunicación.</p>
 <p>El procedimiento es similar para otros proveedores de Git, como por ejemplo Bitbucket o GitLab.</p>
-<h2 id="registrar-una-llave-pública">Registrar una llave pública</h2>
+<h2>Registrar una llave pública</h2>
 <p>A continuación se explica como generar un par de llaves, una privada que es secreta, y otra pública que se registrará en GitHub u otro proveedor Git:</p>
 <!-- more -->
-<ol type="1">
-<li><p>Generar el par de llaves SSH reemplazando los campos <code>&lt;email&gt;</code> y <code>&lt;llave&gt;</code> con valores apropiados</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh-keygen</span> <span class="at">-t</span> ed25519 <span class="at">-C</span> <span class="op">&lt;</span>email<span class="op">&gt;</span> -f ~/.ssh/<span class="op">&lt;</span>llave<span class="op">&gt;</span></span></code></pre></div>
+<ol>
+<li>
+<p>Generar el par de llaves SSH reemplazando los campos <code>&lt;email&gt;</code> y <code>&lt;llave&gt;</code> con valores apropiados</p>
+<pre><code class="language-sh">ssh-keygen -t ed25519 -C &lt;email&gt; -f ~/.ssh/&lt;llave&gt;
+</code></pre>
 <p>Nota: el nombre <code>id_ed25519_github</code> podría ser adecuado para el campo
 <code>&lt;llave&gt;</code>, ya que el par de llaves se creó para GitHub usando el esquema
-<code>ed25519</code>.</p></li>
-<li><p>Verificar que los archivos <code>~/.ssh/&lt;llave&gt;</code> y <code>~/.ssh/&lt;llave&gt;.pub</code> existen, siendo el de extensión <code>.pub</code> la llave pública (eso significa que puede mostrarse a 3ros sin preocupaciones)</p></li>
-<li><p>Abrir el archivo <code>~/.ssh/config</code> con un editor de texto, crearlo si no existe, y dependiendo del sistema operativo agregarle lo siguiente para cada caso:</p>
+<code>ed25519</code>.</p>
+</li>
+<li>
+<p>Verificar que los archivos <code>~/.ssh/&lt;llave&gt;</code> y <code>~/.ssh/&lt;llave&gt;.pub</code> existen, siendo el de extensión <code>.pub</code> la llave pública (eso significa que puede mostrarse a 3ros sin preocupaciones)</p>
+</li>
+<li>
+<p>Abrir el archivo <code>~/.ssh/config</code> con un editor de texto, crearlo si no existe, y dependiendo del sistema operativo agregarle lo siguiente para cada caso:</p>
 <p>Sistema Linux:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode txt"><code class="sourceCode default"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>Host github.com</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  IdentityFile ~/.ssh/&lt;llave&gt;</span></code></pre></div>
+<pre><code class="language-txt">Host github.com
+  IdentityFile ~/.ssh/&lt;llave&gt;
+</code></pre>
 <p>Sistema macOS:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode txt"><code class="sourceCode default"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>Host github.com</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  AddKeysToAgent yes</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  UseKeychain    yes</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  IdentityFile   ~/.ssh/&lt;llave&gt;</span></code></pre></div></li>
-<li><p>Agregar la llave privada para que el programa <code>ssh-agent</code> las recuerde</p>
+<pre><code class="language-txt">Host github.com
+  AddKeysToAgent yes
+  UseKeychain    yes
+  IdentityFile   ~/.ssh/&lt;llave&gt;
+</code></pre>
+</li>
+<li>
+<p>Agregar la llave privada para que el programa <code>ssh-agent</code> las recuerde</p>
 <p>Sistema Linux:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh-add</span> ~/.ssh/<span class="op">&lt;</span>llave<span class="op">&gt;</span></span></code></pre></div>
+<pre><code class="language-sh">ssh-add ~/.ssh/&lt;llave&gt;
+</code></pre>
 <p>Sistema macOS:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh-add</span> <span class="at">-K</span> ~/.ssh/<span class="op">&lt;</span>llave<span class="op">&gt;</span></span></code></pre></div></li>
-<li><p>Agregar la llave pública a GitHub (esto debería ser similar para otros proveedores de repositorios Git)</p>
-<ol type="1">
+<pre><code class="language-sh">ssh-add -K ~/.ssh/&lt;llave&gt;
+</code></pre>
+</li>
+<li>
+<p>Agregar la llave pública a GitHub (esto debería ser similar para otros proveedores de repositorios Git)</p>
+<ol>
 <li>Ir a <code>Settings</code> en el menú superior derecho</li>
 <li>Abrir <code>SSH and GPG keys</code> en la columna izquierda</li>
 <li>Clickear el botón <code>New SSH Key</code></li>
 <li>Llenar el campo <code>Title</code> a gusto con un nombre representativo</li>
 <li>Ejecutar el comando <code>cat ~/.ssh/&lt;llave&gt;.pub</code> (¡atención! extensión <code>.pub</code>), copiar el resultado y pegarlo en el campo <code>Key</code></li>
 <li>Clickear el botón <code>Save SSH Key</code></li>
-</ol></li>
 </ol>
-<h2 id="repositorios-locales">Repositorios locales</h2>
+</li>
+</ol>
+<h2>Repositorios locales</h2>
 <p>Al abrir un repositorio en GitHub se puede obtener la url para clonarlo, para ello debe hacerse click en el botón verde que dice <code>Code ▼</code>, y luego abrir la pestaña SSH.</p>
 <p>Una dirección url SSH tiene la forma <code>git@github.com:&lt;usuario&gt;/&lt;repositorio&gt;.git</code>,
 y ese repositorio remoto puede clonarse de la siguiente manera:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone <span class="op">&lt;</span>url<span class="op">&gt;</span></span></code></pre></div>
+<pre><code class="language-sh">git clone &lt;url&gt;
+</code></pre>
 <p>En caso de tener un repositorio previamente clonado desde un remoto llamado <code>origin</code> (es lo habitual), es posible cambiar su url así:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> remote set-url origin <span class="op">&lt;</span>url<span class="op">&gt;</span></span></code></pre></div>
+<pre><code class="language-sh">git remote set-url origin &lt;url&gt;
+</code></pre>
 <p>En ambos casos, y asumiendo que el remoto se llama <code>origin</code>, se puede verificar
 la url del mismo con este comando:</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> remote get-url origin <span class="op">&lt;</span>url<span class="op">&gt;</span></span></code></pre></div>
+<pre><code class="language-sh">git remote get-url origin &lt;url&gt;
+</code></pre>
+
 
 
 <div id="gh-comments-list">
@@ -90,8 +109,7 @@ la url del mismo con este comando:</p>
 
         </section>
         <footer>
-            Site proudly generated by
-            <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+            Site proudly generated with Rust
         </footer>
     </body>
 </html>

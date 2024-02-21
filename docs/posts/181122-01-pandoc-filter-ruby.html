@@ -1,29 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <meta charset="utf-8" /> 
+        <meta charset="utf-8"/> 
         <title>(λblog.rainbyte) - Pandoc filter for custom ruby notation</title>
-        <link rel="stylesheet" type="text/css" href="../css/default.css?v=" />
-        <link rel="stylesheet" type="text/css" href="../css/highlight.css?v=" />
+        <link rel="stylesheet" type="text/css" href="/css/default.css?v=" />
+        <link rel="stylesheet" type="text/css" href="/css/highlight.css?v=" />
     </head>
     <body>
         <header>
             <div id="logo">
-                <a href="../">(λblog.rainbyte)</a>
+                <a href="/">(λblog.rainbyte)</a>
             </div>
             <nav id="navigation">
-                <a href="../">Home</a>
-                <a href="../about.html">About</a>
-                <a href="../cheatsheet.html">Cheatsheet</a>
-                <a href="../posts.html">Archive</a>
-                <a href="../atom.xml">Feed</a>
+                <a href="/">Home</a>
+                <a href="/about.html">About</a>
+                <a href="/cheatsheet.html">Cheatsheet</a>
+                <a href="/posts.html">Archive</a>
+                <a href="/atom.xml">Feed</a>
             </nav>
         </header>
 
         <section id="content">
             <h1>Pandoc filter for custom ruby notation</h1>
             <div class="info">
-    Posted on November 22, 2018
+    Posted on 2018-11-22 03:12:00
     
         by rainbyte
     
@@ -31,126 +31,85 @@
 
 <div class="info">
     
-        Tags: <a title="All pages tagged 'blog'." href="../tags/blog.html">blog</a>, <a title="All pages tagged 'haskell'." href="../tags/haskell.html">haskell</a>, <a title="All pages tagged 'pandoc'." href="../tags/pandoc.html">pandoc</a>, <a title="All pages tagged 'markdown'." href="../tags/markdown.html">markdown</a>, <a title="All pages tagged 'chinese'." href="../tags/chinese.html">chinese</a>, <a title="All pages tagged 'japanese'." href="../tags/japanese.html">japanese</a>
+        Tags:&nbsp;<a title="All pages tagged 'blog'." href="../tags/blog.html">blog</a>&nbsp;<a title="All pages tagged 'haskell'." href="../tags/haskell.html">haskell</a>&nbsp;<a title="All pages tagged 'pandoc'." href="../tags/pandoc.html">pandoc</a>&nbsp;<a title="All pages tagged 'markdown'." href="../tags/markdown.html">markdown</a>&nbsp;<a title="All pages tagged 'chinese'." href="../tags/chinese.html">chinese</a>&nbsp;<a title="All pages tagged 'japanese'." href="../tags/japanese.html">japanese</a>
     
 </div>
 
-<h2 id="the-motivation">The motivation</h2>
-<p>Chinese and Japanese languages use ideograms in their written forms, but sometimes it is useful to show the reader how those ideograms should be pronounced. To do that, phonetic systems like <strong><ruby>汉语<rt>hànyǔ</rt></ruby><ruby>拼音<rt>pīnyīn</rt></ruby></strong> and <strong><ruby>振<rt>fu</rt>り<rt>ri</rt>仮<rt>ga</rt>名<rt>na</rt></ruby></strong> are used.</p>
+<h2>The motivation</h2>
+<p>Chinese and Japanese languages use ideograms in their written forms, but sometimes it is useful to show the reader how those ideograms should be pronounced. To do that, phonetic systems like <strong>{汉语|hànyǔ}{拼音|pīnyīn}</strong> and <strong>{振り仮名|fu|ri|ga|na}</strong> are used.</p>
 <p>In html documents we can use <code>ruby</code> elements to show phonetic representation above the ideograms, like in the following example:</p>
-<table>
-<colgroup>
-<col style="width: 21%" />
-<col style="width: 78%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th>Code</th>
-<th>Expected Result</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><code>我喜欢&lt;ruby&gt;汉&lt;rt&gt;hàn&lt;/rt&gt;字&lt;rt&gt;zì&lt;/rt&gt;&lt;/ruby&gt;</code></td>
-<td>中国<ruby>汉<rt>hàn</rt>字<rt>zì</rt></ruby></td>
-</tr>
-</tbody>
-</table>
+<p>|Code|Expected Result|
+|----|---------------|
+|<code>我喜欢&lt;ruby&gt;汉&lt;rt&gt;hàn&lt;/rt&gt;字&lt;rt&gt;zì&lt;/rt&gt;&lt;/ruby&gt;</code>|中国<ruby>汉<rt>hàn</rt>字<rt>zì</rt></ruby>|</p>
 <p>The problem is that writing text using <code>ruby</code> elements it is tedious and error prone. We prefer writing something like the following examples:</p>
-<table>
-<thead>
-<tr class="header">
-<th>Code</th>
-<th>Expected Result</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><code>我喜欢{汉字|hàn|zì}</code></td>
-<td>我喜欢<ruby>汉<rt>hàn</rt>字<rt>zì</rt></ruby></td>
-</tr>
-<tr class="even">
-<td><code>我喜欢{汉字|hànzì}</code></td>
-<td>我喜欢<ruby>汉字<rt>hànzì</rt></ruby></td>
-</tr>
-<tr class="odd">
-<td><code>我喜欢{汉字|}</code></td>
-<td>我喜欢<ruby>汉<rt></rt>字<rt></rt></ruby></td>
-</tr>
-<tr class="even">
-<td><code>我喜欢{汉字|hà|n|zì}</code></td>
-<td>我喜欢<ruby>汉字<rt>hà</td>
-</tr>
-<tr class="odd">
-<td><code>我喜欢{汉字}</code></td>
-<td>我喜欢{汉字}</td>
-</tr>
-<tr class="even">
-<td><code>我喜欢{|hànzì}</code></td>
-<td>我喜欢<ruby><rt>hànzì</rt></ruby></td>
-</tr>
-<tr class="odd">
-<td><code>我喜欢{|}</code></td>
-<td>我喜欢</td>
-</tr>
-</tbody>
-</table>
+<p>|Code|Expected Result|
+|----|---------------|
+|<code>我喜欢{汉字|hàn|zì}</code>|我喜欢<ruby>汉<rt>hàn</rt>字<rt>zì</rt></ruby>|
+|<code>我喜欢{汉字|hànzì}</code>|我喜欢<ruby>汉字<rt>hànzì</rt></ruby>|
+|<code>我喜欢{汉字|}</code>|我喜欢<ruby>汉<rt></rt>字<rt></rt></ruby>|
+|<code>我喜欢{汉字|hà|n|zì}</code>|我喜欢<ruby>汉字<rt>hà|n|zì</rt></ruby>|
+|<code>我喜欢{汉字}</code>|我喜欢{汉字}|
+|<code>我喜欢{|hànzì}</code>|我喜欢<ruby><rt>hànzì</rt></ruby>|
+|<code>我喜欢{|}</code>|我喜欢|</p>
 <p>The rest of the post explains how to handle those custom markdown expressions to produce the <code>ruby</code> elements without writing them by hand. I implemented this code in <strong>Haskell</strong> language as a <strong>Pandoc</strong> filter, because this blog uses <strong>Hakyll</strong> static generator which uses the <strong>Pandoc</strong> library.</p>
-<h2 id="document-representation">Document representation</h2>
+<h2>Document representation</h2>
 <p>Pandoc uses a custom datatype to represent in an uniform way the multiple types of contents it can handle. That type is called <code>Pandoc</code> and basically contains a tree-like structure formed by different nodes. We are interested in processing only nodes which are specific instances of the <code>Inline</code> type, because they contain the pieces of text we want to modify.</p>
 <p>We have a piece of code which process the provided Pandoc data structure.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ot">transformCustomMarkdownRuby ::</span> <span class="dt">Pandoc</span> <span class="ot">-&gt;</span> <span class="dt">Pandoc</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>transformCustomMarkdownRuby <span class="ot">=</span> walk handleInline</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="ot">    handleInline ::</span> <span class="dt">Inline</span> <span class="ot">-&gt;</span> <span class="dt">Inline</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    handleInline (<span class="dt">Str</span> s) <span class="ot">=</span> <span class="kw">case</span> (parse markdownRuby <span class="st">&quot;&quot;</span> s) <span class="kw">of</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>        (<span class="dt">Left</span> _)     <span class="ot">-&gt;</span> <span class="dt">Str</span> s</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>        (<span class="dt">Right</span> rubies) <span class="ot">-&gt;</span> <span class="dt">RawInline</span> (<span class="dt">Format</span> <span class="st">&quot;html&quot;</span>) (rubiesToHtml rubies)</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    handleInline x       <span class="ot">=</span> x</span></code></pre></div>
+<pre><code class="language-haskell">transformCustomMarkdownRuby :: Pandoc -&gt; Pandoc
+transformCustomMarkdownRuby = walk handleInline
+  where
+    handleInline :: Inline -&gt; Inline
+    handleInline (Str s) = case (parse markdownRuby "" s) of
+        (Left _)     -&gt; Str s
+        (Right rubies) -&gt; RawInline (Format "html") (rubiesToHtml rubies)
+    handleInline x       = x
+</code></pre>
 <p>The key point in this code is the pattern matching over the <code>Inline</code> type, specifically over the <code>Str</code> instances. We use the <code>walk</code> function to process all the matched nodes recursively, leaving the other ones untouched. A <code>RawInline</code> instance is generated when ruby tags are found, otherwise the original <code>Str</code> instance is preserved.</p>
-<h2 id="text-processing">Text processing</h2>
+<h2>Text processing</h2>
 <p>When we have a candidate to be modified, it is necessary to verify if it follows the correct syntax, so we can parse it to extract the data and render it the way we want.</p>
 <p>Now, here we have the code which does main work:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ot">markdownRuby ::</span> <span class="dt">Parsec</span> <span class="dt">String</span> () [(<span class="dt">String</span>,[(<span class="dt">String</span>,<span class="dt">String</span>)],<span class="dt">String</span>)]</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>markdownRuby <span class="ot">=</span> many <span class="op">$</span> choice [try ruby, fallback]</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="ot">    ruby ::</span> <span class="dt">Parsec</span> <span class="dt">String</span> () (<span class="dt">String</span>,[(<span class="dt">String</span>,<span class="dt">String</span>)],<span class="dt">String</span>)</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    ruby <span class="ot">=</span> (,,) <span class="co">-- (openingText,rubyPairs,closingText)</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>        <span class="op">&lt;$&gt;</span> (many <span class="op">$</span> noneOf <span class="st">&quot;{&quot;</span>)</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>        <span class="op">&lt;*&gt;</span> between (char <span class="ch">'{'</span>) (char <span class="ch">'}'</span>) markdownRubyPairs</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>        <span class="op">&lt;*&gt;</span> (many <span class="op">$</span> noneOf <span class="st">&quot;{&quot;</span>)</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="ot">    fallback ::</span> <span class="dt">Parsec</span> <span class="dt">String</span> () (<span class="dt">String</span>,[(<span class="dt">String</span>,<span class="dt">String</span>)],<span class="dt">String</span>)</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    fallback <span class="ot">=</span> (,,) <span class="co">-- (openingText,rubyPairs,closingText)</span></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>        <span class="op">&lt;$&gt;</span> (many1 <span class="op">$</span> anyChar)</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>        <span class="op">&lt;*&gt;</span> <span class="fu">pure</span> []</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>        <span class="op">&lt;*&gt;</span> <span class="fu">pure</span> <span class="st">&quot;&quot;</span></span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="ot">markdownRubyPairs ::</span> <span class="dt">Parsec</span> <span class="dt">String</span> () [(<span class="dt">String</span>,<span class="dt">String</span>)]</span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>markdownRubyPairs <span class="ot">=</span> <span class="kw">do</span></span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    elems <span class="ot">&lt;-</span> taggedElems</span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    tags  <span class="ot">&lt;-</span> many1 rubyTag</span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> sameLen <span class="ot">=</span> <span class="fu">length</span> elems <span class="op">==</span> <span class="fu">length</span> tags</span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>        matchingPairs <span class="ot">=</span> <span class="fu">zip</span> elems tags</span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>        singlePair <span class="ot">=</span> [(<span class="fu">mconcat</span> elems,intercalate <span class="st">&quot;|&quot;</span> tags)]</span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pure</span> <span class="op">$</span> <span class="kw">if</span> sameLen <span class="kw">then</span> matchingPairs <span class="kw">else</span> singlePair</span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="ot">    taggedElems ::</span> <span class="dt">Parsec</span> <span class="dt">String</span> () [<span class="dt">String</span>]</span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>    taggedElems <span class="ot">=</span> <span class="fu">fmap</span> (<span class="fu">fmap</span> <span class="fu">pure</span>) (many (noneOf <span class="st">&quot;|}&quot;</span>))</span>
-<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>    rubyTag <span class="ot">=</span> char <span class="ch">'|'</span> <span class="op">*&gt;</span> (many <span class="op">$</span> noneOf <span class="st">&quot;|}&quot;</span>)</span>
-<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a><span class="ot">rubyToHtml ::</span> (<span class="dt">String</span>,[(<span class="dt">String</span>,<span class="dt">String</span>)],<span class="dt">String</span>) <span class="ot">-&gt;</span> <span class="dt">String</span></span>
-<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>rubyToHtml (prev,pairs,next) <span class="ot">=</span> prev <span class="op">&lt;&gt;</span> pairsToHtml pairs <span class="op">&lt;&gt;</span> next </span>
-<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
-<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>    pairsToHtml [] <span class="ot">=</span> <span class="st">&quot;&quot;</span></span>
-<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>    pairsToHtml ps <span class="ot">=</span> (wrap <span class="op">.</span> <span class="fu">mconcat</span> <span class="op">.</span> <span class="fu">fmap</span> pairToHtml) ps</span>
-<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>    pairToHtml (<span class="st">&quot;&quot;</span>,<span class="st">&quot;&quot;</span>) <span class="ot">=</span> <span class="st">&quot;&quot;</span></span>
-<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>    pairToHtml (<span class="fu">elem</span>,tag) <span class="ot">=</span> <span class="fu">elem</span> <span class="op">&lt;&gt;</span> <span class="st">&quot;&lt;rt&gt;&quot;</span> <span class="op">&lt;&gt;</span> tag <span class="op">&lt;&gt;</span> <span class="st">&quot;&lt;/rt&gt;&quot;</span></span>
-<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>    wrap x <span class="ot">=</span> <span class="st">&quot;&lt;ruby&gt;&quot;</span> <span class="op">&lt;&gt;</span> x <span class="op">&lt;&gt;</span> <span class="st">&quot;&lt;/ruby&gt;&quot;</span></span>
-<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a><span class="ot">rubiesToHtml ::</span> [(<span class="dt">String</span>,[(<span class="dt">String</span>,<span class="dt">String</span>)],<span class="dt">String</span>)] <span class="ot">-&gt;</span> <span class="dt">String</span></span>
-<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>rubiesToHtml <span class="ot">=</span> <span class="fu">mconcat</span> <span class="op">.</span> <span class="fu">fmap</span> rubyToHtml</span></code></pre></div>
+<pre><code class="language-haskell">markdownRuby :: Parsec String () [(String,[(String,String)],String)]
+markdownRuby = many $ choice [try ruby, fallback]
+  where
+    ruby :: Parsec String () (String,[(String,String)],String)
+    ruby = (,,) -- (openingText,rubyPairs,closingText)
+        &lt;$&gt; (many $ noneOf "{")
+        &lt;*&gt; between (char '{') (char '}') markdownRubyPairs
+        &lt;*&gt; (many $ noneOf "{")
+    fallback :: Parsec String () (String,[(String,String)],String)
+    fallback = (,,) -- (openingText,rubyPairs,closingText)
+        &lt;$&gt; (many1 $ anyChar)
+        &lt;*&gt; pure []
+        &lt;*&gt; pure ""
+markdownRubyPairs :: Parsec String () [(String,String)]
+markdownRubyPairs = do
+    elems &lt;- taggedElems
+    tags  &lt;- many1 rubyTag
+    let sameLen = length elems == length tags
+        matchingPairs = zip elems tags
+        singlePair = [(mconcat elems,intercalate "|" tags)]
+    pure $ if sameLen then matchingPairs else singlePair
+  where
+    taggedElems :: Parsec String () [String]
+    taggedElems = fmap (fmap pure) (many (noneOf "|}"))
+    rubyTag = char '|' *&gt; (many $ noneOf "|}")
+rubyToHtml :: (String,[(String,String)],String) -&gt; String
+rubyToHtml (prev,pairs,next) = prev &lt;&gt; pairsToHtml pairs &lt;&gt; next 
+  where
+    pairsToHtml [] = ""
+    pairsToHtml ps = (wrap . mconcat . fmap pairToHtml) ps
+    pairToHtml ("","") = ""
+    pairToHtml (elem,tag) = elem &lt;&gt; "&lt;rt&gt;" &lt;&gt; tag &lt;&gt; "&lt;/rt&gt;"
+    wrap x = "&lt;ruby&gt;" &lt;&gt; x &lt;&gt; "&lt;/ruby&gt;"
+rubiesToHtml :: [(String,[(String,String)],String)] -&gt; String
+rubiesToHtml = mconcat . fmap rubyToHtml
+</code></pre>
 <p>We are using a library called <code>Parsec</code>, which provides us tools to easily handle the parsing. This code uses them to separate the text in 3 parts: the text before our target, the target itself, the text after our target. Because our target should be between braces, we use te <code>between</code> combinator to find it.</p>
 <p>When the target is found, its contents are separated into base elements and their respective ruby tags, so they can be grouped into pairs. It is assumed that the number of elements and tags is equal, otherwise we have to merge them into a single pair to preserve this property.</p>
 <p>Finally, when we have the independent pieces, we can take and arrange them to render the view in the format we like. Pandoc support many formats, but in this case we are using Html.</p>
-<h2 id="some-caveats">Some caveats</h2>
-<p>The current code doesn’t handle some cases well. I’m still working on it to make it work with markdown tables, formatting inside the tags, and other missing bits.</p>
+<h2>Some caveats</h2>
+<p>The current code doesn't handle some cases well. I'm still working on it to make it work with markdown tables, formatting inside the tags, and other missing bits.</p>
+
 
 
 <div id="gh-comments-list">
@@ -217,8 +176,7 @@
 
         </section>
         <footer>
-            Site proudly generated by
-            <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+            Site proudly generated with Rust
         </footer>
     </body>
 </html>
