@@ -20,7 +20,7 @@ struct PostTemplate {
     date: String,
     author: Option<String>,
     tags: Vec<String>,
-    commentsIssue: Option<String>,
+    comments_issue: Option<String>,
     body: String,
 }
 
@@ -63,7 +63,8 @@ struct PostHeaders {
     published: String,
     tags: String,
     language: Option<String>,
-    commentsIssue: Option<String>,
+    #[serde(rename(deserialize = "commentsIssue"))]
+    comments_issue: Option<String>,
 }
 
 struct PostItem {
@@ -141,7 +142,7 @@ fn main() {
                         .map(|s| TagTemplate { tag: s.clone() }.render_once().unwrap())
                         .collect(),
                     body: body_html,
-                    commentsIssue: fronma.headers.commentsIssue
+                    comments_issue: fronma.headers.comments_issue
                 };
                 let body_post = ctx_post.render_once().unwrap();
                 let ctx_default = DefaultTemplate {
