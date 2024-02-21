@@ -151,7 +151,7 @@ fn main() {
                 };
                 let stem = path.file_stem().unwrap().to_str().unwrap();
                 sites.push(PostItem {
-                    url: format!("posts/{stem}.html"),
+                    url: format!("/posts/{stem}.html"),
                     title: fronma.headers.title.to_owned(),
                     date: fronma.headers.published.to_owned(),
                     tags: tags.to_owned(),
