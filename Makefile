@@ -1,15 +1,18 @@
 .PHONY: build rebuild watch
 
-SITE_CMD = stack exec -- site
+SITE_CMD = cargo run
+SITE_DEST = docs/
+SITE_PORT = 9000
 
 build:
-	$(SITE_CMD) $@
+	$(SITE_CMD)
 
 rebuild:
-	$(SITE_CMD) $@
+	rm -rf $(SITE_DEST)
+	$(SITE_CMD)
 
 watch:
-	$(SITE_CMD) $@ --host 0.0.0.0
+	python -m http.server -d $(SITE_DEST) $(SITE_PORT)
 
 push: rebuild
 	@echo -e '\nPushing blog...\n'
