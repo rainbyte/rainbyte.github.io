@@ -78,8 +78,7 @@ fn main() {
     let patterns_copy = ["CNAME", "images/*", "css/*"];
     let globs_copy = patterns_copy
         .iter()
-        .map(|p| glob(p).expect("Failed to read file to copy"))
-        .flatten();
+        .flat_map(|p| glob(p).expect("Failed to read file to copy"));
 
     for x in globs_copy {
         match x {
@@ -207,7 +206,7 @@ fn main() {
             title: "Home".to_string(),
             body: ctx_index.render_once().unwrap()
         };
-        let mut file = File::create(format!("docs/index.html")).unwrap();
+        let mut file = File::create("docs/index.html").unwrap();
         let _ = file.write_all(ctx_default.render_once().unwrap().as_bytes());
     }
 
@@ -232,7 +231,7 @@ fn main() {
             title: "All posts".to_string(),
             body: ctx_post_list.render_once().unwrap()
         };
-        let mut file = File::create(format!("docs/posts.html")).unwrap();
+        let mut file = File::create("docs/posts.html").unwrap();
         let _ = file.write_all(ctx_default.render_once().unwrap().as_bytes());
     }
 
