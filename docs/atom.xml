@@ -1,5 +1,262 @@
 <?xml version="1.0"?>
-<feed xmlns="http://www.w3.org/2005/Atom" xml:base="https://rainbyte.net.ar"><title>(λblog.rainbyte)</title><id>https://rainbyte.net.ar/atom.xml</id><updated>2022-09-08T21:25:00-03:00</updated><author><name>rainbyte</name></author><link href="https://rainbyte.net.ar" rel="alternate"/><link href="https://rainbyte.net.ar/atom.xml" rel="self"/><subtitle>A site about things I enjoy and would like to share</subtitle><entry><title>VSCode column rulers</title><id>https://rainbyte.net.ar/posts/220908-01-vscode-column-rulers.html</id><updated>2022-09-08T21:25:00-03:00</updated><author><name>rainbyte</name></author><link href="https://rainbyte.net.ar/posts/220908-01-vscode-column-rulers.html" rel="alternate"/><published>2022-09-08T21:25:00-03:00</published><summary type="html">&lt;div class=&quot;info&quot;&gt;
+<feed xmlns="http://www.w3.org/2005/Atom" xml:base="https://rainbyte.net.ar"><title>(λblog.rainbyte)</title><id>https://rainbyte.net.ar/atom.xml</id><updated>2026-02-10T03:29:00-03:00</updated><author><name>rainbyte</name></author><link href="https://rainbyte.net.ar" rel="alternate"/><link href="https://rainbyte.net.ar/atom.xml" rel="self"/><subtitle>A site about things I enjoy and would like to share</subtitle><entry><title>Migration from fronma library to inhouse frontmatter parsing</title><id>https://rainbyte.net.ar/posts/260210-01-migration-to-inhouse-frontmatter-parsing.html</id><updated>2026-02-10T03:29:00-03:00</updated><author><name>rainbyte</name></author><link href="https://rainbyte.net.ar/posts/260210-01-migration-to-inhouse-frontmatter-parsing.html" rel="alternate"/><published>2026-02-10T03:29:00-03:00</published><summary type="html">&lt;div class=&quot;info&quot;&gt;
+    Posted on 2026-02-10 03:29:00
+    
+        by rainbyte
+    
+&lt;/div&gt;
+
+&lt;div class=&quot;info&quot;&gt;
+    
+        Tags:&amp;nbsp;&lt;a title=&quot;All pages tagged &apos;rust&apos;.&quot; href=&quot;/tags/rust.html&quot;&gt;rust&lt;/a&gt;&amp;nbsp;&lt;a title=&quot;All pages tagged &apos;blog&apos;.&quot; href=&quot;/tags/blog.html&quot;&gt;blog&lt;/a&gt;&amp;nbsp;&lt;a title=&quot;All pages tagged &apos;refactoring&apos;.&quot; href=&quot;/tags/refactoring.html&quot;&gt;refactoring&lt;/a&gt;
+    
+&lt;/div&gt;
+
+&lt;p&gt;I&apos;ve been using the &lt;code&gt;fronma&lt;/code&gt; library for my static blog generator for
+more than four years since I migrated my blog from Haskell to Rust
+implementation.&lt;/p&gt;
+&lt;p&gt;After a period of inactivity, now I reactivated my blog and started
+looking at the code again. That&apos;s when I noticed how much I could
+improve it!&lt;/p&gt;
+&lt;p&gt;Over time I realized I didn&apos;t need most of what &lt;code&gt;fronma&lt;/code&gt; provided, even
+if it was fine at the beginning I noticed dependencies are huge for my
+usecase.&lt;/p&gt;
+&lt;p&gt;Just take a look, my frontmatter format is very simple:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Page fields:
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;title&lt;/code&gt; (just this one)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Blog post fields:
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;title&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;author&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;published&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;tags&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;language&lt;/code&gt; (optional)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;commentsIssue&lt;/code&gt; (optional)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;As you can see I&apos;m not using complex nesting, custom validators,
+multiple date formats, or any advanced conversions from YAML format.&lt;/p&gt;
+&lt;p&gt;Having all those unused parts means depending on all &lt;code&gt;serde&lt;/code&gt; machinery,
+including &lt;code&gt;serde_yaml&lt;/code&gt; which was deprecated 3 years ago, and other big
+dependencies.&lt;/p&gt;
+&lt;p&gt;Another reason to change was learning itself!&lt;/p&gt;
+&lt;p&gt;Given that I built this blog generator to understand how things work in
+Rust, sticking with &lt;code&gt;fronma&lt;/code&gt; meant relying on a library for something I
+could implement myself.&lt;/p&gt;
+&lt;!-- more --&gt;
+&lt;h2&gt;The migration&lt;/h2&gt;
+&lt;p&gt;The first thing I did was implementing inline frontmatter parsing in a
+compatible way before removing &lt;code&gt;fronma&lt;/code&gt;, so that almost all the existing
+code was kept untouched.&lt;/p&gt;
+&lt;p&gt;Here is what was changed.&lt;/p&gt;
+&lt;h3&gt;Old dependencies&lt;/h3&gt;
+&lt;p&gt;My target was removing all these dependencies from &lt;code&gt;Cargo.toml&lt;/code&gt;:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-toml&quot;&gt;fronma = &quot;0.4&quot;
+serde = { version = &quot;1.0&quot;, features = [&quot;derive&quot;] }
+serde_json = &quot;1.0.149&quot;
+serde_yaml = &quot;0.9&quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;And in the end I was able to do it.&lt;/p&gt;
+&lt;h3&gt;New approach&lt;/h3&gt;
+&lt;p&gt;Just using the standard library and &lt;code&gt;TryFrom&lt;/code&gt; trait instead of an
+external frontmatter parsing library.&lt;/p&gt;
+&lt;p&gt;The idea was to apply traditional string processing subroutines and
+common data structures.&lt;/p&gt;
+&lt;h3&gt;Code size&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Old implementation size:
+&lt;ul&gt;
+&lt;li&gt;More than 120 Kb in obvious dependencies D:
+&lt;ul&gt;
+&lt;li&gt;4 Kb just from the &lt;code&gt;fronma&lt;/code&gt; library itself&lt;/li&gt;
+&lt;li&gt;82 Kb from &lt;code&gt;serde&lt;/code&gt; serialization framework&lt;/li&gt;
+&lt;li&gt;40 Kb from &lt;code&gt;serde_yaml&lt;/code&gt; lib (deprecated)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;And many more, but I stopped counting there...&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;New implementation size:
+&lt;ul&gt;
+&lt;li&gt;187 lines in my &lt;code&gt;src/main.rs&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;This one is tiny! :D&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;Implementation details&lt;/h2&gt;
+&lt;p&gt;I wrote a generic &lt;code&gt;Frontmatter::parse&lt;/code&gt; function that works with any
+struct type comaptible with &lt;code&gt;TryFrom&amp;lt;HashMap&amp;lt;String, String&amp;gt;&amp;gt;&lt;/code&gt; trait.&lt;/p&gt;
+&lt;p&gt;The parsing flow:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Initialize empty &lt;code&gt;HashMap&amp;lt;String, String&amp;gt;&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Read content and extract frontmatter lines between &lt;code&gt;---&lt;/code&gt; delimiters&lt;/li&gt;
+&lt;li&gt;Parse each line as &lt;code&gt;key: value&lt;/code&gt; and append into the hashmap&lt;/li&gt;
+&lt;li&gt;Use &lt;code&gt;TryFrom&lt;/code&gt; to convert the hashmap to a typed struct&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Here&apos;s the function skeleton:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-rust&quot;&gt;impl&amp;lt;&apos;a, T&amp;gt; Frontmatter&amp;lt;&apos;a, T&amp;gt;
+    where T: TryFrom&amp;lt;HashMap&amp;lt;String, String&amp;gt;, Error = String&amp;gt;
+{
+    fn parse(contents: &amp;amp;&apos;a str) -&amp;gt; Result&amp;lt;Self, String&amp;gt; {
+        // Parse frontmatter into HashMap
+        // Validate required fields
+        // Return typed Frontmatter
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Each header type should be compatible &lt;code&gt;TryFrom&lt;/code&gt; trait, like this one:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-rust&quot;&gt;impl TryFrom&amp;lt;HashMap&amp;lt;String, String&amp;gt;&amp;gt; for PageHeaders {
+    type Error = String;
+
+    fn try_from(
+        map: HashMap&amp;lt;String, String&amp;gt;
+    ) -&amp;gt; Result&amp;lt;Self, Self::Error&amp;gt; {
+        match map.get(&quot;title&quot;) {
+            Some(title) =&amp;gt; Ok(Self {
+                title: title.clone(),
+            }),
+            None =&amp;gt; Err(&quot;Missing title in frontmatter&quot;.to_string()),
+        }
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;For blog posts validation is stricter, but simple to understand:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-rust&quot;&gt;impl TryFrom&amp;lt;HashMap&amp;lt;String, String&amp;gt;&amp;gt; for PostHeaders {
+    type Error = String;
+
+    fn try_from(
+        map: HashMap&amp;lt;String, String&amp;gt;
+    ) -&amp;gt; Result&amp;lt;Self, Self::Error&amp;gt; {
+        let title = match map.get(&quot;title&quot;) {
+            Some(title) =&amp;gt; title.clone(),
+            None =&amp;gt; return Err(
+                &quot;Missing title in frontmatter&quot;.to_string()
+            ),
+        };
+        let author = match map.get(&quot;author&quot;) {
+            Some(author) =&amp;gt; author.clone(),
+            None =&amp;gt; return Err(
+                &quot;Missing author in frontmatter&quot;.to_string()
+            ),
+        };
+        let published = match map.get(&quot;published&quot;) {
+            Some(published) =&amp;gt; published.clone(),
+            None =&amp;gt; return Err(
+                &quot;Missing published in frontmatter&quot;.to_string()
+            ),
+        };
+        let tags = match map.get(&quot;tags&quot;) {
+            Some(tags) =&amp;gt; tags.clone(),
+            None =&amp;gt; return Err(
+                &quot;Missing tags in frontmatter&quot;.to_string()
+            ),
+        };
+        let language = map.get(&quot;language&quot;).cloned();
+        let comments_issue =
+            map.get(&quot;commentsIssue&quot;).cloned();
+
+        Ok(Self {
+            title,
+            author,
+            published,
+            tags,
+            language,
+            comments_issue,
+        })
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Usage in &lt;code&gt;main&lt;/code&gt; stayed the same, except for these two lines which called
+my own parsing wrappers in order to keep code readable:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-rust&quot;&gt;...
+let fronma = PageHeaders::parse(&amp;amp;contents)?;
+...
+let fronma = PostHeaders::parse(&amp;amp;contents)?;
+...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;As you can see I&apos;m passing contents as reference, so the result will
+internally borrow the post body from there as an slice, to avoid the
+costly operation of cloning the data into a separated String.&lt;/p&gt;
+&lt;h2&gt;Immediate benefits&lt;/h2&gt;
+&lt;h3&gt;1. Reduced dependencies&lt;/h3&gt;
+&lt;p&gt;My project now depends only on what I actually use, avoiding &lt;code&gt;fronma&lt;/code&gt;
+and &lt;code&gt;serde_yaml&lt;/code&gt;.&lt;/p&gt;
+&lt;h3&gt;2. Better understanding&lt;/h3&gt;
+&lt;p&gt;Now I know exactly how frontmatter parsing works in my codebase, as it
+is just a few lines of code.&lt;/p&gt;
+&lt;p&gt;In case of debugging, I won&apos;t need to browse for library source code.&lt;/p&gt;
+&lt;h3&gt;3. Customization&lt;/h3&gt;
+&lt;p&gt;I can easily extend the parser:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Support different delimiter formats&lt;/li&gt;
+&lt;li&gt;Add per-field validators&lt;/li&gt;
+&lt;li&gt;Implement field transformations&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;4. Test coverage&lt;/h3&gt;
+&lt;p&gt;To verify parsing worked correctly for my usecase I created a set of
+tests.&lt;/p&gt;
+&lt;p&gt;There were some issues at the beginning with whitespace, but I solved
+them by using the explicit &lt;code&gt;\n\&lt;/code&gt; syntax for avoiding spaces on multiline
+strings.&lt;/p&gt;
+&lt;p&gt;Each test ended up very similar to this one:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-rust&quot;&gt;#[test]
+fn post_header_good() {
+    let contents = &quot;---\n\
+        title: How-to decrease gnome title-bar height\n\
+        author: rainbyte\n\
+        published: 2015-07-02 03:15:07\n\
+        tags: gnome, snippets, css\n\
+        ---\n\
+        abc\n\
+        def&quot;;
+    let result = PostHeaders::parse(contents);
+    let fronma = result.unwrap();
+    assert_eq!(
+        PostHeaders {
+            title: &quot;How-to decrease gnome title-bar height&quot;
+                .to_string(),
+            author: &quot;rainbyte&quot;.to_string(),
+            published: &quot;2015-07-02 03:15:07&quot;.to_string(),
+            tags: &quot;gnome, snippets, css&quot;.to_string(),
+            language: None,
+            comments_issue: None,
+        },
+        fronma.headers
+    );
+    assert_eq!(
+        &quot;abc\n\
+        def&quot;,
+        fronma.body
+    )
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;So as result all my old posts were rendered to exactly the same html as
+before, bit by bit!&lt;/p&gt;
+&lt;h2&gt;Future ideas&lt;/h2&gt;
+&lt;p&gt;Currently most of the fields are saved as strings, but now that I have
+more control over the types I&apos;m planning to type check them by using
+stricter timedate and collection types.&lt;/p&gt;
+&lt;p&gt;Also given that I reactivated my blog and will be focusing on Rust
+development, I&apos;m planning to extend it with more Rust-related content.&lt;/p&gt;
+&lt;h2&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;Migrating from &lt;code&gt;fronma&lt;/code&gt; to inline inhouse parsing was rewarding, given
+that I reduced dependencies, expanded my knowledge, and add some test
+coverage.&lt;/p&gt;
+&lt;p&gt;For my simple use case, custom parsing is the best choice, and removing
+huge dependencies is sometimes the right kind of growth for a project.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Happy hacking&lt;/code&gt; 🐱&lt;/p&gt;
+
+
+
+&lt;div id=&quot;gh-comments-list&quot;&gt;
+    Comments are not open for this post yet.
+&lt;/div&gt;
+</summary></entry><entry><title>VSCode column rulers</title><id>https://rainbyte.net.ar/posts/220908-01-vscode-column-rulers.html</id><updated>2022-09-08T21:25:00-03:00</updated><author><name>rainbyte</name></author><link href="https://rainbyte.net.ar/posts/220908-01-vscode-column-rulers.html" rel="alternate"/><published>2022-09-08T21:25:00-03:00</published><summary type="html">&lt;div class=&quot;info&quot;&gt;
     Posted on 2022-09-08 21:25:00
     
         by rainbyte

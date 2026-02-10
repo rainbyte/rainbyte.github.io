@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8"/> 
+        <title>(λblog.rainbyte) - Migration from fronma library to inhouse frontmatter parsing</title>
+        <link rel="stylesheet" type="text/css" href="/css/default.css?v=" />
+        <link rel="stylesheet" type="text/css" href="/css/highlight.css?v=" />
+    </head>
+    <body>
+        <header>
+            <div id="logo">
+                <a href="/">(λblog.rainbyte)</a>
+            </div>
+            <nav id="navigation">
+                <a href="/">Home</a>
+                <a href="/about.html">About</a>
+                <a href="/cheatsheet.html">Cheatsheet</a>
+                <a href="/posts.html">Archive</a>
+                <a href="/atom.xml">Feed</a>
+            </nav>
+        </header>
+
+        <section id="content">
+            <h1>Migration from fronma library to inhouse frontmatter parsing</h1>
+            <div class="info">
+    Posted on 2026-02-10 03:29:00
+    
+        by rainbyte
+    
+</div>
+
+<div class="info">
+    
+        Tags:&nbsp;<a title="All pages tagged 'rust'." href="/tags/rust.html">rust</a>&nbsp;<a title="All pages tagged 'blog'." href="/tags/blog.html">blog</a>&nbsp;<a title="All pages tagged 'refactoring'." href="/tags/refactoring.html">refactoring</a>
+    
+</div>
+
+<p>I've been using the <code>fronma</code> library for my static blog generator for
+more than four years since I migrated my blog from Haskell to Rust
+implementation.</p>
+<p>After a period of inactivity, now I reactivated my blog and started
+looking at the code again. That's when I noticed how much I could
+improve it!</p>
+<p>Over time I realized I didn't need most of what <code>fronma</code> provided, even
+if it was fine at the beginning I noticed dependencies are huge for my
+usecase.</p>
+<p>Just take a look, my frontmatter format is very simple:</p>
+<ul>
+<li>Page fields:
+<ul>
+<li><code>title</code> (just this one)</li>
+</ul>
+</li>
+<li>Blog post fields:
+<ul>
+<li><code>title</code></li>
+<li><code>author</code></li>
+<li><code>published</code></li>
+<li><code>tags</code></li>
+<li><code>language</code> (optional)</li>
+<li><code>commentsIssue</code> (optional)</li>
+</ul>
+</li>
+</ul>
+<p>As you can see I'm not using complex nesting, custom validators,
+multiple date formats, or any advanced conversions from YAML format.</p>
+<p>Having all those unused parts means depending on all <code>serde</code> machinery,
+including <code>serde_yaml</code> which was deprecated 3 years ago, and other big
+dependencies.</p>
+<p>Another reason to change was learning itself!</p>
+<p>Given that I built this blog generator to understand how things work in
+Rust, sticking with <code>fronma</code> meant relying on a library for something I
+could implement myself.</p>
+<!-- more -->
+<h2>The migration</h2>
+<p>The first thing I did was implementing inline frontmatter parsing in a
+compatible way before removing <code>fronma</code>, so that almost all the existing
+code was kept untouched.</p>
+<p>Here is what was changed.</p>
+<h3>Old dependencies</h3>
+<p>My target was removing all these dependencies from <code>Cargo.toml</code>:</p>
+<pre><code class="language-toml">fronma = "0.4"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0.149"
+serde_yaml = "0.9"
+</code></pre>
+<p>And in the end I was able to do it.</p>
+<h3>New approach</h3>
+<p>Just using the standard library and <code>TryFrom</code> trait instead of an
+external frontmatter parsing library.</p>
+<p>The idea was to apply traditional string processing subroutines and
+common data structures.</p>
+<h3>Code size</h3>
+<ul>
+<li>Old implementation size:
+<ul>
+<li>More than 120 Kb in obvious dependencies D:
+<ul>
+<li>4 Kb just from the <code>fronma</code> library itself</li>
+<li>82 Kb from <code>serde</code> serialization framework</li>
+<li>40 Kb from <code>serde_yaml</code> lib (deprecated)</li>
+</ul>
+</li>
+<li>And many more, but I stopped counting there...</li>
+</ul>
+</li>
+<li>New implementation size:
+<ul>
+<li>187 lines in my <code>src/main.rs</code></li>
+<li>This one is tiny! :D</li>
+</ul>
+</li>
+</ul>
+<h2>Implementation details</h2>
+<p>I wrote a generic <code>Frontmatter::parse</code> function that works with any
+struct type comaptible with <code>TryFrom&lt;HashMap&lt;String, String&gt;&gt;</code> trait.</p>
+<p>The parsing flow:</p>
+<ol>
+<li>Initialize empty <code>HashMap&lt;String, String&gt;</code></li>
+<li>Read content and extract frontmatter lines between <code>---</code> delimiters</li>
+<li>Parse each line as <code>key: value</code> and append into the hashmap</li>
+<li>Use <code>TryFrom</code> to convert the hashmap to a typed struct</li>
+</ol>
+<p>Here's the function skeleton:</p>
+<pre><code class="language-rust">impl&lt;'a, T&gt; Frontmatter&lt;'a, T&gt;
+    where T: TryFrom&lt;HashMap&lt;String, String&gt;, Error = String&gt;
+{
+    fn parse(contents: &amp;'a str) -&gt; Result&lt;Self, String&gt; {
+        // Parse frontmatter into HashMap
+        // Validate required fields
+        // Return typed Frontmatter
+    }
+}
+</code></pre>
+<p>Each header type should be compatible <code>TryFrom</code> trait, like this one:</p>
+<pre><code class="language-rust">impl TryFrom&lt;HashMap&lt;String, String&gt;&gt; for PageHeaders {
+    type Error = String;
+
+    fn try_from(
+        map: HashMap&lt;String, String&gt;
+    ) -&gt; Result&lt;Self, Self::Error&gt; {
+        match map.get("title") {
+            Some(title) =&gt; Ok(Self {
+                title: title.clone(),
+            }),
+            None =&gt; Err("Missing title in frontmatter".to_string()),
+        }
+    }
+}
+</code></pre>
+<p>For blog posts validation is stricter, but simple to understand:</p>
+<pre><code class="language-rust">impl TryFrom&lt;HashMap&lt;String, String&gt;&gt; for PostHeaders {
+    type Error = String;
+
+    fn try_from(
+        map: HashMap&lt;String, String&gt;
+    ) -&gt; Result&lt;Self, Self::Error&gt; {
+        let title = match map.get("title") {
+            Some(title) =&gt; title.clone(),
+            None =&gt; return Err(
+                "Missing title in frontmatter".to_string()
+            ),
+        };
+        let author = match map.get("author") {
+            Some(author) =&gt; author.clone(),
+            None =&gt; return Err(
+                "Missing author in frontmatter".to_string()
+            ),
+        };
+        let published = match map.get("published") {
+            Some(published) =&gt; published.clone(),
+            None =&gt; return Err(
+                "Missing published in frontmatter".to_string()
+            ),
+        };
+        let tags = match map.get("tags") {
+            Some(tags) =&gt; tags.clone(),
+            None =&gt; return Err(
+                "Missing tags in frontmatter".to_string()
+            ),
+        };
+        let language = map.get("language").cloned();
+        let comments_issue =
+            map.get("commentsIssue").cloned();
+
+        Ok(Self {
+            title,
+            author,
+            published,
+            tags,
+            language,
+            comments_issue,
+        })
+    }
+}
+</code></pre>
+<p>Usage in <code>main</code> stayed the same, except for these two lines which called
+my own parsing wrappers in order to keep code readable:</p>
+<pre><code class="language-rust">...
+let fronma = PageHeaders::parse(&amp;contents)?;
+...
+let fronma = PostHeaders::parse(&amp;contents)?;
+...
+</code></pre>
+<p>As you can see I'm passing contents as reference, so the result will
+internally borrow the post body from there as an slice, to avoid the
+costly operation of cloning the data into a separated String.</p>
+<h2>Immediate benefits</h2>
+<h3>1. Reduced dependencies</h3>
+<p>My project now depends only on what I actually use, avoiding <code>fronma</code>
+and <code>serde_yaml</code>.</p>
+<h3>2. Better understanding</h3>
+<p>Now I know exactly how frontmatter parsing works in my codebase, as it
+is just a few lines of code.</p>
+<p>In case of debugging, I won't need to browse for library source code.</p>
+<h3>3. Customization</h3>
+<p>I can easily extend the parser:</p>
+<ul>
+<li>Support different delimiter formats</li>
+<li>Add per-field validators</li>
+<li>Implement field transformations</li>
+</ul>
+<h3>4. Test coverage</h3>
+<p>To verify parsing worked correctly for my usecase I created a set of
+tests.</p>
+<p>There were some issues at the beginning with whitespace, but I solved
+them by using the explicit <code>\n\</code> syntax for avoiding spaces on multiline
+strings.</p>
+<p>Each test ended up very similar to this one:</p>
+<pre><code class="language-rust">#[test]
+fn post_header_good() {
+    let contents = "---\n\
+        title: How-to decrease gnome title-bar height\n\
+        author: rainbyte\n\
+        published: 2015-07-02 03:15:07\n\
+        tags: gnome, snippets, css\n\
+        ---\n\
+        abc\n\
+        def";
+    let result = PostHeaders::parse(contents);
+    let fronma = result.unwrap();
+    assert_eq!(
+        PostHeaders {
+            title: "How-to decrease gnome title-bar height"
+                .to_string(),
+            author: "rainbyte".to_string(),
+            published: "2015-07-02 03:15:07".to_string(),
+            tags: "gnome, snippets, css".to_string(),
+            language: None,
+            comments_issue: None,
+        },
+        fronma.headers
+    );
+    assert_eq!(
+        "abc\n\
+        def",
+        fronma.body
+    )
+}
+</code></pre>
+<p>So as result all my old posts were rendered to exactly the same html as
+before, bit by bit!</p>
+<h2>Future ideas</h2>
+<p>Currently most of the fields are saved as strings, but now that I have
+more control over the types I'm planning to type check them by using
+stricter timedate and collection types.</p>
+<p>Also given that I reactivated my blog and will be focusing on Rust
+development, I'm planning to extend it with more Rust-related content.</p>
+<h2>Conclusion</h2>
+<p>Migrating from <code>fronma</code> to inline inhouse parsing was rewarding, given
+that I reduced dependencies, expanded my knowledge, and add some test
+coverage.</p>
+<p>For my simple use case, custom parsing is the best choice, and removing
+huge dependencies is sometimes the right kind of growth for a project.</p>
+<p><code>Happy hacking</code> 🐱</p>
+
+
+
+<div id="gh-comments-list">
+    Comments are not open for this post yet.
+</div>
+
+        </section>
+        <footer>
+            Site proudly generated with Rust
+        </footer>
+    </body>
+</html>
