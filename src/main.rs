@@ -1,11 +1,17 @@
-use std::{collections::HashSet, fs::{self, File}, io::Write, path::PathBuf};
+use std::{
+    collections::{HashMap, HashSet},
+    fs::{self, File},
+    io::Write,
+    path::PathBuf,
+};
 
 use atom_syndication::{Entry, FeedBuilder, Link, Person, Text};
 use chrono::DateTime;
-use fronma::parser::parse;
 use glob::glob;
 use sailfish::TemplateOnce;
-use serde::Deserialize;
+
+#[cfg(test)]
+mod tests;
 
 #[derive(TemplateOnce)]
 #[template(path = "../templates/default.stpl")]
@@ -51,20 +57,144 @@ struct IndexTemplate {
     posts: Vec<String>,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug)]
+struct Frontmatter<'a, T> {
+    headers: T,
+    body: &'a str,
+}
+
+impl<'a, T> Frontmatter<'a, T>
+where
+    T: TryFrom<HashMap<String, String>, Error = String>,
+{
+    fn parse(contents: &'a str) -> Result<Self, String> {
+        if contents.trim().is_empty() {
+            return Err("Empty content".to_string());
+        }
+
+        let lines_vec: Vec<&str> = contents.lines().collect();
+
+        if lines_vec.len() < 3 || !lines_vec[0].trim().starts_with("---") {
+            return Err("Missing frontmatter delimiter".to_string());
+        }
+
+        let mut in_frontmatter = false;
+        let mut frontmatter_lines = Vec::new();
+        let mut frontmatter_len = 0;
+
+        for line in lines_vec.iter() {
+            frontmatter_len += line.len() + "\n".len();
+            let trimmed = line.trim();
+            if trimmed == "---" {
+                if in_frontmatter {
+                    break;
+                } else {
+                    in_frontmatter = true;
+                    continue;
+                }
+            }
+            if in_frontmatter {
+                frontmatter_lines.push(*line);
+            }
+        }
+
+        if !in_frontmatter || frontmatter_lines.is_empty() {
+            return Err("Empty frontmatter".to_string());
+        }
+
+        let mut map = HashMap::new();
+        for line in frontmatter_lines {
+            let trimmed = line.trim();
+            if let Some((key, value)) = trimmed.split_once(':') {
+                let key = key.trim().to_string();
+                let value = value.trim().trim_matches('"').to_string();
+                if !value.is_empty() {
+                    map.insert(key, value);
+                }
+            }
+        }
+
+        let headers = T::try_from(map)?;
+
+        Ok(Frontmatter {
+            headers,
+            body: &contents[frontmatter_len..],
+        })
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
 struct PageHeaders {
     title: String,
 }
 
-#[derive(Deserialize)]
+impl TryFrom<HashMap<String, String>> for PageHeaders {
+    type Error = String;
+
+    fn try_from(map: HashMap<String, String>) -> Result<Self, Self::Error> {
+        match map.get("title") {
+            Some(title) => Ok(Self {
+                title: title.clone(),
+            }),
+            None => Err("Missing title in frontmatter".to_string()),
+        }
+    }
+}
+
+impl PageHeaders {
+    fn parse(contents: &str) -> Result<Frontmatter<'_, Self>, String> {
+        Frontmatter::parse(contents)
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
 struct PostHeaders {
     title: String,
     author: String,
     published: String,
     tags: String,
     language: Option<String>,
-    #[serde(rename(deserialize = "commentsIssue"))]
     comments_issue: Option<String>,
+}
+
+impl TryFrom<HashMap<String, String>> for PostHeaders {
+    type Error = String;
+
+    fn try_from(map: HashMap<String, String>) -> Result<PostHeaders, String> {
+        let title = match map.get("title") {
+            Some(title) => title.clone(),
+            None => return Err("Missing title in frontmatter".to_string()),
+        };
+        let author = match map.get("author") {
+            Some(author) => author.clone(),
+            None => return Err("Missing author in frontmatter".to_string()),
+        };
+        let published = match map.get("published") {
+            Some(published) => published.clone(),
+            None => return Err("Missing published in frontmatter".to_string()),
+        };
+        let tags = match map.get("tags") {
+            Some(tags) => tags.clone(),
+            None => return Err("Missing tags in frontmatter".to_string()),
+        };
+        let language = map.get("language").cloned();
+        let comments_issue = map.get("commentsIssue").cloned();
+
+        Ok(Self {
+            title,
+            author,
+            published,
+            tags,
+            language,
+            comments_issue,
+        })
+    }
+}
+
+impl PostHeaders {
+    fn parse(contents: &str) -> Result<Frontmatter<'_, Self>, String> {
+        Frontmatter::parse(contents)
+    }
 }
 
 struct PostItem {
@@ -74,7 +204,7 @@ struct PostItem {
     tags: Vec<String>,
 }
 
-fn main() {
+fn main() -> Result<(), String> {
     let patterns_copy = ["CNAME", "images/*", "css/*"];
     let globs_copy = patterns_copy
         .iter()
@@ -98,7 +228,7 @@ fn main() {
         match page {
             Ok(path) => {
                 let contents = fs::read_to_string(&path).unwrap();
-                let fronma = parse::<PageHeaders>(&contents).unwrap();
+                let fronma = PageHeaders::parse(&contents)?;
                 let parser = pulldown_cmark::Parser::new(fronma.body);
                 let mut body_html = String::new();
                 pulldown_cmark::html::push_html(&mut body_html, parser);
@@ -125,7 +255,7 @@ fn main() {
         match post {
             Ok(path) => {
                 let contents = fs::read_to_string(&path).unwrap();
-                let fronma = parse::<PostHeaders>(&contents).unwrap();
+                let fronma = PostHeaders::parse(&contents)?;
                 let parser = pulldown_cmark::Parser::new(fronma.body);
                 let mut body_html = String::new();
                 pulldown_cmark::html::push_html(&mut body_html, parser);
@@ -291,4 +421,6 @@ fn main() {
         ])
         .build();
     feed.write_to(feed_file).unwrap();
+
+    Ok(())
 }
