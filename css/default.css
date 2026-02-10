@@ -1,21 +1,26 @@
 body {
-    background-color: black;
-    color: lightgray;
+    background-color: #101010;
+    color: #e0e0e0;
     display: flex;
     flex-direction: column;
-    font-family: serif;
-    font-size: 28px;
+    font-family: monospace;
+    font-size: 18px;
+    line-height: 1.5;
     margin: 0px auto 0px auto;
     width: 90%;
+}
+
+code, pre, kbd, samp, var {
+    font-family: monospace;
 }
 
 header {
     align-items: center;
     display: flex;
-    border-bottom: 2px solid lightgray;
+    border-bottom: 2px solid #555;
     justify-content: space-between;
     margin-bottom: 2em;
-    padding: 12px 0px 12px 0px;
+    padding: 12px 0px;
 }
 
 a:link {
@@ -23,15 +28,16 @@ a:link {
 }
 
 a:visited {
-    color: darkcyan;
+    color: darkslategray;
 }
 
 a:hover {
     color: yellow;
+    text-decoration: underline;
 }
 
 a:active {
-    color: pink;
+    color: #ff6666;
 }
 
 div#logo a {
@@ -48,7 +54,7 @@ header nav {
 }
 
 header nav a {
-    color: lightgray;
+    color: #e0e0e0;
     font-size: 1em;
     font-weight: bold;
     margin: 0.2em 0.4em;
@@ -81,18 +87,42 @@ h2 {
     margin-top: 2em;
 }
 
+h3 {
+    color: darkkhaki;
+    font-size: 1.0em;
+    margin-top: 1.5em;
+}
+
+blockquote {
+    border-left: 3px solid #555;
+    color: #b0b0b0;
+    margin: 1.5em 0;
+    padding: 0.5em 1em;
+    font-style: italic;
+}
+
+hr {
+    border: 0;
+    border-top: 1px solid #444;
+    margin: 2em 0;
+}
+
+p {
+    margin-bottom: 1em;
+}
+
 #posts li {
     line-height: 2em;
 }
 
 div.info {
-    color: lightgray;
-    font-size: 0.8em;
+    color: #a0a0a0;
+    font-size: 0.85em;
     font-style: italic;
 }
 
 #gh-comments-list {
-    border: solid 2px #ccc;
+    border: solid 2px #555;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -107,7 +137,7 @@ div.info {
 }
 
 .gh-comment {
-    border: solid 2px #ccc;
+    border: solid 2px #555;
     padding: 1em;
     align-self: stretch;
     border-radius: 5px;
@@ -138,12 +168,18 @@ only screen and (max-width: 1000px) {
         justify-content: center;
         margin-top: 1em;
     }
+    pre {
+        width: 90%;
+    }
 }
 
 @media
 only screen and (min-width: 1000px) and (max-width: 1300px) {
     /* Medium size screen */
     body {
+        width: 80%;
+    }
+    pre {
         width: 80%;
     }
 }
@@ -153,6 +189,9 @@ only screen and (min-width: 1300px) {
     /* Large size screen */
     body {
         width: 70%;
+    }
+    pre {
+        width: 80%;
     }
 }
 
