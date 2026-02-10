@@ -1,6 +1,6 @@
 <li class="postitem">
-    <a href="<%=url%>"><%=title%></a>
+    <a href="<%=self.url%>"><%=self.title%></a>
     <div class="info">
-        <%=date%> ::<% for tag in tags { %>&nbsp;<%- tag %><% } %>
+        <%=self.date%> ::<% for tag in self.tags { %>&nbsp;<%- tag %><% } %>
     </div>
 </li>

@@ -1,1 +1,1 @@
-<a title="All pages tagged '<%=tag%>'." href="/tags/<%=str::replace(&tag, "#", "%23")%>.html"><%=tag%></a>
+<a title="All pages tagged '<%=self.tag%>'." href="/tags/<%=str::replace(&self.tag, "#", "%23")%>.html"><%=self.tag%></a>

@@ -1,5 +1,5 @@
 <div id="posts">
     <ul>
-        <% for post in posts { %><%- post %><% } %>
+        <% for post in self.posts { %><%- post %><% } %>
     </ul>
 </div>

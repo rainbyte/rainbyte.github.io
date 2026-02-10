@@ -1,19 +1,19 @@
 <div class="info">
-    Posted on <%= date %>
-    <% if let Some(author) = author { %>
+    Posted on <%= self.date %>
+    <% if let Some(author) = self.author { %>
         by <%= author %>
     <% } %>
 </div>
 
 <div class="info">
-    <% if !tags.is_empty() { %>
-        Tags:<% for tag in tags { %>&nbsp;<%- tag %><% } %>
+    <% if !self.tags.is_empty() { %>
+        Tags:<% for tag in self.tags { %>&nbsp;<%- tag %><% } %>
     <% } %>
 </div>
 
-<%- body %>
+<%- self.body %>
 
-<% if let Some(issue_id) = &comments_issue { %>
+<% if let Some(issue_id) = &self.comments_issue { %>
 <div id="gh-comments-list">
 </div>
 

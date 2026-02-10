@@ -1,16 +1,16 @@
 [package]
 name = "blog"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-atom_syndication = "0.12.2"
-chrono = { version = "0.4.34", default-features = false }
+atom_syndication = "0.12.7"
+chrono = { version = "0.4.43", default-features = false }
 fronma = "0.2.0"
-glob = "0.3.1"
-pulldown-cmark = { version = "0.10.0", default-features = false, features = ["html", "simd"] }
-sailfish = "0.8.3"
-serde = { version = "1.0.196", features = ["derive"] }
-serde_json = "1.0.113"
+glob = "0.3.3"
+pulldown-cmark = { version = "0.13.0", default-features = false, features = ["html", "simd"] }
+sailfish = "0.10.1"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.149"
