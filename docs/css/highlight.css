@@ -4,14 +4,14 @@ table.sourceCode, tr.sourceCode, td.sourceCode, table.sourceCode pre {
     border: 0;
     vertical-align: baseline;
     border: none;
-    background-color: #f8f8f8;
+    background-color: #2d2d2d;
 }
 
 td.nums {
     text-align: right;
     padding-left: 5px;
     padding-right: 5px;
-    background-color: #f0f0f0;
+    background-color: #252525;
 }
 
 td.sourceCode {
@@ -33,16 +33,15 @@ pre, pre > code {
 }
 
 pre {
-    border-color: magenta;
-    border-width: 2px;
-    border-radius: 8px;
-    border-style: solid;
-    padding: 18px;
+    background-color: black;
+    border-radius: 24px;
+    margin: 0 auto;  /* Centers code horizontally */
+    padding: 1em;
     overflow-x: auto;
 }
 
 td.nums pre {
-    background-color: #f8f8f2;
+    background-color: #2d2d2d;
     line-height: 125%;
 }
 
