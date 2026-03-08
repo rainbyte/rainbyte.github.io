@@ -17,3 +17,6 @@ site.o
 
 # vscode
 .vscode/
+
+# custom files (do not commit)
+/local
