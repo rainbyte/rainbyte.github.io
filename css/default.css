@@ -158,6 +158,29 @@ div.info {
     margin-left: 1em;
 }
 
+table {
+    background-color: black;
+    margin: 0px auto 0px auto;
+    padding: 12px;
+    border-collapse: separate;
+    border-radius: 12px;
+    border-spacing: 0;
+}
+
+td {
+    border-color: #e0e0e0;
+    border-style: solid;
+    border-width: 1px;
+    padding: 12px;
+}
+
+th {
+    border-color: #e0e0e0;
+    border-style: solid;
+    border-width: 1px;
+    padding: 12px;
+}
+
 @media
 only screen and (max-width: 1000px) {
     /* Small size screen */
