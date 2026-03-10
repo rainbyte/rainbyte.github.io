@@ -8,6 +8,7 @@ use std::{
 use atom_syndication::{Entry, FeedBuilder, Link, Person, Text};
 use chrono::DateTime;
 use glob::glob;
+use pulldown_cmark::{Options, Parser};
 use sailfish::TemplateOnce;
 
 #[cfg(test)]
@@ -229,7 +230,9 @@ fn main() -> Result<(), String> {
             Ok(path) => {
                 let contents = fs::read_to_string(&path).unwrap();
                 let fronma = PageHeaders::parse(&contents)?;
-                let parser = pulldown_cmark::Parser::new(fronma.body);
+                let mut options = Options::empty();
+                options.insert(Options::ENABLE_TABLES);
+                let parser = Parser::new_ext(fronma.body, options);
                 let mut body_html = String::new();
                 pulldown_cmark::html::push_html(&mut body_html, parser);
                 let ctx_default = DefaultTemplate {
@@ -256,7 +259,9 @@ fn main() -> Result<(), String> {
             Ok(path) => {
                 let contents = fs::read_to_string(&path).unwrap();
                 let fronma = PostHeaders::parse(&contents)?;
-                let parser = pulldown_cmark::Parser::new(fronma.body);
+                let mut options = Options::empty();
+                options.insert(Options::ENABLE_TABLES);
+                let parser = Parser::new_ext(fronma.body, options);
                 let mut body_html = String::new();
                 pulldown_cmark::html::push_html(&mut body_html, parser);
                 let tags: Vec<String> = fronma.headers.tags
