@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8"/> 
+        <title>(λblog.rainbyte) - Restore files on RPi homelab server</title>
+        <link rel="stylesheet" type="text/css" href="/css/default.css?v=" />
+        <link rel="stylesheet" type="text/css" href="/css/highlight.css?v=" />
+    </head>
+    <body>
+        <header>
+            <div id="logo">
+                <a href="/">(λblog.rainbyte)</a>
+            </div>
+            <nav id="navigation">
+                <a href="/">Home</a>
+                <a href="/about.html">About</a>
+                <a href="/cheatsheet.html">Cheatsheet</a>
+                <a href="/posts.html">Archive</a>
+                <a href="/atom.xml">Feed</a>
+            </nav>
+        </header>
+
+        <section id="content">
+            <h1>Restore files on RPi homelab server</h1>
+            <div class="info">
+    Posted on 2026-03-08 03:06:00
+    
+        by rainbyte
+    
+</div>
+
+<div class="info">
+    
+        Tags:&nbsp;<a title="All pages tagged 'debian'." href="/tags/debian.html">debian</a>&nbsp;<a title="All pages tagged 'kernel'." href="/tags/kernel.html">kernel</a>&nbsp;<a title="All pages tagged 'linux'." href="/tags/linux.html">linux</a>&nbsp;<a title="All pages tagged 'rpi'." href="/tags/rpi.html">rpi</a>
+    
+</div>
+
+<p>I lost connection to my Raspberry Pi homelab server and then I found it wouldn't
+respond to SSH. After connecting a debug screen, I discovered a message about
+corrupted <code>libapparmor</code> library.</p>
+<p>Since the RPi uses aarch64 architecture, I wasn't able to easily chroot from my
+x86 PC, so I had to restore affected files directly from <code>.deb</code> packages to the
+RPi microsd card.</p>
+<p>This guide explains how to recover a corrupted Debian system on Raspberry Pi by
+manually extracting and replacing system files. So let's go!</p>
+<h2>Summary</h2>
+<ol>
+<li>RPi server stopped responding</li>
+<li>Screen showed <code>libapparmor</code> corruption error</li>
+<li>Cannot chroot because RPi is aarch64, PC is on x86</li>
+<li>Restored broken library from <code>.deb</code> directly to microsd</li>
+<li>Booted again, but got kernel panic</li>
+<li>Restored kernel modules from <code>.deb</code> to microsd</li>
+<li>Booted successfully</li>
+<li>Installed <code>debsums</code> to verify packages integrity</li>
+<li>Reinstalled other broken packages via apt</li>
+<li>System fully restored</li>
+</ol>
+<!-- more -->
+<h2>Solve the first error</h2>
+<p>These are the step-by-step instructions:</p>
+<ol>
+<li>
+<p>First, identify the microsd card partition and mount it:</p>
+<pre><code class="language-sh">mkdir /tmp/rootfs
+sudo mount /dev/sdXN /tmp/rootfs
+</code></pre>
+<p>Notes:</p>
+<ul>
+<li>Find the correct device with <code>lsblk</code> or <code>blkid</code></li>
+<li>Replace <code>sdXN</code> with that partition (eg. <code>sdb2</code>)</li>
+</ul>
+</li>
+<li>
+<p>Identify the corrupted file by checking error messages from the boot screen,
+which in my case mentioned about issues with <code>libapparmor</code> library</p>
+</li>
+<li>
+<p>Get the right <code>.deb</code> package according to Debian system version:</p>
+<pre><code class="language-sh">curl -o libapparmor1_4.1.0-1_arm64.deb \
+  http://http.us.debian.org/debian/pool/main/a/apparmor/libapparmor1_4.1.0-1_arm64.deb
+</code></pre>
+<p>Note: check <code>/etc/os-release</code> on your system for the correct version</p>
+</li>
+<li>
+<p>Extract <code>data.tar.xz</code> from package contents:</p>
+<pre><code class="language-sh">ar x libapparmor1_4.1.0-1_arm64.deb
+</code></pre>
+<p>Note: it can be <code>data.tar.gz</code> for older packages</p>
+</li>
+<li>
+<p>Extract data contents</p>
+<ul>
+<li>
+<p>For modern <code>.xz</code> compressed archives:</p>
+<pre><code class="language-sh">tar -xJf data.tar.xz
+</code></pre>
+</li>
+<li>
+<p>For older <code>.gz</code> compressed archives:</p>
+<pre><code class="language-sh">tar -xzf data.tar.gz
+</code></pre>
+</li>
+</ul>
+</li>
+<li>
+<p>Verify if the library is corrupted by comparing the extracted file with the
+one on the mounted microsd card partition:</p>
+<pre><code class="language-sh">cmp -s \
+  usr/lib/aarch64-linux-gnu/libapparmor.so.1.24.2 \
+  /tmp/rootfs/lib/aarch64-linux-gnu/libapparmor.so.1.24.2 \
+  &amp;&amp; echo "MATCH" || echo "MISMATCH"
+</code></pre>
+<p>Note: it says <code>MATCH</code> if files are identical, or <code>MISMATCH</code> if they differ</p>
+</li>
+<li>
+<p>Replace the library if there is a mismatch</p>
+<pre><code class="language-sh">cp \
+  usr/lib/aarch64-linux-gnu/libapparmor.so.1.24.2 \
+  /tmp/rootfs/lib/aarch64-linux-gnu/libapparmor.so.1.24.2
+</code></pre>
+</li>
+<li>
+<p>Run the <code>cmp</code> command again to confirm the files now match</p>
+</li>
+<li>
+<p>Fix permissions if needed</p>
+<pre><code class="language-sh">sudo chmod 644 /tmp/rootfs/lib/aarch64-linux-gnu/libapparmor.so.1.24.2
+</code></pre>
+</li>
+</ol>
+<h2>Kernel recovery</h2>
+<p>After fixing the library, I booted the microsd card but got a kernel panic,
+which indicated kernel modules were also corrupted.</p>
+<p>So these steps were the next to be applied:</p>
+<ol>
+<li>
+<p>Download and extract kernel package</p>
+<pre><code class="language-sh">curl -o linux-image-6.12.62+rpt-rpi-v8_6.12.62-1+rpt1_arm64.deb https://archive.raspberrypi.com/debian/pool/main/l/linux/linux-image-6.12.62+rpt-rpi-v8_6.12.62-1+rpt1_arm64.deb
+ar x linux-image-6.12.62+rpt-rpi-v8_6.12.62-1+rpt1_arm64.deb
+tar -xJf data.tar.xz
+</code></pre>
+<p>Note: Use the kernel version matching your system</p>
+</li>
+<li>
+<p>Compare boot files between the extracted package and mounted microsd fat32
+boot partition:</p>
+<pre><code class="language-sh">cmp -s \
+  boot/vmlinuz-6.12.62+rpt-rpi-v8 \
+  /tmp/rootfs/boot/vmlinuz-6.12.62+rpt-rpi-v8 \
+  &amp;&amp; echo "MATCH" || echo "MISMATCH"
+
+cmp -s \
+  boot/config-6.12.62+rpt-rpi-v8 \
+  /tmp/rootfs/boot/config-6.12.62+rpt-rpi-v8 \
+  &amp;&amp; echo "MATCH" || echo "MISMATCH"
+
+cmp -s \
+  boot/System.map-6.12.62+rpt-rpi-v8 \
+  /tmp/rootfs/boot/System.map-6.12.62+rpt-rpi-v8 \
+  &amp;&amp; echo "MATCH" || echo "MISMATCH"
+</code></pre>
+</li>
+<li>
+<p>Generate checksums for modules from the extracted package:</p>
+<pre><code class="language-sh">cd usr/lib/modules/6.12.62+rpt-rpi-v8/
+find . -type f -exec sha256sum {} \; | sort &gt; /tmp/hashes_orig.txt
+</code></pre>
+</li>
+<li>
+<p>Generate checksums for modules on the microsd card:</p>
+<pre><code class="language-sh">cd /tmp/rootfs/usr/lib/modules/6.12.62+rpt-rpi-v8/
+find . -type f -exec sha256sum {} \; | sort &gt; /tmp/hashes_card.txt
+</code></pre>
+<p>Note: being inside is needed to have same output</p>
+</li>
+<li>
+<p>Compare the two checksums lists:</p>
+<pre><code class="language-sh">diff -u /tmp/hashes_orig.txt /tmp/hashes_card.txt
+</code></pre>
+</li>
+<li>
+<p>If there are differences then replace affected modules by copying the entire
+modules directory or at least overriding the broken files:</p>
+<pre><code class="language-sh">sudo cp -r \
+  usr/lib/modules/6.12.62+rpt-rpi-v8/* \
+  /tmp/rootfs/usr/lib/modules/6.12.62+rpt-rpi-v8/
+</code></pre>
+</li>
+</ol>
+<h2>Verify and repair packages</h2>
+<p>Once the system booted, in order to verify package integrity I got some tools:</p>
+<ol>
+<li>
+<p>Install debsums</p>
+<pre><code class="language-sh">sudo apt update
+sudo apt install debsums
+</code></pre>
+</li>
+<li>
+<p>Run a silent check to list only corrupted files:</p>
+<pre><code class="language-sh">sudo debsums -s
+</code></pre>
+</li>
+<li>
+<p>For each corrupted package do a reinstall, example:</p>
+<pre><code class="language-sh">sudo apt install --reinstall \
+  libacl1 libassuan9 libcamera0.6 libcc1-0 libcrypt-dev \
+  libxmuu1 rpi-usb-gadget vim-common
+</code></pre>
+<p>Note: replace with the packages shown by <code>debsums</code></p>
+</li>
+<li>
+<p>Verify integrity again</p>
+<pre><code class="language-sh">sudo debsums -s
+</code></pre>
+<p>Note: if no output, then all packages are intact</p>
+</li>
+</ol>
+<h2>Conclusion</h2>
+<p>The system is now fully restored!</p>
+<p>This process saved me from re-imaging the microsd card and losing all
+configuration.</p>
+<p>It seems I must use an UPS next time &gt;.&lt;</p>
+<p><code>Happy hacking!</code> 🐱</p>
+
+
+
+<div id="gh-comments-list">
+    Comments are not open for this post yet.
+</div>
+
+        </section>
+        <footer>
+            Site proudly generated with Rust
+        </footer>
+    </body>
+</html>

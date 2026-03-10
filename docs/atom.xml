@@ -1,5 +1,410 @@
 <?xml version="1.0"?>
-<feed xmlns="http://www.w3.org/2005/Atom" xml:base="https://rainbyte.net.ar"><title>(λblog.rainbyte)</title><id>https://rainbyte.net.ar/atom.xml</id><updated>2026-02-10T03:29:00-03:00</updated><author><name>rainbyte</name></author><link href="https://rainbyte.net.ar" rel="alternate"/><link href="https://rainbyte.net.ar/atom.xml" rel="self"/><subtitle>A site about things I enjoy and would like to share</subtitle><entry><title>Migration from fronma library to inhouse frontmatter parsing</title><id>https://rainbyte.net.ar/posts/260210-01-migration-to-inhouse-frontmatter-parsing.html</id><updated>2026-02-10T03:29:00-03:00</updated><author><name>rainbyte</name></author><link href="https://rainbyte.net.ar/posts/260210-01-migration-to-inhouse-frontmatter-parsing.html" rel="alternate"/><published>2026-02-10T03:29:00-03:00</published><summary type="html">&lt;div class=&quot;info&quot;&gt;
+<feed xmlns="http://www.w3.org/2005/Atom" xml:base="https://rainbyte.net.ar"><title>(λblog.rainbyte)</title><id>https://rainbyte.net.ar/atom.xml</id><updated>2026-03-08T03:06:00-03:00</updated><author><name>rainbyte</name></author><link href="https://rainbyte.net.ar" rel="alternate"/><link href="https://rainbyte.net.ar/atom.xml" rel="self"/><subtitle>A site about things I enjoy and would like to share</subtitle><entry><title>Restore files on RPi homelab server</title><id>https://rainbyte.net.ar/posts/260308-01-restore-files-on-rpi-homelab-server.html</id><updated>2026-03-08T03:06:00-03:00</updated><author><name>rainbyte</name></author><link href="https://rainbyte.net.ar/posts/260308-01-restore-files-on-rpi-homelab-server.html" rel="alternate"/><published>2026-03-08T03:06:00-03:00</published><summary type="html">&lt;div class=&quot;info&quot;&gt;
+    Posted on 2026-03-08 03:06:00
+    
+        by rainbyte
+    
+&lt;/div&gt;
+
+&lt;div class=&quot;info&quot;&gt;
+    
+        Tags:&amp;nbsp;&lt;a title=&quot;All pages tagged &apos;debian&apos;.&quot; href=&quot;/tags/debian.html&quot;&gt;debian&lt;/a&gt;&amp;nbsp;&lt;a title=&quot;All pages tagged &apos;kernel&apos;.&quot; href=&quot;/tags/kernel.html&quot;&gt;kernel&lt;/a&gt;&amp;nbsp;&lt;a title=&quot;All pages tagged &apos;linux&apos;.&quot; href=&quot;/tags/linux.html&quot;&gt;linux&lt;/a&gt;&amp;nbsp;&lt;a title=&quot;All pages tagged &apos;rpi&apos;.&quot; href=&quot;/tags/rpi.html&quot;&gt;rpi&lt;/a&gt;
+    
+&lt;/div&gt;
+
+&lt;p&gt;I lost connection to my Raspberry Pi homelab server and then I found it wouldn&apos;t
+respond to SSH. After connecting a debug screen, I discovered a message about
+corrupted &lt;code&gt;libapparmor&lt;/code&gt; library.&lt;/p&gt;
+&lt;p&gt;Since the RPi uses aarch64 architecture, I wasn&apos;t able to easily chroot from my
+x86 PC, so I had to restore affected files directly from &lt;code&gt;.deb&lt;/code&gt; packages to the
+RPi microsd card.&lt;/p&gt;
+&lt;p&gt;This guide explains how to recover a corrupted Debian system on Raspberry Pi by
+manually extracting and replacing system files. So let&apos;s go!&lt;/p&gt;
+&lt;h2&gt;Summary&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;RPi server stopped responding&lt;/li&gt;
+&lt;li&gt;Screen showed &lt;code&gt;libapparmor&lt;/code&gt; corruption error&lt;/li&gt;
+&lt;li&gt;Cannot chroot because RPi is aarch64, PC is on x86&lt;/li&gt;
+&lt;li&gt;Restored broken library from &lt;code&gt;.deb&lt;/code&gt; directly to microsd&lt;/li&gt;
+&lt;li&gt;Booted again, but got kernel panic&lt;/li&gt;
+&lt;li&gt;Restored kernel modules from &lt;code&gt;.deb&lt;/code&gt; to microsd&lt;/li&gt;
+&lt;li&gt;Booted successfully&lt;/li&gt;
+&lt;li&gt;Installed &lt;code&gt;debsums&lt;/code&gt; to verify packages integrity&lt;/li&gt;
+&lt;li&gt;Reinstalled other broken packages via apt&lt;/li&gt;
+&lt;li&gt;System fully restored&lt;/li&gt;
+&lt;/ol&gt;
+&lt;!-- more --&gt;
+&lt;h2&gt;Solve the first error&lt;/h2&gt;
+&lt;p&gt;These are the step-by-step instructions:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;First, identify the microsd card partition and mount it:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;mkdir /tmp/rootfs
+sudo mount /dev/sdXN /tmp/rootfs
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Notes:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Find the correct device with &lt;code&gt;lsblk&lt;/code&gt; or &lt;code&gt;blkid&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Replace &lt;code&gt;sdXN&lt;/code&gt; with that partition (eg. &lt;code&gt;sdb2&lt;/code&gt;)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Identify the corrupted file by checking error messages from the boot screen,
+which in my case mentioned about issues with &lt;code&gt;libapparmor&lt;/code&gt; library&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Get the right &lt;code&gt;.deb&lt;/code&gt; package according to Debian system version:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;curl -o libapparmor1_4.1.0-1_arm64.deb \
+  http://http.us.debian.org/debian/pool/main/a/apparmor/libapparmor1_4.1.0-1_arm64.deb
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Note: check &lt;code&gt;/etc/os-release&lt;/code&gt; on your system for the correct version&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Extract &lt;code&gt;data.tar.xz&lt;/code&gt; from package contents:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;ar x libapparmor1_4.1.0-1_arm64.deb
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Note: it can be &lt;code&gt;data.tar.gz&lt;/code&gt; for older packages&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Extract data contents&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;For modern &lt;code&gt;.xz&lt;/code&gt; compressed archives:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;tar -xJf data.tar.xz
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;For older &lt;code&gt;.gz&lt;/code&gt; compressed archives:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;tar -xzf data.tar.gz
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Verify if the library is corrupted by comparing the extracted file with the
+one on the mounted microsd card partition:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;cmp -s \
+  usr/lib/aarch64-linux-gnu/libapparmor.so.1.24.2 \
+  /tmp/rootfs/lib/aarch64-linux-gnu/libapparmor.so.1.24.2 \
+  &amp;amp;&amp;amp; echo &quot;MATCH&quot; || echo &quot;MISMATCH&quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Note: it says &lt;code&gt;MATCH&lt;/code&gt; if files are identical, or &lt;code&gt;MISMATCH&lt;/code&gt; if they differ&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Replace the library if there is a mismatch&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;cp \
+  usr/lib/aarch64-linux-gnu/libapparmor.so.1.24.2 \
+  /tmp/rootfs/lib/aarch64-linux-gnu/libapparmor.so.1.24.2
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Run the &lt;code&gt;cmp&lt;/code&gt; command again to confirm the files now match&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Fix permissions if needed&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;sudo chmod 644 /tmp/rootfs/lib/aarch64-linux-gnu/libapparmor.so.1.24.2
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2&gt;Kernel recovery&lt;/h2&gt;
+&lt;p&gt;After fixing the library, I booted the microsd card but got a kernel panic,
+which indicated kernel modules were also corrupted.&lt;/p&gt;
+&lt;p&gt;So these steps were the next to be applied:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;Download and extract kernel package&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;curl -o linux-image-6.12.62+rpt-rpi-v8_6.12.62-1+rpt1_arm64.deb https://archive.raspberrypi.com/debian/pool/main/l/linux/linux-image-6.12.62+rpt-rpi-v8_6.12.62-1+rpt1_arm64.deb
+ar x linux-image-6.12.62+rpt-rpi-v8_6.12.62-1+rpt1_arm64.deb
+tar -xJf data.tar.xz
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Note: Use the kernel version matching your system&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Compare boot files between the extracted package and mounted microsd fat32
+boot partition:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;cmp -s \
+  boot/vmlinuz-6.12.62+rpt-rpi-v8 \
+  /tmp/rootfs/boot/vmlinuz-6.12.62+rpt-rpi-v8 \
+  &amp;amp;&amp;amp; echo &quot;MATCH&quot; || echo &quot;MISMATCH&quot;
+
+cmp -s \
+  boot/config-6.12.62+rpt-rpi-v8 \
+  /tmp/rootfs/boot/config-6.12.62+rpt-rpi-v8 \
+  &amp;amp;&amp;amp; echo &quot;MATCH&quot; || echo &quot;MISMATCH&quot;
+
+cmp -s \
+  boot/System.map-6.12.62+rpt-rpi-v8 \
+  /tmp/rootfs/boot/System.map-6.12.62+rpt-rpi-v8 \
+  &amp;amp;&amp;amp; echo &quot;MATCH&quot; || echo &quot;MISMATCH&quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Generate checksums for modules from the extracted package:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;cd usr/lib/modules/6.12.62+rpt-rpi-v8/
+find . -type f -exec sha256sum {} \; | sort &amp;gt; /tmp/hashes_orig.txt
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Generate checksums for modules on the microsd card:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;cd /tmp/rootfs/usr/lib/modules/6.12.62+rpt-rpi-v8/
+find . -type f -exec sha256sum {} \; | sort &amp;gt; /tmp/hashes_card.txt
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Note: being inside is needed to have same output&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Compare the two checksums lists:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;diff -u /tmp/hashes_orig.txt /tmp/hashes_card.txt
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;If there are differences then replace affected modules by copying the entire
+modules directory or at least overriding the broken files:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;sudo cp -r \
+  usr/lib/modules/6.12.62+rpt-rpi-v8/* \
+  /tmp/rootfs/usr/lib/modules/6.12.62+rpt-rpi-v8/
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2&gt;Verify and repair packages&lt;/h2&gt;
+&lt;p&gt;Once the system booted, in order to verify package integrity I got some tools:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;Install debsums&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;sudo apt update
+sudo apt install debsums
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Run a silent check to list only corrupted files:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;sudo debsums -s
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;For each corrupted package do a reinstall, example:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;sudo apt install --reinstall \
+  libacl1 libassuan9 libcamera0.6 libcc1-0 libcrypt-dev \
+  libxmuu1 rpi-usb-gadget vim-common
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Note: replace with the packages shown by &lt;code&gt;debsums&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Verify integrity again&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;sudo debsums -s
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Note: if no output, then all packages are intact&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;The system is now fully restored!&lt;/p&gt;
+&lt;p&gt;This process saved me from re-imaging the microsd card and losing all
+configuration.&lt;/p&gt;
+&lt;p&gt;It seems I must use an UPS next time &amp;gt;.&amp;lt;&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Happy hacking!&lt;/code&gt; 🐱&lt;/p&gt;
+
+
+
+&lt;div id=&quot;gh-comments-list&quot;&gt;
+    Comments are not open for this post yet.
+&lt;/div&gt;
+</summary></entry><entry><title>Install NVIDIA driver on Debian Trixie</title><id>https://rainbyte.net.ar/posts/260305-01-install-nvidia-driver-on-debian-trixie.html</id><updated>2026-03-05T01:56:00-03:00</updated><author><name>rainbyte</name></author><link href="https://rainbyte.net.ar/posts/260305-01-install-nvidia-driver-on-debian-trixie.html" rel="alternate"/><published>2026-03-05T01:56:00-03:00</published><summary type="html">&lt;div class=&quot;info&quot;&gt;
+    Posted on 2026-03-05 01:56:00
+    
+        by rainbyte
+    
+&lt;/div&gt;
+
+&lt;div class=&quot;info&quot;&gt;
+    
+        Tags:&amp;nbsp;&lt;a title=&quot;All pages tagged &apos;cuda&apos;.&quot; href=&quot;/tags/cuda.html&quot;&gt;cuda&lt;/a&gt;&amp;nbsp;&lt;a title=&quot;All pages tagged &apos;debian&apos;.&quot; href=&quot;/tags/debian.html&quot;&gt;debian&lt;/a&gt;&amp;nbsp;&lt;a title=&quot;All pages tagged &apos;hardware&apos;.&quot; href=&quot;/tags/hardware.html&quot;&gt;hardware&lt;/a&gt;&amp;nbsp;&lt;a title=&quot;All pages tagged &apos;kernel&apos;.&quot; href=&quot;/tags/kernel.html&quot;&gt;kernel&lt;/a&gt;&amp;nbsp;&lt;a title=&quot;All pages tagged &apos;linux&apos;.&quot; href=&quot;/tags/linux.html&quot;&gt;linux&lt;/a&gt;&amp;nbsp;&lt;a title=&quot;All pages tagged &apos;nvidia&apos;.&quot; href=&quot;/tags/nvidia.html&quot;&gt;nvidia&lt;/a&gt;
+    
+&lt;/div&gt;
+
+&lt;p&gt;I needed to install NVIDIA driver 590 on Debian 13 (Trixie) because vLLM and
+Llama.cpp will require CUDA 13.1, but the Debian repo&apos;s driver 550 only provides
+CUDA 12.4.&lt;/p&gt;
+&lt;p&gt;So this guide covers two installation methods:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Debian repo
+&lt;ul&gt;
+&lt;li&gt;simpler management&lt;/li&gt;
+&lt;li&gt;officially supported&lt;/li&gt;
+&lt;li&gt;limited to CUDA 12.4&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;NVIDIA repo
+&lt;ul&gt;
+&lt;li&gt;provides CUDA 13.1 with driver 590&lt;/li&gt;
+&lt;li&gt;recommended for LLM engines&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;TLDR&lt;/h2&gt;
+&lt;p&gt;Choose the appropriate method:&lt;/p&gt;
+&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th style=&quot;text-align: left&quot;&gt;Requirement&lt;/th&gt;&lt;th style=&quot;text-align: left&quot;&gt;Method to be used&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;
+&lt;tr&gt;&lt;td style=&quot;text-align: left&quot;&gt;CUDA 12.4 (driver 550)&lt;/td&gt;&lt;td style=&quot;text-align: left&quot;&gt;Debian repo method&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td style=&quot;text-align: left&quot;&gt;CUDA 13.1 (driver 590)&lt;/td&gt;&lt;td style=&quot;text-align: left&quot;&gt;NVIDIA repo method&lt;/td&gt;&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;p&gt;Both methods will require:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Removing old packages&lt;/li&gt;
+&lt;li&gt;Installing headers&lt;/li&gt;
+&lt;li&gt;Rebooting when ready&lt;/li&gt;
+&lt;/ul&gt;
+&lt;!-- more --&gt;
+&lt;h2&gt;Debian repo method&lt;/h2&gt;
+&lt;p&gt;This method is simpler and works well for most cases.&lt;/p&gt;
+&lt;p&gt;For Debian 13 (Trixie) the steps are these:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;Remove old NVIDIA packages&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;sudo apt purge &quot;*nvidia*&quot;
+sudo apt autoremove
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;To enable packages edit &lt;code&gt;/etc/apt/sources.list&lt;/code&gt; and ensure each repo
+includes these attributes:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-txt&quot;&gt;contrib non-free non-free-firmware
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Update package definitions&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;sudo apt update
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Install essential dependencies&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;sudo apt install linux-headers-amd64 firmware-misc-nonfree
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Note: firmware is explicit because &lt;code&gt;nvidia-driver&lt;/code&gt; package doesn&apos;t
+indicate a dependency on it&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Install NVIDIA driver&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;sudo apt install nvidia-driver nvidia-kernel-dkms
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Reboot&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;sudo reboot
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Install CUDA dependencies (optional)&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;sudo apt install nvidia-cuda-toolkit nvidia-cuda-dev nvidia-cuda-toolkit-gcc
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Note: CUDA is required by LLM engines like vLLM and Llama.cpp&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2&gt;NVIDIA repo method&lt;/h2&gt;
+&lt;p&gt;The NVIDIA repository provides a &lt;a href=&quot;https://docs.nvidia.com/datacenter/tesla/driver-installation-guide/debian.html&quot;&gt;compute-only installation&lt;/a&gt; that avoids X11
+dependencies, making it ideal for headless servers like mine.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Warning&lt;/strong&gt;: all steps must be fully completed before rebooting, otherwise
+the system will be left unbootable without the driver!&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;Remove old NVIDIA packages&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;sudo apt purge &quot;*nvidia*&quot;
+sudo apt autoremove
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Add NVIDIA repository&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;wget https://developer.download.nvidia.com/compute/cuda/repos/debian13/sbsa/cuda-keyring_1.1-1_all.deb
+dpkg -i cuda-keyring_1.1-1_all.deb
+sudo apt update
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Install compute-only system dependencies&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;sudo apt install nvidia-driver-cuda nvidia-kernel-open-dkms
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Note: this is a headless installation that avoids X11 dependencies!&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Reboot system&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;sudo reboot
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Verify driver is there by running vendor provided cli tool:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;nvidia-smi
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Note: this shows power usage, temperature, etc&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Install CUDA dependencies (optional)&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;sudo apt install cuda-compiler-13-1 cuda-libraries-13-1
+sudo apt install cuda-libraries-dev-13-1
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Note: CUDA is required by LLM engines like vLLM and Llama.cpp&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Add CUDA bin directory to &lt;code&gt;PATH&lt;/code&gt; env var with one of these commands:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;fish shell:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;fish_add_path /usr/local/cuda/bin
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;bash shell:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;export PATH=${PATH}:/usr/local/cuda/bin
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Provide &lt;code&gt;cicc&lt;/code&gt; and &lt;code&gt;nvcc&lt;/code&gt; at &lt;code&gt;/usr/bin&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;sudo update-alternatives \
+    --install /usr/bin/nvcc nvcc /usr/local/cuda/bin/nvcc 100
+sudo update-alternatives \
+    --install /usr/bin/cicc cicc /usr/local/cuda/nvvm/bin/nvcc 100
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Check CUDA &lt;code&gt;nvcc&lt;/code&gt; availability&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;nvcc --version
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Export environment variables&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-sh&quot;&gt;# Using the symlink as base ensures minor updates are still compatible
+export CUDA_HOME=&quot;/usr/local/cuda&quot;
+
+# Add NVCC compiler and CICC internal tools to PATH
+export PATH=&quot;$CUDA_HOME/bin:$CUDA_HOME/nvvm/bin:$PATH&quot;
+
+# Some headers are nested, like cub/cub.cuh
+export CPATH=&quot;$CUDA_HOME/include/cccl:$CUDA_HOME/include:$CPATH&quot;
+
+# Linking paths: stubs provides -lcuda when building without a live GPU
+export LIBRARY_PATH=&quot;$CUDA_HOME/lib64:$CUDA_HOME/lib64/stubs:$LIBRARY_PATH&quot;
+
+# Runtime paths: omit stubs here to avoid runtime conflicts
+export LD_LIBRARY_PATH=&quot;$CUDA_HOME/lib64:$LD_LIBRARY_PATH&quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Note: this will be required by LLM engines to recognize CUDA libraries&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;To make these permanent, add them to shell&apos;s config file:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;fish: &lt;code&gt;~/.config/fish/config.fish&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;bash: &lt;code&gt;~/.bashrc&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;Follow NVIDIA repo instructions if you need CUDA 13.1 and 590 driver, otherwise
+just use the drivers provided in Debian official repo.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Happy hacking!&lt;/code&gt; 🐱&lt;/p&gt;
+
+
+
+&lt;div id=&quot;gh-comments-list&quot;&gt;
+    Comments are not open for this post yet.
+&lt;/div&gt;
+</summary></entry><entry><title>Migration from fronma library to inhouse frontmatter parsing</title><id>https://rainbyte.net.ar/posts/260210-01-migration-to-inhouse-frontmatter-parsing.html</id><updated>2026-02-10T03:29:00-03:00</updated><author><name>rainbyte</name></author><link href="https://rainbyte.net.ar/posts/260210-01-migration-to-inhouse-frontmatter-parsing.html" rel="alternate"/><published>2026-02-10T03:29:00-03:00</published><summary type="html">&lt;div class=&quot;info&quot;&gt;
     Posted on 2026-02-10 03:29:00
     
         by rainbyte
@@ -1747,19 +2152,19 @@ Exec=${comando}
 &lt;h2&gt;The motivation&lt;/h2&gt;
 &lt;p&gt;Chinese and Japanese languages use ideograms in their written forms, but sometimes it is useful to show the reader how those ideograms should be pronounced. To do that, phonetic systems like &lt;strong&gt;{汉语|hànyǔ}{拼音|pīnyīn}&lt;/strong&gt; and &lt;strong&gt;{振り仮名|fu|ri|ga|na}&lt;/strong&gt; are used.&lt;/p&gt;
 &lt;p&gt;In html documents we can use &lt;code&gt;ruby&lt;/code&gt; elements to show phonetic representation above the ideograms, like in the following example:&lt;/p&gt;
-&lt;p&gt;|Code|Expected Result|
-|----|---------------|
-|&lt;code&gt;我喜欢&amp;lt;ruby&amp;gt;汉&amp;lt;rt&amp;gt;hàn&amp;lt;/rt&amp;gt;字&amp;lt;rt&amp;gt;zì&amp;lt;/rt&amp;gt;&amp;lt;/ruby&amp;gt;&lt;/code&gt;|中国&lt;ruby&gt;汉&lt;rt&gt;hàn&lt;/rt&gt;字&lt;rt&gt;zì&lt;/rt&gt;&lt;/ruby&gt;|&lt;/p&gt;
+&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Code&lt;/th&gt;&lt;th&gt;Expected Result&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;
+&lt;tr&gt;&lt;td&gt;&lt;code&gt;我喜欢&amp;lt;ruby&amp;gt;汉&amp;lt;rt&amp;gt;hàn&amp;lt;/rt&amp;gt;字&amp;lt;rt&amp;gt;zì&amp;lt;/rt&amp;gt;&amp;lt;/ruby&amp;gt;&lt;/code&gt;&lt;/td&gt;&lt;td&gt;中国&lt;ruby&gt;汉&lt;rt&gt;hàn&lt;/rt&gt;字&lt;rt&gt;zì&lt;/rt&gt;&lt;/ruby&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
 &lt;p&gt;The problem is that writing text using &lt;code&gt;ruby&lt;/code&gt; elements it is tedious and error prone. We prefer writing something like the following examples:&lt;/p&gt;
-&lt;p&gt;|Code|Expected Result|
-|----|---------------|
-|&lt;code&gt;我喜欢{汉字|hàn|zì}&lt;/code&gt;|我喜欢&lt;ruby&gt;汉&lt;rt&gt;hàn&lt;/rt&gt;字&lt;rt&gt;zì&lt;/rt&gt;&lt;/ruby&gt;|
-|&lt;code&gt;我喜欢{汉字|hànzì}&lt;/code&gt;|我喜欢&lt;ruby&gt;汉字&lt;rt&gt;hànzì&lt;/rt&gt;&lt;/ruby&gt;|
-|&lt;code&gt;我喜欢{汉字|}&lt;/code&gt;|我喜欢&lt;ruby&gt;汉&lt;rt&gt;&lt;/rt&gt;字&lt;rt&gt;&lt;/rt&gt;&lt;/ruby&gt;|
-|&lt;code&gt;我喜欢{汉字|hà|n|zì}&lt;/code&gt;|我喜欢&lt;ruby&gt;汉字&lt;rt&gt;hà|n|zì&lt;/rt&gt;&lt;/ruby&gt;|
-|&lt;code&gt;我喜欢{汉字}&lt;/code&gt;|我喜欢{汉字}|
-|&lt;code&gt;我喜欢{|hànzì}&lt;/code&gt;|我喜欢&lt;ruby&gt;&lt;rt&gt;hànzì&lt;/rt&gt;&lt;/ruby&gt;|
-|&lt;code&gt;我喜欢{|}&lt;/code&gt;|我喜欢|&lt;/p&gt;
+&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Code&lt;/th&gt;&lt;th&gt;Expected Result&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;
+&lt;tr&gt;&lt;td&gt;`我喜欢{汉字&lt;/td&gt;&lt;td&gt;hàn&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;`我喜欢{汉字&lt;/td&gt;&lt;td&gt;hànzì}`&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;`我喜欢{汉字&lt;/td&gt;&lt;td&gt;}`&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;`我喜欢{汉字&lt;/td&gt;&lt;td&gt;hà&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;code&gt;我喜欢{汉字}&lt;/code&gt;&lt;/td&gt;&lt;td&gt;我喜欢{汉字}&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;`我喜欢{&lt;/td&gt;&lt;td&gt;hànzì}`&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;`我喜欢{&lt;/td&gt;&lt;td&gt;}`&lt;/td&gt;&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
 &lt;p&gt;The rest of the post explains how to handle those custom markdown expressions to produce the &lt;code&gt;ruby&lt;/code&gt; elements without writing them by hand. I implemented this code in &lt;strong&gt;Haskell&lt;/strong&gt; language as a &lt;strong&gt;Pandoc&lt;/strong&gt; filter, because this blog uses &lt;strong&gt;Hakyll&lt;/strong&gt; static generator which uses the &lt;strong&gt;Pandoc&lt;/strong&gt; library.&lt;/p&gt;
 &lt;h2&gt;Document representation&lt;/h2&gt;
 &lt;p&gt;Pandoc uses a custom datatype to represent in an uniform way the multiple types of contents it can handle. That type is called &lt;code&gt;Pandoc&lt;/code&gt; and basically contains a tree-like structure formed by different nodes. We are interested in processing only nodes which are specific instances of the &lt;code&gt;Inline&lt;/code&gt; type, because they contain the pieces of text we want to modify.&lt;/p&gt;
@@ -2109,18 +2514,18 @@ end
   toBuffer :: ToBuffer (HostFormat f) f
 &lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;El único propósito de esta clase, es proveer una representación para el tipo de los elementos del buffer en el host, así como una conversión de la representación del host a la del buffer. Aquí hay algunos ejemplos de instancias de esta clase, y sus representaciones en el host:&lt;/p&gt;
-&lt;p&gt;| f         | HostFormat f                 |
-|:----------|:-----------------------------|
-| B Float   | Float                        |
-| B Int32   | Int32                        |
-| B Word32  | Word32                       |
-| B2 Float  | V2 Float                     |
-| B2 Int32  | V2 Int32                     |
-| B2 Word32 | V2 Word32                    |
-| B2 Int16  | V2 Int16                     |
-| B2 Word16 | V2 Word16                    |
-| (a, b)    | (HostFormat a, HostFormat b) |
-| V2 a      | V2 (HostFormat a)            |&lt;/p&gt;
+&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th style=&quot;text-align: left&quot;&gt;f&lt;/th&gt;&lt;th style=&quot;text-align: left&quot;&gt;HostFormat f&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;
+&lt;tr&gt;&lt;td style=&quot;text-align: left&quot;&gt;B Float&lt;/td&gt;&lt;td style=&quot;text-align: left&quot;&gt;Float&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td style=&quot;text-align: left&quot;&gt;B Int32&lt;/td&gt;&lt;td style=&quot;text-align: left&quot;&gt;Int32&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td style=&quot;text-align: left&quot;&gt;B Word32&lt;/td&gt;&lt;td style=&quot;text-align: left&quot;&gt;Word32&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td style=&quot;text-align: left&quot;&gt;B2 Float&lt;/td&gt;&lt;td style=&quot;text-align: left&quot;&gt;V2 Float&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td style=&quot;text-align: left&quot;&gt;B2 Int32&lt;/td&gt;&lt;td style=&quot;text-align: left&quot;&gt;V2 Int32&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td style=&quot;text-align: left&quot;&gt;B2 Word32&lt;/td&gt;&lt;td style=&quot;text-align: left&quot;&gt;V2 Word32&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td style=&quot;text-align: left&quot;&gt;B2 Int16&lt;/td&gt;&lt;td style=&quot;text-align: left&quot;&gt;V2 Int16&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td style=&quot;text-align: left&quot;&gt;B2 Word16&lt;/td&gt;&lt;td style=&quot;text-align: left&quot;&gt;V2 Word16&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td style=&quot;text-align: left&quot;&gt;(a, b)&lt;/td&gt;&lt;td style=&quot;text-align: left&quot;&gt;(HostFormat a, HostFormat b)&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td style=&quot;text-align: left&quot;&gt;V2 a&lt;/td&gt;&lt;td style=&quot;text-align: left&quot;&gt;V2 (HostFormat a)&lt;/td&gt;&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
 &lt;p&gt;Hay muchas más instancias, incluyendo &lt;code&gt;B3&lt;/code&gt;, &lt;code&gt;B4&lt;/code&gt; y tuplas mas grandes. Mira la lista completa &lt;a href=&quot;https://hackage.haskell.org/package/GPipe-2.0.1/docs/Graphics-GPipe-Buffer.html#t:BufferFormat&quot;&gt;en hackage&lt;/a&gt;.&lt;/p&gt;
 &lt;p&gt;Un &lt;code&gt;Float&lt;/code&gt; en el host se convertirá &lt;code&gt;B Float&lt;/code&gt; en el &lt;code&gt;Buffer&lt;/code&gt;. &lt;code&gt;B a&lt;/code&gt; es un tipo opaco de cual no puedes inspeccionar su valor o hacer ningún calculo, por ej. no hay instancia de &lt;code&gt;Num&lt;/code&gt; para &lt;code&gt;B Float&lt;/code&gt;. Para &lt;code&gt;Buffer&lt;/code&gt; no se expone una manera de aplicar funciones en sus elementos de ninguna manera (por ej. &lt;code&gt;Buffer&lt;/code&gt; no posee instancia del typeclass &lt;code&gt;Functor&lt;/code&gt;), pero vamos a crear pronto un &lt;code&gt;VertexArray&lt;/code&gt; a partir de nuestro &lt;code&gt;Buffer&lt;/code&gt; y entonces será distinto.&lt;/p&gt;
 &lt;p&gt;GPipe también define los tipos &lt;code&gt;B2 a&lt;/code&gt;, &lt;code&gt;B3 a&lt;/code&gt; y &lt;code&gt;B4 a&lt;/code&gt;. Para un conjunto selecto de &lt;code&gt;a&lt;/code&gt;, &lt;code&gt;B2 a&lt;/code&gt; es la representación en el buffer de un &lt;code&gt;V2 a&lt;/code&gt; en el host. &lt;code&gt;V2 a&lt;/code&gt; es también una instancia de &lt;code&gt;BufferFormat&lt;/code&gt; con &lt;code&gt;V2 (HostFormat a)&lt;/code&gt; como representación en el host, lo cual significa que tanto &lt;code&gt;V2 (B Float)&lt;/code&gt; como &lt;code&gt;B2 Float&lt;/code&gt; tienen la misma representación en el host: &lt;code&gt;V2 Float&lt;/code&gt;. Ambos formatos de buffer tienen el mismo tamaño e incluso disposición interna, pero &lt;code&gt;B2 Float&lt;/code&gt; puede ser usado de manera más eficiente como vamos a ver luego.  Por esta razón, siempre intenta usar tipos B en vez de tipos V en los buffers, cuando sea posible. Entonces, ¿porque hay una instancia de &lt;code&gt;BufferFormat&lt;/code&gt; para &lt;code&gt;V2&lt;/code&gt;? El caso de uso principal es el de las matrices, por ej. &lt;code&gt;V4 (V4 Float)&lt;/code&gt; en el host puede almacenarse en un buffer como &lt;code&gt;V4 (B4 Float)&lt;/code&gt;.&lt;/p&gt;

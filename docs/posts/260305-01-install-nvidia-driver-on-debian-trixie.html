@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8"/> 
+        <title>(λblog.rainbyte) - Install NVIDIA driver on Debian Trixie</title>
+        <link rel="stylesheet" type="text/css" href="/css/default.css?v=" />
+        <link rel="stylesheet" type="text/css" href="/css/highlight.css?v=" />
+    </head>
+    <body>
+        <header>
+            <div id="logo">
+                <a href="/">(λblog.rainbyte)</a>
+            </div>
+            <nav id="navigation">
+                <a href="/">Home</a>
+                <a href="/about.html">About</a>
+                <a href="/cheatsheet.html">Cheatsheet</a>
+                <a href="/posts.html">Archive</a>
+                <a href="/atom.xml">Feed</a>
+            </nav>
+        </header>
+
+        <section id="content">
+            <h1>Install NVIDIA driver on Debian Trixie</h1>
+            <div class="info">
+    Posted on 2026-03-05 01:56:00
+    
+        by rainbyte
+    
+</div>
+
+<div class="info">
+    
+        Tags:&nbsp;<a title="All pages tagged 'cuda'." href="/tags/cuda.html">cuda</a>&nbsp;<a title="All pages tagged 'debian'." href="/tags/debian.html">debian</a>&nbsp;<a title="All pages tagged 'hardware'." href="/tags/hardware.html">hardware</a>&nbsp;<a title="All pages tagged 'kernel'." href="/tags/kernel.html">kernel</a>&nbsp;<a title="All pages tagged 'linux'." href="/tags/linux.html">linux</a>&nbsp;<a title="All pages tagged 'nvidia'." href="/tags/nvidia.html">nvidia</a>
+    
+</div>
+
+<p>I needed to install NVIDIA driver 590 on Debian 13 (Trixie) because vLLM and
+Llama.cpp will require CUDA 13.1, but the Debian repo's driver 550 only provides
+CUDA 12.4.</p>
+<p>So this guide covers two installation methods:</p>
+<ul>
+<li>Debian repo
+<ul>
+<li>simpler management</li>
+<li>officially supported</li>
+<li>limited to CUDA 12.4</li>
+</ul>
+</li>
+<li>NVIDIA repo
+<ul>
+<li>provides CUDA 13.1 with driver 590</li>
+<li>recommended for LLM engines</li>
+</ul>
+</li>
+</ul>
+<h2>TLDR</h2>
+<p>Choose the appropriate method:</p>
+<table><thead><tr><th style="text-align: left">Requirement</th><th style="text-align: left">Method to be used</th></tr></thead><tbody>
+<tr><td style="text-align: left">CUDA 12.4 (driver 550)</td><td style="text-align: left">Debian repo method</td></tr>
+<tr><td style="text-align: left">CUDA 13.1 (driver 590)</td><td style="text-align: left">NVIDIA repo method</td></tr>
+</tbody></table>
+<p>Both methods will require:</p>
+<ul>
+<li>Removing old packages</li>
+<li>Installing headers</li>
+<li>Rebooting when ready</li>
+</ul>
+<!-- more -->
+<h2>Debian repo method</h2>
+<p>This method is simpler and works well for most cases.</p>
+<p>For Debian 13 (Trixie) the steps are these:</p>
+<ol>
+<li>
+<p>Remove old NVIDIA packages</p>
+<pre><code class="language-sh">sudo apt purge "*nvidia*"
+sudo apt autoremove
+</code></pre>
+</li>
+<li>
+<p>To enable packages edit <code>/etc/apt/sources.list</code> and ensure each repo
+includes these attributes:</p>
+<pre><code class="language-txt">contrib non-free non-free-firmware
+</code></pre>
+</li>
+<li>
+<p>Update package definitions</p>
+<pre><code class="language-sh">sudo apt update
+</code></pre>
+</li>
+<li>
+<p>Install essential dependencies</p>
+<pre><code class="language-sh">sudo apt install linux-headers-amd64 firmware-misc-nonfree
+</code></pre>
+<p>Note: firmware is explicit because <code>nvidia-driver</code> package doesn't
+indicate a dependency on it</p>
+</li>
+<li>
+<p>Install NVIDIA driver</p>
+<pre><code class="language-sh">sudo apt install nvidia-driver nvidia-kernel-dkms
+</code></pre>
+</li>
+<li>
+<p>Reboot</p>
+<pre><code class="language-sh">sudo reboot
+</code></pre>
+</li>
+<li>
+<p>Install CUDA dependencies (optional)</p>
+<pre><code class="language-sh">sudo apt install nvidia-cuda-toolkit nvidia-cuda-dev nvidia-cuda-toolkit-gcc
+</code></pre>
+<p>Note: CUDA is required by LLM engines like vLLM and Llama.cpp</p>
+</li>
+</ol>
+<h2>NVIDIA repo method</h2>
+<p>The NVIDIA repository provides a <a href="https://docs.nvidia.com/datacenter/tesla/driver-installation-guide/debian.html">compute-only installation</a> that avoids X11
+dependencies, making it ideal for headless servers like mine.</p>
+<p><strong>Warning</strong>: all steps must be fully completed before rebooting, otherwise
+the system will be left unbootable without the driver!</p>
+<ol>
+<li>
+<p>Remove old NVIDIA packages</p>
+<pre><code class="language-sh">sudo apt purge "*nvidia*"
+sudo apt autoremove
+</code></pre>
+</li>
+<li>
+<p>Add NVIDIA repository</p>
+<pre><code class="language-sh">wget https://developer.download.nvidia.com/compute/cuda/repos/debian13/sbsa/cuda-keyring_1.1-1_all.deb
+dpkg -i cuda-keyring_1.1-1_all.deb
+sudo apt update
+</code></pre>
+</li>
+<li>
+<p>Install compute-only system dependencies</p>
+<pre><code class="language-sh">sudo apt install nvidia-driver-cuda nvidia-kernel-open-dkms
+</code></pre>
+<p>Note: this is a headless installation that avoids X11 dependencies!</p>
+</li>
+<li>
+<p>Reboot system</p>
+<pre><code class="language-sh">sudo reboot
+</code></pre>
+</li>
+<li>
+<p>Verify driver is there by running vendor provided cli tool:</p>
+<pre><code class="language-sh">nvidia-smi
+</code></pre>
+<p>Note: this shows power usage, temperature, etc</p>
+</li>
+<li>
+<p>Install CUDA dependencies (optional)</p>
+<pre><code class="language-sh">sudo apt install cuda-compiler-13-1 cuda-libraries-13-1
+sudo apt install cuda-libraries-dev-13-1
+</code></pre>
+<p>Note: CUDA is required by LLM engines like vLLM and Llama.cpp</p>
+</li>
+<li>
+<p>Add CUDA bin directory to <code>PATH</code> env var with one of these commands:</p>
+<ul>
+<li>
+<p>fish shell:</p>
+<pre><code class="language-sh">fish_add_path /usr/local/cuda/bin
+</code></pre>
+</li>
+<li>
+<p>bash shell:</p>
+<pre><code class="language-sh">export PATH=${PATH}:/usr/local/cuda/bin
+</code></pre>
+</li>
+</ul>
+</li>
+<li>
+<p>Provide <code>cicc</code> and <code>nvcc</code> at <code>/usr/bin</code></p>
+<pre><code class="language-sh">sudo update-alternatives \
+    --install /usr/bin/nvcc nvcc /usr/local/cuda/bin/nvcc 100
+sudo update-alternatives \
+    --install /usr/bin/cicc cicc /usr/local/cuda/nvvm/bin/nvcc 100
+</code></pre>
+</li>
+<li>
+<p>Check CUDA <code>nvcc</code> availability</p>
+<pre><code class="language-sh">nvcc --version
+</code></pre>
+</li>
+<li>
+<p>Export environment variables</p>
+<pre><code class="language-sh"># Using the symlink as base ensures minor updates are still compatible
+export CUDA_HOME="/usr/local/cuda"
+
+# Add NVCC compiler and CICC internal tools to PATH
+export PATH="$CUDA_HOME/bin:$CUDA_HOME/nvvm/bin:$PATH"
+
+# Some headers are nested, like cub/cub.cuh
+export CPATH="$CUDA_HOME/include/cccl:$CUDA_HOME/include:$CPATH"
+
+# Linking paths: stubs provides -lcuda when building without a live GPU
+export LIBRARY_PATH="$CUDA_HOME/lib64:$CUDA_HOME/lib64/stubs:$LIBRARY_PATH"
+
+# Runtime paths: omit stubs here to avoid runtime conflicts
+export LD_LIBRARY_PATH="$CUDA_HOME/lib64:$LD_LIBRARY_PATH"
+</code></pre>
+<p>Note: this will be required by LLM engines to recognize CUDA libraries</p>
+</li>
+<li>
+<p>To make these permanent, add them to shell's config file:</p>
+<ul>
+<li>fish: <code>~/.config/fish/config.fish</code></li>
+<li>bash: <code>~/.bashrc</code></li>
+</ul>
+</li>
+</ol>
+<h2>Conclusion</h2>
+<p>Follow NVIDIA repo instructions if you need CUDA 13.1 and 590 driver, otherwise
+just use the drivers provided in Debian official repo.</p>
+<p><code>Happy hacking!</code> 🐱</p>
+
+
+
+<div id="gh-comments-list">
+    Comments are not open for this post yet.
+</div>
+
+        </section>
+        <footer>
+            Site proudly generated with Rust
+        </footer>
+    </body>
+</html>

@@ -53,18 +53,18 @@
   toBuffer :: ToBuffer (HostFormat f) f
 </code></pre>
 <p>El único propósito de esta clase, es proveer una representación para el tipo de los elementos del buffer en el host, así como una conversión de la representación del host a la del buffer. Aquí hay algunos ejemplos de instancias de esta clase, y sus representaciones en el host:</p>
-<p>| f         | HostFormat f                 |
-|:----------|:-----------------------------|
-| B Float   | Float                        |
-| B Int32   | Int32                        |
-| B Word32  | Word32                       |
-| B2 Float  | V2 Float                     |
-| B2 Int32  | V2 Int32                     |
-| B2 Word32 | V2 Word32                    |
-| B2 Int16  | V2 Int16                     |
-| B2 Word16 | V2 Word16                    |
-| (a, b)    | (HostFormat a, HostFormat b) |
-| V2 a      | V2 (HostFormat a)            |</p>
+<table><thead><tr><th style="text-align: left">f</th><th style="text-align: left">HostFormat f</th></tr></thead><tbody>
+<tr><td style="text-align: left">B Float</td><td style="text-align: left">Float</td></tr>
+<tr><td style="text-align: left">B Int32</td><td style="text-align: left">Int32</td></tr>
+<tr><td style="text-align: left">B Word32</td><td style="text-align: left">Word32</td></tr>
+<tr><td style="text-align: left">B2 Float</td><td style="text-align: left">V2 Float</td></tr>
+<tr><td style="text-align: left">B2 Int32</td><td style="text-align: left">V2 Int32</td></tr>
+<tr><td style="text-align: left">B2 Word32</td><td style="text-align: left">V2 Word32</td></tr>
+<tr><td style="text-align: left">B2 Int16</td><td style="text-align: left">V2 Int16</td></tr>
+<tr><td style="text-align: left">B2 Word16</td><td style="text-align: left">V2 Word16</td></tr>
+<tr><td style="text-align: left">(a, b)</td><td style="text-align: left">(HostFormat a, HostFormat b)</td></tr>
+<tr><td style="text-align: left">V2 a</td><td style="text-align: left">V2 (HostFormat a)</td></tr>
+</tbody></table>
 <p>Hay muchas más instancias, incluyendo <code>B3</code>, <code>B4</code> y tuplas mas grandes. Mira la lista completa <a href="https://hackage.haskell.org/package/GPipe-2.0.1/docs/Graphics-GPipe-Buffer.html#t:BufferFormat">en hackage</a>.</p>
 <p>Un <code>Float</code> en el host se convertirá <code>B Float</code> en el <code>Buffer</code>. <code>B a</code> es un tipo opaco de cual no puedes inspeccionar su valor o hacer ningún calculo, por ej. no hay instancia de <code>Num</code> para <code>B Float</code>. Para <code>Buffer</code> no se expone una manera de aplicar funciones en sus elementos de ninguna manera (por ej. <code>Buffer</code> no posee instancia del typeclass <code>Functor</code>), pero vamos a crear pronto un <code>VertexArray</code> a partir de nuestro <code>Buffer</code> y entonces será distinto.</p>
 <p>GPipe también define los tipos <code>B2 a</code>, <code>B3 a</code> y <code>B4 a</code>. Para un conjunto selecto de <code>a</code>, <code>B2 a</code> es la representación en el buffer de un <code>V2 a</code> en el host. <code>V2 a</code> es también una instancia de <code>BufferFormat</code> con <code>V2 (HostFormat a)</code> como representación en el host, lo cual significa que tanto <code>V2 (B Float)</code> como <code>B2 Float</code> tienen la misma representación en el host: <code>V2 Float</code>. Ambos formatos de buffer tienen el mismo tamaño e incluso disposición interna, pero <code>B2 Float</code> puede ser usado de manera más eficiente como vamos a ver luego.  Por esta razón, siempre intenta usar tipos B en vez de tipos V en los buffers, cuando sea posible. Entonces, ¿porque hay una instancia de <code>BufferFormat</code> para <code>V2</code>? El caso de uso principal es el de las matrices, por ej. <code>V4 (V4 Float)</code> en el host puede almacenarse en un buffer como <code>V4 (B4 Float)</code>.</p>
